@@ -48,6 +48,7 @@
 - [ShowBestPokemon](#showbestpokemon)
 - [Telegram Task](#telegram-task)
 - [CompleteTutorial](#completetutorial)
+- [Use Incense](#use-incense)
 
 #Configuration files
 
@@ -1059,5 +1060,38 @@ Available `team` :
 		"nickname": "PokemonGoF",
 		"team": 2
 	}
+}
+```
+
+## UseIncense
+[[back to top](#table-of-contents)]
+
+### Description
+[[back to top](#table-of-contents)]
+
+Uses incense when its available. No pause, when one ends the next one starts.
+
+
+### Options
+[[back to top](#table-of-contents)]
+
+* `use_incense` : `Default: False`.
+* `use_order` : `Default: {}`. The order in which the incenses are used.
+
+
+### Sample configuration
+[[back to top](#table-of-contents)]
+```json
+{
+  "type": "UseIncense",
+  "config": {
+    "use_incense": false,
+    "use_order": [
+      "ordinary",
+      "spicy",
+      "cool",
+      "floral"
+    ]
+  }
 }
 ```
