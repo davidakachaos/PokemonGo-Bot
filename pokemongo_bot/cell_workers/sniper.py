@@ -408,9 +408,10 @@ class Sniper(BaseTask):
         return result
 
     def _get_family_ids(self, pokemon):
-        family_id = inventory.pokemons().data_for(pokemon["pokemon_id"]).first_evolution_id
-        ids = [family_id]
-        ids += inventory.pokemons().data_for(family_id).next_evolutions_all[:]
+        # Only get the next evos!!
+        # No need for a Dodrio if we are missing a Doduo!
+        ids = [pokemon["pokemon_id"]]
+        ids += inventory.pokemons().data_for(pokemon["pokemon_id"]).next_evolutions_all[:]
 
         return ids
     
