@@ -200,6 +200,7 @@ class Sniper(BaseTask):
         self.special_iv = self.config.get('special_iv', 100)
         self.bullets = self.config.get('bullets', 1)
         self.homing_shots = self.config.get('homing_shots', True)
+        self.snipe_not_in_pokedex = self.config.get('snipe_not_in_pokedex', True)
         self.mode = self.config.get('mode', SniperMode.DEFAULT)
         self.order = self.config.get('order', SniperOrderMode.DEFAULT)
         self.catch_list = self.config.get('catch', {})
@@ -254,6 +255,15 @@ class Sniper(BaseTask):
         if all_balls_count < self.MIN_BALLS_FOR_CATCHING:
             self._trace('Not enought balls left! Skipping...')
             return False
+
+        if self.snipe_not_in_pokedex:
+            for fid in self._get_family_ids(pokemon):
+                if not inventory.pokedex().seen(fid):
+                    not_seen = Pokemons.name_for(fid)
+                    # We don't have this pokemon yet! Snipe it!
+                    self._log('{0} is not in the pokedex, therefore {1} a valid target'.format(not_seen, pokemon.get('pokemon_name')))
+                    # I return True here to stop the next filtering
+                    return True
 
         # Skip if not in catch list, not a VIP and/or IV sucks (if any)
         if pokemon.get('pokemon_name', '') not in self.catch_list:
@@ -397,6 +407,13 @@ class Sniper(BaseTask):
 
         return result
 
+    def _get_family_ids(self, pokemon):
+        family_id = inventory.pokemons().data_for(pokemon["pokemon_id"]).first_evolution_id
+        ids = [family_id]
+        ids += inventory.pokemons().data_for(family_id).next_evolutions_all[:]
+
+        return ids
+    
     def _get_pokemons_from_social(self):
         if not hasattr(self.bot, 'mqtt_pokemon_list') or not self.bot.mqtt_pokemon_list:
             return []

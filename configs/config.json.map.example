@@ -457,6 +457,7 @@
 			"mode": "social",
 			"bullets": 3,
 			"homing_shots": true,
+      "snipe_not_in_pokedex": true,
 			"special_iv": 100,
 			"order": ["missing", "iv", "priority", "vip", "expiration_timestamp_ms"],
 			"sources": [

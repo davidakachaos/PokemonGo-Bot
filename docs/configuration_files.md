@@ -82,7 +82,7 @@ Document the configuration options of PokemonGo-Bot.
 | `action_wait_min`   | 1       | Set the minimum time setting for anti-ban time randomizer
 | `action_wait_max`   | 4       | Set the maximum time setting for anti-ban time randomizer
 | `debug`            | false   | Let the default value here except if you are developer                                                                                                                                      |
-| `test`             | false   | Let the default value here except if you are developer                                                                                                                                      |  
+| `test`             | false   | Let the default value here except if you are developer                                                                                                                                      |
 | `walker_limit_output`             | false   | Reduce output from walker functions                                                                                                                                      |                                                                                       |
 | `location_cache`   | true    | Bot will start at last known location if you do not have location set in the config                                                                                                         |
 | `distance_unit`    | km      | Set the unit to display distance in (km for kilometers, mi for miles, ft for feet)                                                                                                          |
@@ -161,7 +161,7 @@ The behaviors of the bot are configured via the `tasks` key in the `config.json`
 ### Task Options:
 [[back to top](#table-of-contents)]
 * CatchPokemon
-  * `enabled`: Default "true" | Enable/Disable the task. 
+  * `enabled`: Default "true" | Enable/Disable the task.
   * `treat_unseen_as_vip`: Default `"true"` | If true, treat new to dex as VIP
   * `catch_visible_pokemon`:  Default "true" | If enabled, attempts to catch "visible" pokemon that are reachable
   * `catch_lured_pokemon`: Default "true" | If enabled, attempts to catch "lured" pokemon that are reachable
@@ -194,7 +194,7 @@ The behaviors of the bot are configured via the `tasks` key in the `config.json`
   * `evolve_all`: Default `NONE` | Depreciated. Please use evolve_list and donot_evolve_list
   * `evolve_list`: Default `all` | Set to all, or specifiy different pokemon seperated by a comma
   * `donot_evolve_list`: Default `none` | Pokemon seperated by comma, will be ignored from evolve_list
-  * `min_evolve_speed`: Default `25` | Minimum seconds to wait between each evolution 
+  * `min_evolve_speed`: Default `25` | Minimum seconds to wait between each evolution
   * `max_evolve_speed`: Default `30` | Maximum seconds to wait between each evolution
   * `min_pokemon_to_be_evolved`: Default: `1` | Minimum pokemon to be evolved
   * `use_lucky_egg`: Default: `False` | Only evolve if we can use a lucky egg
@@ -210,8 +210,8 @@ The behaviors of the bot are configured via the `tasks` key in the `config.json`
 * IncubateEggs
   * `enable`: Disable or enable this task.
   * `longer_eggs_first`: Depreciated
-  * `infinite_longer_eggs_first`:  Default `true` | Prioritize longer eggs in perminent incubators. 
-  * `breakable_longer_eggs_first`:  Default `false` | Prioritize longer eggs in breakable incubators. 
+  * `infinite_longer_eggs_first`:  Default `true` | Prioritize longer eggs in perminent incubators.
+  * `breakable_longer_eggs_first`:  Default `false` | Prioritize longer eggs in breakable incubators.
   * `min_interval`: Default `120` | Minimum number of seconds between incubation updates.
   * `infinite`: Default `[2,5,10]` | Types of eggs to be incubated in permanent incubators.
   * `breakable`: Default `[2,5,10]` | Types of eggs to be incubated in breakable incubators.
@@ -266,10 +266,10 @@ The behaviors of the bot are configured via the `tasks` key in the `config.json`
   * `level_limit`: Default `-1` | Bot will stop automatically after trainer reaches level limit. Set to `-1` to disable.
 * All tasks
   * `log_interval`: Default `0` | Minimum seconds interval before next log of the current task will be printed
-  
-  
+
+
 ### Specify a custom log_interval for specific task
-  
+
   ```
     {
       "type": "MoveToFort",
@@ -282,9 +282,9 @@ The behaviors of the bot are configured via the `tasks` key in the `config.json`
       }
     }
    ```
-      
+
    Result:
-    
+
     2016-08-26 11:43:18,199 [MoveToFort] [INFO] [moving_to_fort] Moving towards pokestop ... - 0.07km
     2016-08-26 11:43:23,641 [MoveToFort] [INFO] [moving_to_fort] Moving towards pokestop ... - 0.06km
     2016-08-26 11:43:28,198 [MoveToFort] [INFO] [moving_to_fort] Moving towards pokestop ... - 0.05km
@@ -748,6 +748,7 @@ This task is an upgrade version of the MoveToMapPokemon task. It will fetch poke
    - `missing` - Order by the target's pokedex missing status.
    - `threshold` - Order by the threshold you have specified in the `catch` list.
    - `expiration_timestamp_ms` - Order by the expiration time.
+* `snipe_not_in_pokedex``- This will ensure that pokemon not in the pokedex will be sniped. (default: true)
 * `sources` - This should map a JSON param values from a given url. For example: different urls will provide different JSON response formats. If a param does not exist, you DO NOT have to specify it! Map bellow their corresponding values:
    - `iv` - The JSON param that corresponds to the pokemon IV. Only certain sources provide this info. NOTE: social does not provide this info!
    - `id` - The JSON param that corresponds to the pokemon ID. (required)
@@ -847,7 +848,7 @@ forts for a limited time.
 * `path_file` - "/path/to/your/path.json"
 
 ### Notice
-If you use the `single` `path_mode` without e.g. a `MoveToFort` task, your bot 
+If you use the `single` `path_mode` without e.g. a `MoveToFort` task, your bot
 with /not move at all/ when the path is finished. Similarly, if you use the
 `loiter` option in your json path file without a following `MoveToFort` or
 similar task, your bot will not move during the loitering period. Please
