@@ -28,6 +28,10 @@ class CatchPokemon(BaseTask):
     [Item.ITEM_POKE_BALL, Item.ITEM_GREAT_BALL, Item.ITEM_ULTRA_BALL]]) <= 0:
             return WorkerResult.ERROR
 
+        # If catching is disabled, don't run
+        if hasattr(self.bot, "catch_resume_at") and self.bot.catch_disabled:
+            return WorkerResult.SUCCESS
+
         # check if we have already loaded a list
         if len(self.pokemon) <= 0:
             # load available pokemon by config settings
@@ -35,8 +39,8 @@ class CatchPokemon(BaseTask):
                 self.get_visible_pokemon()
             if self.config.get('catch_lured_pokemon', True):
                 self.get_lured_pokemon()
-            if self._have_applied_incense() and self.config.get('catch_incensed_pokemon', True):
-                self.get_incensed_pokemon()
+            # if self._have_applied_incense() and self.config.get('catch_incensed_pokemon', True):
+                # self.get_incensed_pokemon()
 
             random.shuffle(self.pokemon)
 

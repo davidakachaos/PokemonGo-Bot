@@ -42,6 +42,9 @@ class CampFort(BaseTask):
         if not self.enabled:
             return WorkerResult.SUCCESS
 
+        if hasattr(self.bot, "catch_disabled") and self.bot.catch_disabled:
+            return WorkerResult.SUCCESS
+
         now = time.time()
 
         if now < self.move_until:

@@ -65,6 +65,9 @@ class MoveToFort(BaseTask):
             lng
         )
 
+	if dist > 10000:
+             return WorkerResult.ERROR
+
         moving = noised_dist > Constants.MAX_DISTANCE_FORT_IS_REACHABLE if self.bot.config.replicate_gps_xy_noise else dist > Constants.MAX_DISTANCE_FORT_IS_REACHABLE
 
         if moving:

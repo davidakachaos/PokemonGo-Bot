@@ -26,7 +26,7 @@ class CatchLimiter(BaseTask):
 
         now = datetime.now()
         balls_on_hand = self.get_pokeball_count()
-        
+
         # If resume time has passed, resume catching tasks
         if self.bot.catch_disabled and now >= self.bot.catch_resume_at:
             if balls_on_hand > self.min_balls:
@@ -46,7 +46,7 @@ class CatchLimiter(BaseTask):
                 formatted="Balls on hand ({}) has reached threshold {}. Disabling catch tasks until {} or balls on hand > threshold (whichever is later).".
                     format(balls_on_hand, self.min_balls, self.bot.catch_resume_at.strftime("%H:%M:%S"))
             )
-            
+
         return WorkerResult.SUCCESS
 
     def get_pokeball_count(self):

@@ -230,6 +230,13 @@ class Sniper(BaseTask):
     MAX_CACHE_LIST_SIZE = 300
 
     def __init__(self, bot, config):
+        # Load CatchPokemon config if no config supplied  
+        if not catch_config:
+            for value in bot.workers:
+                if hasattr(value, 'catch_pokemon'):
+                    catch_config = value.config
+                    
+        self.catch_config = catch_config
         super(Sniper, self).__init__(bot, config)
 
     def initialize(self):
@@ -290,6 +297,14 @@ class Sniper(BaseTask):
         # Skip if expired (cast milliseconds to seconds for comparision)
         if (pokemon.get('expiration_timestamp_ms', 0) or pokemon.get('last_modified_timestamp_ms', 0)) / 1000 < time.time():
             self._trace('{} is expired! Skipping...'.format(pokemon.get('pokemon_name')))
+            return False
+
+        # Skip if enough candies
+        candies = self.inventory.candies().get(pokemon.pokemon_id).quantity
+        pokemon_config = catch_config.get(pokemon.name, catch_config.get('any'))
+        threshold = pokemon_config.get('candy_threshold', -1)
+        if threshold > 0 and candies >= threshold: # Got enough candies
+            self._trace('Got enough candies for {}! Skipping').format(pokemon.get('pokemon_name')))
             return False
 
         # Skip if not enought balls. Sniping wastes a lot of balls. Theres no point to let user decide this amount

@@ -37,6 +37,12 @@ class PokemonHunter(BaseTask):
         if not self.enabled:
             return WorkerResult.SUCCESS
 
+        # If catching is disabled, don't run
+        if hasattr(self.bot, "catch_disabled") and self.bot.catch_disabled:
+            self.destination = None
+            self.last_cell_id = None
+            return WorkerResult.SUCCESS
+
         if self.get_pokeball_count() <= 0:
             self.destination = None
             self.last_cell_id = None
