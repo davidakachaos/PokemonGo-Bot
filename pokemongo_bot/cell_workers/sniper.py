@@ -301,7 +301,7 @@ class Sniper(BaseTask):
 
         # Skip if enough candies
         candies = self.inventory.candies().get(pokemon.pokemon_id).quantity
-        pokemon_config = catch_config.get(pokemon.name, catch_config.get('any'))
+        pokemon_config = self.catch_config.get(pokemon.name, catch_config.get('any'))
         threshold = pokemon_config.get('candy_threshold', -1)
         if threshold > 0 and candies >= threshold: # Got enough candies
             self._trace('Got enough candies for {}! Skipping'.format(pokemon.get('pokemon_name')))
