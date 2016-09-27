@@ -304,7 +304,7 @@ class Sniper(BaseTask):
         pokemon_config = catch_config.get(pokemon.name, catch_config.get('any'))
         threshold = pokemon_config.get('candy_threshold', -1)
         if threshold > 0 and candies >= threshold: # Got enough candies
-            self._trace('Got enough candies for {}! Skipping').format(pokemon.get('pokemon_name')))
+            self._trace('Got enough candies for {}! Skipping'.format(pokemon.get('pokemon_name')))
             return False
 
         # Skip if not enought balls. Sniping wastes a lot of balls. Theres no point to let user decide this amount
