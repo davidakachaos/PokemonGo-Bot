@@ -27,6 +27,9 @@ class CatchPokemon(BaseTask):
         if sum([inventory.items().get(ball.value).count for ball in
     [Item.ITEM_POKE_BALL, Item.ITEM_GREAT_BALL, Item.ITEM_ULTRA_BALL]]) <= 0:
             return WorkerResult.ERROR
+        # We're not allowed to catch, so skip detecting.
+        if self.bot.catch_disabled:
+            return WorkerResult.SUCCESS
 
         # check if we have already loaded a list
         if len(self.pokemon) <= 0:
