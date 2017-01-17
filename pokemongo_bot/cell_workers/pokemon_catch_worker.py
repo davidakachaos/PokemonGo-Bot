@@ -25,8 +25,9 @@ CATCH_STATUS_MISSED = 4
 ENCOUNTER_STATUS_SUCCESS = 1
 ENCOUNTER_STATUS_NOT_IN_RANGE = 5
 ENCOUNTER_STATUS_POKEMON_INVENTORY_FULL = 7
-INCENSE_ENCOUNTER_AVAILABLE = 1
-INCENSE_ENCOUNTER_NOT_AVAILABLE = 2
+
+# INCENSE_ENCOUNTER_AVAILABLE = 1
+# INCENSE_ENCOUNTER_NOT_AVAILABLE = 2
 
 ITEM_POKEBALL = 1
 ITEM_GREATBALL = 2
@@ -49,12 +50,12 @@ class PokemonCatchWorker(BaseTask):
     def __init__(self, pokemon, bot, config={}):
         self.pokemon = pokemon
 
-        # Load CatchPokemon config if no config supplied  
+        # Load CatchPokemon config if no config supplied
         if not config:
             for value in bot.workers:
                 if hasattr(value, 'catch_pokemon'):
                     config = value.config
-                    
+
         self.config = config
 
         super(PokemonCatchWorker, self).__init__(bot, config)
@@ -121,11 +122,9 @@ class PokemonCatchWorker(BaseTask):
 
         responses = response_dict['responses']
         response = responses[self.response_key]
-        if response[self.response_status_key] != ENCOUNTER_STATUS_SUCCESS and response[self.response_status_key] != INCENSE_ENCOUNTER_AVAILABLE:
+        if response[self.response_status_key] != ENCOUNTER_STATUS_SUCCESS:
             if response[self.response_status_key] == ENCOUNTER_STATUS_NOT_IN_RANGE:
                 self.emit_event('pokemon_not_in_range', formatted='Pokemon went out of range!')
-            elif response[self.response_status_key] == INCENSE_ENCOUNTER_NOT_AVAILABLE:
-                self.emit_event('pokemon_not_in_range', formatted='Incensed Pokemon went out of range!')
             elif response[self.response_status_key] == ENCOUNTER_STATUS_POKEMON_INVENTORY_FULL:
                 self.emit_event('pokemon_inventory_full', formatted='Your Pokemon inventory is full! Could not catch!')
             return WorkerResult.ERROR
@@ -138,7 +137,7 @@ class PokemonCatchWorker(BaseTask):
         is_vip = self._is_vip_pokemon(pokemon)
 
         # skip ignored pokemon
-        if (not self._should_catch_pokemon(pokemon) and not is_vip) or self.bot.catch_disabled:            
+        if (not self._should_catch_pokemon(pokemon) and not is_vip) or self.bot.catch_disabled:
             if not hasattr(self.bot,'skipped_pokemon'):
                 self.bot.skipped_pokemon = []
 
@@ -247,14 +246,14 @@ class PokemonCatchWorker(BaseTask):
                 player_latitude=player_latitude,
                 player_longitude=player_longitude
             )
-        else:
-            # This must be a incensed mon
-            self.response_key = 'INCENSE_ENCOUNTER'
-            self.response_status_key = 'result'
-            request.incense_encounter(
-                encounter_id=encounter_id,
-                encounter_location=self.pokemon['encounter_location']
-            )
+        # else:
+        #     # This must be a incensed mon
+        #     self.response_key = 'INCENSE_ENCOUNTER'
+        #     self.response_status_key = 'result'
+        #     request.incense_encounter(
+        #         encounter_id=encounter_id,
+        #         encounter_location=self.pokemon['encounter_location']
+        #     )
         return request.call()
 
     ############################################################################

@@ -1,10 +1,14 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 from __future__ import absolute_import
 import time
+from datetime import datetime, timedelta
 from pokemongo_bot.base_task import BaseTask
 from pokemongo_bot.worker_result import WorkerResult
 from pokemongo_bot.item_list import Item
 from pokemongo_bot import inventory
 from .utils import format_time
+from random import randint
 
 
 class UseIncense(BaseTask):
@@ -12,8 +16,12 @@ class UseIncense(BaseTask):
 
     def initialize(self):
         self.start_time = 0
+        self.check_time = 0
         self.use_incense = self.config.get('use_incense', False)
-        self.use_order = self.config.get('use_order', {})
+        self.use_order = self.config.get('use_order', ['Ordinary'])
+        self.min_wait = self.config.get('min_wait', 15)
+        self.max_wait = self.config.get('max_wait', 360)
+        if not hasattr(self.bot, "incense_resume_at"): self.bot.incense_resume_at = datetime.now()
         self._update_inventory()
 
         self.types = {
@@ -21,16 +29,19 @@ class UseIncense(BaseTask):
           402: "Spicy",
           403: "Cool",
           404: "Floral"
-      }
+        }
 
     def _have_applied_incense(self):
         for applied_item in inventory.applied_items().all():
             if applied_item.expire_ms > 0:
-                    mins = format_time(applied_item.expire_ms * 1000)
-                    self.logger.info("Not applying incense, currently active: %s, %s minutes remaining", applied_item.item.name, mins)
-                    return False
+                mins = format_time(applied_item.expire_ms * 1000)
+                self.logger.info("Not applying incense, currently active: %s, %s minutes remaining", applied_item.item.name, mins)
+                return True
             else:
-                    return True
+                # Incense active
+                return False
+        # No insence active
+        return False
 
     def _get_type(self):
         for order in self.use_order:
@@ -58,6 +69,9 @@ class UseIncense(BaseTask):
         if self._have_applied_incense:
             return False
 
+        if self.bot.catch_disabled:
+            return False
+
         if not self.use_incense:
             return False
 
@@ -69,19 +83,33 @@ class UseIncense(BaseTask):
             return True
 
     def work(self):
+        now = datetime.now()
+        # If resume time has not passed
+        if now <= self.bot.incense_resume_at:
+            return WorkerResult.SUCCESS
+
         if self._should_run():
-            self.start_time = time.time()
+            self.start_time = now
             response_dict = self.bot.api.use_incense(incense_type=self._get_type())
             result = response_dict.get('responses', {}).get('USE_INCENSE', {}).get('result', 0)
             if result is 1:
+                # at least wait until the incense is expired
+                self.wait_until = now + timedelta(minutes = 30)
+                # Add a random amount of minutes to wait at least before trying it again.
+                wait = randint(self.min_wait, self.max_wait)
+                self.bot.incense_resume_at = self.wait_until + timedelta(minutes = wait)
+
                 self.emit_event(
                     'use_incense',
-                    formatted="Using {type} incense. {incense_count} incense remaining",
+                    formatted="Using {type} incense. {incense_count} incense remaining, expires at {expires}. Will not use incense again before {wait_until}",
                     data={
+                        'expires': self.wait_until.strftime("%H:%M:%S"),
+                        'wait_until': self.bot.incense_resume_at.strftime("%H:%M:%S"),
                         'type': self.types.get(type, 'Unknown'),
                         'incense_count': inventory.items().get(type).count
                     }
                 )
+
             else:
                 self.emit_event(
                     'use_incense',
