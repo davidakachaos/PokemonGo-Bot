@@ -32,6 +32,7 @@ class DropMonInGym(BaseTask):
         # 10 seconds from current time
         self.next_update = datetime.now() + timedelta(0, 10)
         self.order_by = self.config.get('order_by', 'cp')
+        self.recent_gyms = []
 
     def should_run(self):
         # Check if we have any Pokemons and are level > 5
@@ -49,12 +50,16 @@ class DropMonInGym(BaseTask):
             return WorkerResult.SUCCESS
 
         gym = gyms[0]
+        # Ignore after done for 5 mins
+        self.bot.fort_timeouts[gym["id"]] = (time.time() + 300) * 1000
 
         lat = gym['latitude']
         lng = gym['longitude']
 
         details = fort_details(self.bot, gym['id'], lat, lng)
         fort_name = details.get('name', 'Unknown')
+
+        self.logger.info("Checking Gym: %s", fort_name)
 
         response_dict = self.bot.api.get_gym_details(
             gym_id=gym['id'],
@@ -104,9 +109,10 @@ class DropMonInGym(BaseTask):
                     # there is room!
                     drop_pokemon_in_gym(gym)
                 else:
+                    self.logger.info("Gym full. %s of %s pokemons!", len(memberships), max_mons)
                     self.emit_event(
                         'gym_full',
-                        formatted=("Gym is full (%s points / %s pokemons). can not add Pokemon!" % points, len(memberships) ) ,
+                        formatted=("Gym is full. Can not add Pokemon!" ) ,
                         data={'gym_id': gym['id']}
                     )
             #
@@ -142,33 +148,42 @@ class DropMonInGym(BaseTask):
                 return WorkerResult.SUCCESS
             elif result == 2:
                 #ERROR_ALREADY_HAS_POKEMON_ON_FORT
+                self.logger.info('ERROR_ALREADY_HAS_POKEMON_ON_FORT')
                 return WorkerResult.ERROR
             elif result == 3:
                 #ERROR_OPPOSING_TEAM_OWNS_FORT
+                self.logger.info('ERROR_OPPOSING_TEAM_OWNS_FORT')
                 return WorkerResult.ERROR
             elif result == 4:
                 #ERROR_FORT_IS_FULL
+                self.logger.info('ERROR_FORT_IS_FULL')
                 return WorkerResult.ERROR
             elif result == 5:
                 #ERROR_NOT_IN_RANGE
+                self.logger.info('ERROR_NOT_IN_RANGE')
                 return WorkerResult.ERROR
             elif result == 6:
                 #ERROR_PLAYER_HAS_NO_TEAM
+                self.logger.info('ERROR_PLAYER_HAS_NO_TEAM')
                 return WorkerResult.ERROR
             elif result == 7:
                 #ERROR_POKEMON_NOT_FULL_HP
+                self.logger.info('ERROR_POKEMON_NOT_FULL_HP')
                 return WorkerResult.ERROR
             elif result == 8:
                 #ERROR_PLAYER_BELOW_MINIMUM_LEVEL
+                self.logger.info('ERROR_PLAYER_BELOW_MINIMUM_LEVEL')
                 return WorkerResult.ERROR
             elif result == 8:
                 #ERROR_POKEMON_IS_BUDDY
+                self.logger.info('ERROR_POKEMON_IS_BUDDY')
                 return WorkerResult.ERROR
 
     def get_gyms_in_range(self):
         gyms = self.bot.get_gyms(order_by_distance=True)
         team = self.bot.player_data['team']
         gyms = filter(lambda fort: fort["owned_by_team"] == team, gyms)
+        gyms = filter(lambda fort: fort["id"] not in self.bot.recent_forts, gyms)
 
         if self.bot.config.replicate_gps_xy_noise:
             gyms = filter(lambda fort: distance(
