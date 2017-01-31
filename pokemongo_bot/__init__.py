@@ -320,6 +320,27 @@ class PokemonGoBot(object):
             )
         )
 
+        # gym stuff
+        self.event_manager.register_event(
+            'deployed_pokemon',
+            parameters=(
+                'gym_id',
+                'pokemon_id'
+            )
+        )
+        self.event_manager.register_event(
+            'gym_debug',
+            parameters=(
+                'gym_id'
+            )
+        )
+        self.event_manager.register_event(
+            'gym_full',
+            parameters=(
+                'gym_id'
+            )
+        )
+
         # fort stuff
         self.event_manager.register_event(
             'spun_fort',
@@ -1477,6 +1498,21 @@ class PokemonGoBot(object):
             ))
 
         return forts
+
+    def get_gyms(self, order_by_distance=False):
+        gyms = [fort
+                 for fort in self.cell['forts']
+                 if 'latitude' in fort and 'gym_points' in fort]
+
+        if order_by_distance:
+            gyms.sort(key=lambda x: distance(
+                self.position[0],
+                self.position[1],
+                x['latitude'],
+                x['longitude']
+            ))
+
+        return gyms
 
     def get_map_objects(self, lat, lng, timestamp, cellid):
         if time.time() - self.last_time_map_object < self.config.map_object_cache_time:
