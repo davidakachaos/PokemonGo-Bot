@@ -52,6 +52,7 @@ class DropMonInGym(BaseTask):
         gym = gyms[0]
         # Ignore after done for 5 mins
         self.bot.fort_timeouts[gym["id"]] = (time.time() + 300) * 1000
+        self.bot.recent_forts = self.bot.recent_forts[1:] + [gym['id']]
 
         lat = gym['latitude']
         lng = gym['longitude']
@@ -107,7 +108,7 @@ class DropMonInGym(BaseTask):
                 # Is there room?
                 if len(memberships) < max_mons:
                     # there is room!
-                    drop_pokemon_in_gym(gym)
+                    self.drop_pokemon_in_gym(gym)
                 else:
                     self.logger.info("Gym full. %s of %s pokemons!", len(memberships), max_mons)
                     self.emit_event(
