@@ -90,6 +90,12 @@ class PokemonHunter(BaseTask):
 
                 return WorkerResult.SUCCESS
 
+        if self.config_lock_on_target:
+            if self.bot.hunter_locked_target == None:
+                self.logger.info("We found a %(name)s while hunting. Aborting the current search.", self.destination)
+                self.destination = None
+                return WorkerResult.SUCCESS
+
         if any(self.destination["encounter_id"] == p["encounter_id"] for p in self.bot.cell["catchable_pokemons"] + self.bot.cell["wild_pokemons"]):
             self.destination = None
         elif self.walker.step():

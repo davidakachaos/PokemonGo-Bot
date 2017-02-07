@@ -79,6 +79,9 @@ class CatchPokemon(BaseTask):
                         return WorkerResult.RUNNING
                     else:
                         return WorkerResult.SUCCESS
+                else:
+                    self.logger.info("While on the hunt, I found a {}! Will try to catch...".format(bounty_name))
+                    self.bot.hunter_locked_target = None
 
             try:
                 if self.catch_pokemon(mon_to_catch) == WorkerResult.ERROR:
