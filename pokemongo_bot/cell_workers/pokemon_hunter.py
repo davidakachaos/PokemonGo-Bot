@@ -27,6 +27,8 @@ class PokemonHunter(BaseTask):
         self.search_points = []
         self.lost_counter = 0
         self.no_log_until = 0
+        self.distance_to_target = 0
+        self.distance_counter = 0
 
         self.config_max_distance = self.config.get("max_distance", 2000)
         self.config_hunt_all = self.config.get("hunt_all", False)
@@ -65,6 +67,11 @@ class PokemonHunter(BaseTask):
                 self.lost_counter = 0
 
                 self.logger.info("New destination at %(distance).2f meters: %(name)s", self.destination)
+                if self._is_vip_pokemon(self.destination):
+                    self.logger.info("This is a VIP Pokemon! Starting hunt.")
+                if self._is_needed_pokedex(self.destination):
+                    self.logger.info("I need a %(name)s to complete the Pokedex! I have %(candies)s candies.", self.destination)
+
                 self.no_log_until = now + 60
                 if self.config_lock_on_target:
                     self.bot.hunter_locked_target = self.destination
@@ -102,10 +109,24 @@ class PokemonHunter(BaseTask):
                 self.search_points = self.search_points[1:] + self.search_points[:1]
         elif self.no_log_until < now:
             distance = great_circle(self.bot.position, (self.walker.dest_lat, self.walker.dest_lng)).meters
-            self.logger.info("Moving to destination at %s meters: %s", round(distance, 2), self.destination["name"])
-            if self.config_lock_on_target:
-                self.bot.hunter_locked_target = self.destination
-            self.no_log_until = now + 30
+            if round(distance, 2) == self.distance_to_target:
+                # Hmm, not moved toward the Pokemon?
+                self.distance_counter += 1
+            else:
+                self.distance_counter = 0
+
+            if self.distance_counter >= 3:
+                self.logger.info("I cant move toward %(name)s! Aborting search.", self.destination)
+                self.bot.hunter_locked_target = None
+                self.destination = None
+                return WorkerResult.ERROR
+            else:
+                self.logger.info("Moving to destination at %s meters: %s", round(distance, 2), self.destination["name"])
+                # record the new distance...
+                self.distance_to_target = round(distance, 2)
+                if self.config_lock_on_target:
+                    self.bot.hunter_locked_target = self.destination
+                self.no_log_until = now + 30
 
         return WorkerResult.RUNNING
 
@@ -120,10 +141,21 @@ class PokemonHunter(BaseTask):
         for pokemon in pokemons:
             pokemon["distance"] = self.get_distance(self.bot.position, p)
             pokemon["name"] = inventory.pokemons().name_for(pokemon["pokemon_id"])
+            pokemon["candies"] = inventory.candies().get(pokemon["pokemon_id"]).quantity
 
         pokemons.sort(key=lambda p: p["distance"])
 
         return pokemons
+
+    def _is_vip_pokemon(self, pokemon):
+        # having just a name present in the list makes them vip
+        # Not seen pokemons also will become vip if it's not disabled in config
+        if self.bot.config.vips.get(pokemon["name"]) == {}:
+            return True
+
+    def _is_needed_pokedex(self, pokemon):
+        if any(not inventory.pokedex().seen(fid) for fid in self.get_family_ids(pokemon)):
+            return True
 
     def get_worth_pokemons(self, pokemons):
         if self.config_hunt_all:

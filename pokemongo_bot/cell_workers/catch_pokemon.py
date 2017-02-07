@@ -64,8 +64,9 @@ class CatchPokemon(BaseTask):
         if num_pokemon > 0:
             # try catching
             mon_to_catch = self.pokemon.pop()
-
-            if hasattr(self.bot,"hunter_locked_target") and self.bot.hunter_locked_target != None:
+            is_vip = self._is_vip_pokemon(mon_to_catch['pokemon_id'])
+            # Always catch VIP Pokemons!
+            if is_vip == False and hasattr(self.bot,"hunter_locked_target") and self.bot.hunter_locked_target != None:
                 bounty = self.bot.hunter_locked_target
                 mon_name = Pokemons.name_for(mon_to_catch['pokemon_id'])
                 bounty_name = Pokemons.name_for(bounty['pokemon_id'])
@@ -91,6 +92,13 @@ class CatchPokemon(BaseTask):
 
         # all pokemon have been processed
         return WorkerResult.SUCCESS
+
+    def _is_vip_pokemon(self, pokemon_id):
+        # having just a name present in the list makes them vip
+        # Not seen pokemons also will become vip if it's not disabled in config
+        if self.bot.config.vips.get(Pokemons.name_for(pokemon_id)) == {} or (not inventory.pokedex().seen(pokemon_id)):
+            return True
+        return False
 
     def get_visible_pokemon(self):
         pokemon_to_catch = []
