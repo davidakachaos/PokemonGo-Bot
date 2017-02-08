@@ -66,22 +66,25 @@ class CatchPokemon(BaseTask):
             mon_to_catch = self.pokemon.pop()
             is_vip = self._is_vip_pokemon(mon_to_catch['pokemon_id'])
             # Always catch VIP Pokemons!
-            if is_vip == False and hasattr(self.bot,"hunter_locked_target") and self.bot.hunter_locked_target != None:
+            if hasattr(self.bot,"hunter_locked_target") and self.bot.hunter_locked_target != None:
                 bounty = self.bot.hunter_locked_target
                 mon_name = Pokemons.name_for(mon_to_catch['pokemon_id'])
                 bounty_name = Pokemons.name_for(bounty['pokemon_id'])
 
-                if mon_name != bounty_name:
+                if mon_name != bounty_name and is_vip == False:
                     # This is not the Pokémon you are looking for...
                     self.logger.info("[Hunter locked a {}] Ignoring a {}".format(bounty_name, mon_name))
                     self.ignored_while_looking.append(mon_to_catch['pokemon_id'])
+
                     if num_pokemon > 1:
                         return WorkerResult.RUNNING
                     else:
                         return WorkerResult.SUCCESS
                 else:
-                    self.logger.info("While on the hunt, I found a {}! Will try to catch...".format(bounty_name))
-                    self.bot.hunter_locked_target = None
+                    # We have found a vip or our target...
+                    self.logger.info("While on the hunt for {}, I found a {}! Will try to catch...".format(bounty_name, mon_name))
+                    if bounty_name == mon_name:
+                        self.bot.hunter_locked_target = None
 
             try:
                 if self.catch_pokemon(mon_to_catch) == WorkerResult.ERROR:
@@ -101,6 +104,11 @@ class CatchPokemon(BaseTask):
         # Not seen pokemons also will become vip if it's not disabled in config
         if self.bot.config.vips.get(Pokemons.name_for(pokemon_id)) == {} or (not inventory.pokedex().seen(pokemon_id)):
             return True
+        # If we need the Pokemon for an evolution, catch it.
+        if any(not inventory.pokedex().seen(fid) for fid in self.get_family_ids(pokemon_id)):
+            self.logger.info('Found a Pokemon whoes family is not yet complete in Pokedex!')
+            return True
+
         return False
 
     def get_visible_pokemon(self):
@@ -136,6 +144,10 @@ class CatchPokemon(BaseTask):
                 self.add_pokemon(pokemon)
 
     def get_lured_pokemon(self):
+        if hasattr(self.bot,"hunter_locked_target") and self.bot.hunter_locked_target != None:
+            # self.logger.info('Hunting Pokemon, ignoring lured Pokemons')
+            return True
+
         forts_in_range = []
         forts = self.bot.get_forts(order_by_distance=False)
 
@@ -218,3 +230,10 @@ class CatchPokemon(BaseTask):
                 self.logger.info("")
                 return False
         return False
+
+    def get_family_ids(self, pokemon_id):
+        family_id = inventory.pokemons().data_for(pokemon_id).first_evolution_id
+        ids = [family_id]
+        ids += inventory.pokemons().data_for(family_id).next_evolutions_all[:]
+
+        return ids
