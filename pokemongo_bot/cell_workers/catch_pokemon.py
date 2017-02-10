@@ -64,7 +64,7 @@ class CatchPokemon(BaseTask):
         if num_pokemon > 0:
             # try catching
             mon_to_catch = self.pokemon.pop()
-            is_vip = self._is_vip_pokemon(mon_to_catch['pokemon_id'])
+            is_vip = hasattr(mon_to_catch, "pokemon_id") and self._is_vip_pokemon(mon_to_catch['pokemon_id'])
             # Always catch VIP Pokemons!
             if hasattr(self.bot,"hunter_locked_target") and self.bot.hunter_locked_target != None:
                 bounty = self.bot.hunter_locked_target
@@ -82,10 +82,11 @@ class CatchPokemon(BaseTask):
                         return WorkerResult.SUCCESS
                 else:
                     # We have found a vip or our target...
-                    self.logger.info("While on the hunt for {}, I found a {}! Will try to catch...".format(bounty_name, mon_name))
                     if bounty_name == mon_name:
+                        self.logger.info("Found my target {}!".format(bounty_name))
                         self.bot.hunter_locked_target = None
-
+                    else:
+                        self.logger.info("While on the hunt for {}, I found a {}! I need that Pokemon! Will try to catch...".format(bounty_name, mon_name))
             try:
                 if self.catch_pokemon(mon_to_catch) == WorkerResult.ERROR:
                     # give up incase something went wrong in our catch worker (ran out of balls, etc)
@@ -102,11 +103,13 @@ class CatchPokemon(BaseTask):
     def _is_vip_pokemon(self, pokemon_id):
         # having just a name present in the list makes them vip
         # Not seen pokemons also will become vip if it's not disabled in config
-        if self.bot.config.vips.get(Pokemons.name_for(pokemon_id)) == {} or (not inventory.pokedex().seen(pokemon_id)):
+        if self.bot.config.vips.get(Pokemons.name_for(pokemon_id)) == {}:
+            return True
+        if (not inventory.pokedex().seen(pokemon_id)):
             return True
         # If we need the Pokemon for an evolution, catch it.
         if any(not inventory.pokedex().seen(fid) for fid in self.get_family_ids(pokemon_id)):
-            self.logger.info('Found a Pokemon whoes family is not yet complete in Pokedex!')
+            # self.logger.info('Found a Pokemon whoes family is not yet complete in Pokedex!')
             return True
 
         return False

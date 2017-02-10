@@ -13,6 +13,8 @@ from pokemongo_bot.walkers.polyline_walker import PolylineWalker
 from pokemongo_bot.walkers.step_walker import StepWalker
 from pokemongo_bot.worker_result import WorkerResult
 
+import random
+
 
 class PokemonHunter(BaseTask):
     SUPPORTED_TASK_API_VERSION = 1
@@ -29,6 +31,7 @@ class PokemonHunter(BaseTask):
         self.no_log_until = 0
         self.distance_to_target = 0
         self.distance_counter = 0
+        self.recent_tries = []
 
         self.config_max_distance = self.config.get("max_distance", 2000)
         self.config_hunt_all = self.config.get("hunt_all", False)
@@ -41,6 +44,9 @@ class PokemonHunter(BaseTask):
     def work(self):
         if not self.enabled:
             return WorkerResult.SUCCESS
+
+        if not self.config_lock_on_target:
+            self.bot.hunter_locked_target = None
 
         if self.bot.catch_disabled:
             if not hasattr(self.bot,"hunter_disabled_global_warning") or \
@@ -58,11 +64,15 @@ class PokemonHunter(BaseTask):
 
         now = time.time()
         pokemons = self.get_nearby_pokemons()
+        pokemons = filter(lambda x: x["pokemon_id"] not in self.recent_tries, pokemons)
 
         if self.destination is None:
             worth_pokemons = self.get_worth_pokemons(pokemons)
 
             if len(worth_pokemons) > 0:
+                # Pick a random target from the list
+                random.shuffle(worth_pokemons)
+                # Prevents the bot from looping the same Pokemon
                 self.destination = worth_pokemons[0]
                 self.lost_counter = 0
 
@@ -122,6 +132,11 @@ class PokemonHunter(BaseTask):
                 self.distance_counter = 0
 
             if self.distance_counter >= 3:
+                # Ignore last 3
+                if len(self.recent_tries) > 3:
+                    self.recent_tries.pop()
+
+                self.recent_tries.append(self.destination['pokemon_id'])
                 self.logger.info("I cant move toward %(name)s! Aborting search.", self.destination)
                 self.bot.hunter_locked_target = None
                 self.destination = None
@@ -160,6 +175,10 @@ class PokemonHunter(BaseTask):
             return True
 
     def _is_needed_pokedex(self, pokemon):
+        candies = inventory.candies().get(pokemon["pokemon_id"]).quantity
+        if candies > 150:
+            return False
+            # We have enough candies, pass on hunting this Pokemon
         if any(not inventory.pokedex().seen(fid) for fid in self.get_family_ids(pokemon)):
             return True
 
@@ -173,7 +192,7 @@ class PokemonHunter(BaseTask):
                 worth_pokemons += [p for p in pokemons if p["name"] in self.bot.config.vips]
 
             if self.config_hunt_pokedex:
-                worth_pokemons += [p for p in pokemons if (p not in worth_pokemons) and any(not inventory.pokedex().seen(fid) for fid in self.get_family_ids(p))]
+                worth_pokemons += [p for p in pokemons if (p not in worth_pokemons) and self._is_needed_pokedex(p)]
 
         worth_pokemons.sort(key=lambda p: inventory.candies().get(p["pokemon_id"]).quantity)
 
