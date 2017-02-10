@@ -60,7 +60,12 @@ class CatchPokemon(BaseTask):
                 # Reset the ignored list when no longer needed.
                 self.ignored_while_looking = []
 
+        if hasattr(self.bot, "skipped_pokemon"):
+            # Skip pokemon the catcher told us to ignore
+            self.pokemon = [ p for p in self.pokemon if p not in self.bot.skipped_pokemon ]
+
         num_pokemon = len(self.pokemon)
+
         if num_pokemon > 0:
             # try catching
             mon_to_catch = self.pokemon.pop()

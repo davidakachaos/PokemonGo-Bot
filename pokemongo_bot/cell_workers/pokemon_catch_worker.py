@@ -49,12 +49,12 @@ class PokemonCatchWorker(BaseTask):
     def __init__(self, pokemon, bot, config={}):
         self.pokemon = pokemon
 
-        # Load CatchPokemon config if no config supplied  
+        # Load CatchPokemon config if no config supplied
         if not config:
             for value in bot.workers:
                 if hasattr(value, 'catch_pokemon'):
                     config = value.config
-                    
+
         self.config = config
 
         super(PokemonCatchWorker, self).__init__(bot, config)
@@ -138,7 +138,7 @@ class PokemonCatchWorker(BaseTask):
         is_vip = self._is_vip_pokemon(pokemon)
 
         # skip ignored pokemon
-        if (not self._should_catch_pokemon(pokemon) and not is_vip) or self.bot.catch_disabled:            
+        if (not self._should_catch_pokemon(pokemon) and not is_vip) or self.bot.catch_disabled:
             if not hasattr(self.bot,'skipped_pokemon'):
                 self.bot.skipped_pokemon = []
 
@@ -359,6 +359,7 @@ class PokemonCatchWorker(BaseTask):
             return False
 
     def _should_catch_pokemon(self, pokemon):
+        # self.logger.info("Should catch pokemon? {}")
         return self._pokemon_matches_config(self.bot.config.catch, pokemon)
 
     def _is_vip_pokemon(self, pokemon):
