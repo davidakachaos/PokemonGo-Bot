@@ -88,8 +88,8 @@ class CatchPokemon(BaseTask):
                 else:
                     # We have found a vip or our target...
                     if bounty_name == mon_name:
-                        self.logger.info("Found my target {}!".format(bounty_name))
                         self.bot.hunter_locked_target = None
+                        self.logger.info("Found my target {}!".format(bounty_name))
                     else:
                         self.logger.info("While on the hunt for {}, I found a {}! I need that Pokemon! Will try to catch...".format(bounty_name, mon_name))
             try:
@@ -177,18 +177,19 @@ class CatchPokemon(BaseTask):
 
 
         for fort in forts_in_range:
-            if hasattr(self.bot, "skipped_pokemon"):
-                # Skip pokemon the catcher told us to ignore
-                for p in self.bot.skipped_pokemon:
-                    if p.encounter_id == encounter_id:
-                        # ignore this one, move on
-                        break
 
             details = fort_details(self.bot, fort_id=fort['id'],
                                   latitude=fort['latitude'],
                                   longitude=fort['longitude'])
             fort_name = details.get('name', 'Unknown')
             encounter_id = fort['lure_info']['encounter_id']
+
+            if hasattr(self.bot, "skipped_pokemon"):
+                # Skip pokemon the catcher told us to ignore
+                for p in self.bot.skipped_pokemon:
+                    if p.encounter_id == encounter_id:
+                        # ignore this one, move on
+                        break
 
             pokemon = {
                 'encounter_id': encounter_id,

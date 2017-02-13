@@ -112,7 +112,7 @@ class CampFort(BaseTask):
         elif self.walker.step():
             self.stay_until = now + self.config_camping_time
             self.emit_event("arrived_at_destination",
-                            formatted="Arrived at destination: {size} forts, {lured} lured".format(**self.cluster))
+                            formatted="Arrived at destination: {} forts, {} lured. Staying until {}".format(self.cluster.size, self.cluster.lured, self.stay_until.strftime("%H:%M:%S")))
         elif self.no_log_until < now:
             if self.cluster["lured"] == 0:
                 self.cluster = None

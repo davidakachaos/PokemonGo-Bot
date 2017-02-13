@@ -39,6 +39,7 @@ class PokemonHunter(BaseTask):
         self.config_hunt_pokedex = self.config.get("hunt_pokedex", True)
         # Lock on Target; ignore all other Pokémon until we found our target.
         self.config_lock_on_target = self.config.get("lock_on_target", False)
+        self.config_lock_vip_only = self.config.get("lock_vip_only", True)
         self.bot.hunter_locked_target = None
 
     def work(self):
@@ -79,12 +80,16 @@ class PokemonHunter(BaseTask):
                 self.logger.info("New destination at %(distance).2f meters: %(name)s", self.destination)
                 if self._is_vip_pokemon(self.destination):
                     self.logger.info("This is a VIP Pokemon! Starting hunt.")
+                    if self.config_lock_on_target:
+                        self.bot.hunter_locked_target = self.destination
                 if self._is_needed_pokedex(self.destination):
                     self.logger.info("I need a %(name)s to complete the Pokedex! I have %(candies)s candies.", self.destination)
+                    if self.config_lock_on_target and not self.config_lock_vip_only:
+                        self.bot.hunter_locked_target = self.destination
+                    else:
+                        self.bot.hunter_locked_target = None
 
                 self.no_log_until = now + 60
-                if self.config_lock_on_target:
-                    self.bot.hunter_locked_target = self.destination
 
                 if self.destination["s2_cell_id"] != self.search_cell_id:
                     self.search_points = self.get_search_points(self.destination["s2_cell_id"])
@@ -100,11 +105,15 @@ class PokemonHunter(BaseTask):
 
                 return WorkerResult.SUCCESS
 
-        if self.config_lock_on_target:
+        if self.config_lock_on_target and not self.config_lock_vip_only:
             if self.bot.hunter_locked_target == None:
                 self.logger.info("We found a %(name)s while hunting. Aborting the current search.", self.destination)
                 self.destination = None
                 return WorkerResult.SUCCESS
+        elif self.config_lock_on_target and self.config_lock_vip_only:
+            # Now can't reset the search because we don't know if we caught it yet.
+            pass
+
 
         if any(self.destination["encounter_id"] == p["encounter_id"] for p in self.bot.cell["catchable_pokemons"] + self.bot.cell["wild_pokemons"]):
             self.destination = None
@@ -145,7 +154,8 @@ class PokemonHunter(BaseTask):
                 self.logger.info("Moving to destination at %s meters: %s", round(distance, 2), self.destination["name"])
                 # record the new distance...
                 self.distance_to_target = round(distance, 2)
-                if self.config_lock_on_target:
+                if self.config_lock_on_target and not self.config_lock_vip_only:
+                    # Just to ensure we stay on target
                     self.bot.hunter_locked_target = self.destination
                 self.no_log_until = now + 30
 
