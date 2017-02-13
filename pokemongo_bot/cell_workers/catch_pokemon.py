@@ -177,6 +177,13 @@ class CatchPokemon(BaseTask):
 
 
         for fort in forts_in_range:
+            if hasattr(self.bot, "skipped_pokemon"):
+                # Skip pokemon the catcher told us to ignore
+                for p in self.bot.skipped_pokemon:
+                    if p.encounter_id == encounter_id:
+                        # ignore this one, move on
+                        break
+
             details = fort_details(self.bot, fort_id=fort['id'],
                                   latitude=fort['latitude'],
                                   longitude=fort['longitude'])
@@ -190,13 +197,22 @@ class CatchPokemon(BaseTask):
                 'latitude': fort['latitude'],
                 'longitude': fort['longitude']
             }
-
-            self.emit_event(
-                'lured_pokemon_found',
-                level='info',
-                formatted='Lured pokemon at fort {fort_name} ({fort_id})',
-                data=pokemon
-            )
+            if hasattr(self.bot, 'skipped_pokemon'):
+                if pokemon['encounter_id'] not in \
+                    map(lambda pokemon: pokemon.encounter_id, self.bot.skipped_pokemon):
+                    self.emit_event(
+                        'lured_pokemon_found',
+                        level='info',
+                        formatted='Lured pokemon at fort {fort_name} ({fort_id})',
+                        data=pokemon
+                    )
+            else:
+                self.emit_event(
+                    'lured_pokemon_found',
+                    level='info',
+                    formatted='Lured pokemon at fort {fort_name} ({fort_id})',
+                    data=pokemon
+                )
 
             self.add_pokemon(pokemon)
 
