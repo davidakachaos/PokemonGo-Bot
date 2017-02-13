@@ -28,6 +28,7 @@ class CampFort(BaseTask):
         self.clusters = None
         self.cluster = None
         self.walker = None
+        self.bot.camping_forts = False
         self.stay_until = 0
         self.move_until = 0
         self.no_log_until = 0
@@ -42,7 +43,7 @@ class CampFort(BaseTask):
         if not self.enabled:
             return WorkerResult.SUCCESS
 
-	if self.bot.catch_disabled:
+        if self.bot.catch_disabled:
             if not hasattr(self.bot,"camper_disabled_global_warning") or \
                         (hasattr(self.bot,"camper_disabled_global_warning") and not self.bot.camper_disabled_global_warning):
                 self.logger.info("All catching tasks are currently disabled until {}. Camping of lured forts disabled till then.".format(self.bot.catch_resume_at.strftime("%H:%M:%S")))
@@ -102,20 +103,25 @@ class CampFort(BaseTask):
         if self.stay_until >= now:
             if self.no_log_until < now:
                 self.no_log_until = now + LOG_TIME_INTERVAL
+                self.bot.camping_forts = True
                 self.emit_event("staying_at_destination",
                                 formatted='Staying at destination: {size} forts, {lured} lured'.format(**self.cluster))
+                self.logger.info("Staying until {}".format(self.stay_until.strftime("%H:%M:%S")))
 
             if self.cluster["lured"] == 0:
+                self.bot.camping_forts = False # Allow hunter to move
                 self.stay_until -= NO_LURED_TIME_MALUS
 
             self.walker.step(speed=0)
         elif self.walker.step():
             self.stay_until = now + self.config_camping_time
+            self.bot.camping_forts = True
             self.emit_event("arrived_at_destination",
-                            formatted="Arrived at destination: {} forts, {} lured. Staying until {}".format(self.cluster.size, self.cluster.lured, self.stay_until.strftime("%H:%M:%S")))
+                            formatted="Arrived at destination: {size} forts, {lured} lured.".format(**self.cluster))
         elif self.no_log_until < now:
             if self.cluster["lured"] == 0:
                 self.cluster = None
+                self.bot.camping_forts = False
                 self.emit_event("reset_destination",
                                 formatted="Lures gone! Resetting destination!")
             else:

@@ -39,11 +39,17 @@ class PokemonHunter(BaseTask):
         self.config_hunt_pokedex = self.config.get("hunt_pokedex", True)
         # Lock on Target; ignore all other Pokémon until we found our target.
         self.config_lock_on_target = self.config.get("lock_on_target", False)
+        # Lock only VIP Pokemon (unseen / VIP)
         self.config_lock_vip_only = self.config.get("lock_vip_only", True)
+        # If we are camping forts, disable hunting (see CampFort)
+        self.config_disabled_while_camping = self.config.get("disabled_while_camping", True)
         self.bot.hunter_locked_target = None
 
     def work(self):
         if not self.enabled:
+            return WorkerResult.SUCCESS
+
+        if self.config_disabled_while_camping and hasattr(self.bot, 'camping_forts') and self.bot.camping_forts:
             return WorkerResult.SUCCESS
 
         if not self.config_lock_on_target:
