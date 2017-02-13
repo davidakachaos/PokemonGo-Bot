@@ -32,6 +32,7 @@ class CampFort(BaseTask):
         self.stay_until = 0
         self.move_until = 0
         self.no_log_until = 0
+        self.no_recheck_cluster_until = 0
 
         self.config_max_distance = self.config.get("max_distance", 2000)
         self.config_min_forts_count = self.config.get("min_forts_count", 2)
@@ -84,7 +85,8 @@ class CampFort(BaseTask):
         if self.cluster is None:
             if self.clusters is None:
                 self.clusters = self.get_clusters(forts.values())
-
+            # self.logger.info("Forts: {}".format(len(forts)))
+            # self.logger.info("Checking {} clusters for availiblity....".format(len(self.clusters)))
             available_clusters = self.get_available_clusters(forts)
 
             if len(available_clusters) > 0:
@@ -92,10 +94,26 @@ class CampFort(BaseTask):
                 self.walker = PolylineWalker(self.bot, self.cluster["center"][0], self.cluster["center"][1])
 
                 self.no_log_until = now + LOG_TIME_INTERVAL
+                self.no_recheck_cluster_until = now + NO_BALLS_MOVING_TIME
                 self.emit_event("new_destination",
                                 formatted='New destination at {distance:.2f} meters: {size} forts, {lured} lured'.format(**self.cluster))
             else:
+                self.logger.info("No clusters found.")
+                self.cluster = None
+                self.clusters = None
                 return WorkerResult.SUCCESS
+
+        # We can check if the cluster is still the best
+        elif self.no_recheck_cluster_until < now:
+            self.clusters = self.get_clusters(forts.values())
+            available_clusters = self.get_available_clusters(forts)
+            if len(available_clusters) > 0:
+                if self.cluster is not available_clusters[0]:
+                    self.cluster = available_clusters[0]
+                    self.stay_until = 0
+                    self.emit_event("new_destination",
+                                    formatted='Better destination found at {distance:.2f} meters: {size} forts, {lured} lured'.format(**self.cluster))
+            self.no_recheck_cluster_until = now + NO_BALLS_MOVING_TIME
 
         self.update_cluster_distance(self.cluster)
         self.update_cluster_lured(self.cluster, forts)
@@ -106,7 +124,6 @@ class CampFort(BaseTask):
                 self.bot.camping_forts = True
                 self.emit_event("staying_at_destination",
                                 formatted='Staying at destination: {size} forts, {lured} lured'.format(**self.cluster))
-                self.logger.info("Staying until {}".format(self.stay_until.strftime("%H:%M:%S")))
 
             if self.cluster["lured"] == 0:
                 self.bot.camping_forts = False # Allow hunter to move
