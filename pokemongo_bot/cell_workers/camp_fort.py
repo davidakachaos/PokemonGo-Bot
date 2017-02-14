@@ -98,7 +98,7 @@ class CampFort(BaseTask):
                 self.emit_event("new_destination",
                                 formatted='New destination at {distance:.2f} meters: {size} forts, {lured} lured'.format(**self.cluster))
             else:
-                self.logger.info("No clusters found.")
+                # self.logger.info("No clusters found.")
                 self.cluster = None
                 self.clusters = None
                 return WorkerResult.SUCCESS
