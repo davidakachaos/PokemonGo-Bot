@@ -124,8 +124,8 @@ class PokemonCatchWorker(BaseTask):
         if response[self.response_status_key] != ENCOUNTER_STATUS_SUCCESS and response[self.response_status_key] != INCENSE_ENCOUNTER_AVAILABLE:
             if response[self.response_status_key] == ENCOUNTER_STATUS_NOT_IN_RANGE:
                 self.emit_event('pokemon_not_in_range', formatted='Pokemon went out of range!')
-            elif response[self.response_status_key] == INCENSE_ENCOUNTER_NOT_AVAILABLE:
-                self.emit_event('pokemon_not_in_range', formatted='Incensed Pokemon went out of range!')
+            # elif response[self.response_status_key] == INCENSE_ENCOUNTER_NOT_AVAILABLE:
+            #     self.emit_event('pokemon_not_in_range', formatted='Incensed Pokemon went out of range!')
             elif response[self.response_status_key] == ENCOUNTER_STATUS_POKEMON_INVENTORY_FULL:
                 self.emit_event('pokemon_inventory_full', formatted='Your Pokemon inventory is full! Could not catch!')
             return WorkerResult.ERROR
