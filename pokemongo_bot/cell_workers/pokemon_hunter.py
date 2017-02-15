@@ -219,6 +219,12 @@ class PokemonHunter(BaseTask):
         ids = [family_id]
         ids += inventory.pokemons().data_for(family_id).next_evolutions_all[:]
 
+        # Second generation Pokemon not yet in game!! Remove those from the list
+        # Last first generation number is 151!
+        # Second generation Pokemons only came from eggs!
+        # TODO: Remove this once the second generation goes live.
+        filter(lambda a: a < 152, ids)
+
         return ids
 
     def get_distance(self, location, pokemon):
