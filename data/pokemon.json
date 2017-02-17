@@ -1982,7 +1982,8 @@
         "Special Attack(s)":  [
                                   "Air Cutter",
                                   "Ominous Wind",
-                                  "Poison Fang"
+                                  "Poison Fang",
+                                  "Shadow Ball"
                               ],
         "BaseAttack":  161,
         "BaseDefense":  153,
@@ -8454,7 +8455,8 @@
                        ],
         "Fast Attack(s)":  [
                                "Tackle",
-                               "Water Gun"
+                               "Water Gun",
+                               "Mud Shot"
                            ],
         "Weight":  "8.5 kg",
         "Height":  "0.4 m",
@@ -8464,7 +8466,8 @@
                   },
         "Special Attack(s)":  [
                                   "Struggle",
-                                  "Mud Bomb"
+                                  "Mud Bomb",
+                                  "Dig"
                               ],
         "BaseAttack":  75,
         "BaseDefense":  75,
