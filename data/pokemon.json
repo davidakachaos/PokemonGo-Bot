@@ -7161,7 +7161,8 @@
                   },
         "Special Attack(s)":  [
                                   "Struggle",
-                                  "Dig"
+                                  "Dig",
+                                  "Brick Break"
                               ],
         "BaseAttack":  79,
         "BaseDefense":  77,
@@ -9368,7 +9369,8 @@
                       "FamilyID":  220
                   },
         "Special Attack(s)":  [
-                                  "Struggle"
+                                  "Struggle",
+                                  "Body Slam"
                               ],
         "BaseAttack":  90,
         "BaseDefense":  74,
