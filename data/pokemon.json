@@ -8054,7 +8054,8 @@
                   },
         "Special Attack(s)":  [
                                   "Struggle",
-                                  "Body Slam"
+                                  "Body Slam",
+                                  "Aqua Tail"
                               ],
         "BaseAttack":  37,
         "BaseDefense":  93,
@@ -9114,7 +9115,8 @@
                            "Steel"
                        ],
         "Fast Attack(s)":  [
-                               "Tackle"
+                               "Tackle",
+                               "Rock Throw"
                            ],
         "Weight":  "20.5 kg",
         "Height":  "0.6 m",
@@ -9123,7 +9125,8 @@
                       "FamilyID":  213
                   },
         "Special Attack(s)":  [
-                                  "Struggle"
+                                  "Struggle",
+                                  "Stone Edge"
                               ],
         "BaseAttack":  17,
         "BaseDefense":  396,
