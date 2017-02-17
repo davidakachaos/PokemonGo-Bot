@@ -225,16 +225,6 @@ class PokemonHunter(BaseTask):
         ids = [family_id]
         ids += inventory.pokemons().data_for(family_id).next_evolutions_all[:]
 
-        # Second generation Pokemon not yet in game!! Remove those from the list
-        # Last first generation number is 151!
-        # Second generation Pokemons only came from eggs!
-        # TODO: Remove this once the second generation goes live
-        if any(i > 152 for i in ids):
-            if pokemon["pokemon_id"] not in self.notified_second_gen:
-                self.notified_second_gen += [pokemon["pokemon_id"]]
-                self.logger.info("%(name)s has a Second Generation evolution. These are not yet in game. So I will not hunt it down.", pokemon)
-            ids = filter(lambda a: a < 152, ids)
-
         return ids
 
     def get_distance(self, location, pokemon):
