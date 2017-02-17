@@ -8453,7 +8453,8 @@
                            "Grass"
                        ],
         "Fast Attack(s)":  [
-                               "Tackle"
+                               "Tackle",
+                               "Water Gun"
                            ],
         "Weight":  "8.5 kg",
         "Height":  "0.4 m",
@@ -8462,7 +8463,8 @@
                       "FamilyID":  194
                   },
         "Special Attack(s)":  [
-                                  "Struggle"
+                                  "Struggle",
+                                  "Mud Bomb"
                               ],
         "BaseAttack":  75,
         "BaseDefense":  75,
@@ -9218,7 +9220,8 @@
                            "Fighting"
                        ],
         "Fast Attack(s)":  [
-                               "Tackle"
+                               "Tackle",
+                               "Scratch"
                            ],
         "Weight":  "8.8 kg",
         "Height":  "0.6 m",
@@ -9227,7 +9230,8 @@
                       "FamilyID":  216
                   },
         "Special Attack(s)":  [
-                                  "Struggle"
+                                  "Struggle",
+                                  "Cross Chop"
                               ],
         "BaseAttack":  142,
         "BaseDefense":  93,
@@ -9373,7 +9377,8 @@
                   },
         "Special Attack(s)":  [
                                   "Struggle",
-                                  "Body Slam"
+                                  "Body Slam",
+                                  "Rock Slide"
                               ],
         "BaseAttack":  90,
         "BaseDefense":  74,
