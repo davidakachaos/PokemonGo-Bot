@@ -5845,7 +5845,8 @@
                            "Grass"
                        ],
         "Fast Attack(s)":  [
-                               "Splash"
+                               "Splash",
+                               "Hidden Power"
                            ],
         "Weight":  "10.0 kg",
         "Height":  "0.9 m",
@@ -7159,7 +7160,8 @@
                       "FamilyID":  161
                   },
         "Special Attack(s)":  [
-                                  "Struggle"
+                                  "Struggle",
+                                  "Dig"
                               ],
         "BaseAttack":  79,
         "BaseDefense":  77,
@@ -7230,7 +7232,8 @@
                       "FamilyID":  163
                   },
         "Special Attack(s)":  [
-                                  "Struggle"
+                                  "Struggle",
+                                  "Aerial Ace"
                               ],
         "BaseAttack":  67,
         "BaseDefense":  101,
@@ -7308,7 +7311,9 @@
                       "FamilyID":  165
                   },
         "Special Attack(s)":  [
-                                  "Struggle"
+                                  "Struggle",
+                                  "Swift",
+                                  "Aerial Ace"
                               ],
         "BaseAttack":  72,
         "BaseDefense":  142,
@@ -7509,7 +7514,8 @@
                       "FamilyID":  170
                   },
         "Special Attack(s)":  [
-                                  "Struggle"
+                                  "Struggle",
+                                  "Water Pulse"
                               ],
         "BaseAttack":  106,
         "BaseDefense":  106,
@@ -7811,7 +7817,8 @@
                            "Dark"
                        ],
         "Fast Attack(s)":  [
-                               "Peck"
+                               "Peck",
+                               "Quick Attack"
                            ],
         "Weight":  "2.0 kg",
         "Height":  "0.2 m",
@@ -7820,7 +7827,9 @@
                       "FamilyID":  177
                   },
         "Special Attack(s)":  [
-                                  "Struggle"
+                                  "Struggle",
+                                  "Drill Peck",
+                                  "Psyshock"
                               ],
         "BaseAttack":  134,
         "BaseDefense":  89,
@@ -8033,7 +8042,8 @@
                            "Poison"
                        ],
         "Fast Attack(s)":  [
-                               "Tackle"
+                               "Tackle",
+                               "Bubble"
                            ],
         "Weight":  "8.5 kg",
         "Height":  "0.4 m",
@@ -8042,7 +8052,8 @@
                       "FamilyID":  183
                   },
         "Special Attack(s)":  [
-                                  "Struggle"
+                                  "Struggle",
+                                  "Body Slam"
                               ],
         "BaseAttack":  37,
         "BaseDefense":  93,
@@ -8191,7 +8202,8 @@
                       "FamilyID":  187
                   },
         "Special Attack(s)":  [
-                                  "Struggle"
+                                  "Struggle",
+                                  "Dazzling Gleam"
                               ],
         "BaseAttack":  67,
         "BaseDefense":  101,
@@ -8588,7 +8600,8 @@
                            "Fairy"
                        ],
         "Fast Attack(s)":  [
-                               "Tackle"
+                               "Tackle",
+                               "Peck"
                            ],
         "Weight":  "2.1 kg",
         "Height":  "0.5 m",
@@ -8597,7 +8610,8 @@
                       "FamilyID":  198
                   },
         "Special Attack(s)":  [
-                                  "Struggle"
+                                  "Struggle",
+                                  "Drill Peck"
                               ],
         "BaseAttack":  175,
         "BaseDefense":  87,
@@ -9266,7 +9280,8 @@
                            "Rock"
                        ],
         "Fast Attack(s)":  [
-                               "Tackle"
+                               "Tackle",
+                               "Rock Throw"
                            ],
         "Weight":  "35.0 kg",
         "Height":  "0.7 m",
@@ -9275,7 +9290,8 @@
                       "FamilyID":  218
                   },
         "Special Attack(s)":  [
-                                  "Struggle"
+                                  "Struggle",
+                                  "Rock Slide"
                               ],
         "BaseAttack":  118,
         "BaseDefense":  71,
@@ -9450,7 +9466,8 @@
                            "Grass"
                        ],
         "Fast Attack(s)":  [
-                               "Tackle"
+                               "Tackle",
+                               "Mud Shot"
                            ],
         "Weight":  "12.0 kg",
         "Height":  "0.6 m",
@@ -9459,7 +9476,8 @@
                       "FamilyID":  223
                   },
         "Special Attack(s)":  [
-                                  "Struggle"
+                                  "Struggle",
+                                  "Water Pulse"
                               ],
         "BaseAttack":  127,
         "BaseDefense":  69,
