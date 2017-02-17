@@ -45,6 +45,8 @@ class PokemonHunter(BaseTask):
         self.config_lock_vip_only = self.config.get("lock_vip_only", True)
         # If we are camping forts, disable hunting (see CampFort)
         self.config_disabled_while_camping = self.config.get("disabled_while_camping", True)
+        # Hunt unseens as VIP?
+        self.config_treat_unseen_as_vip = self.config.get("treat_unseen_as_vip", True)
         self.bot.hunter_locked_target = None
 
     def work(self):
@@ -193,7 +195,7 @@ class PokemonHunter(BaseTask):
     def _is_vip_pokemon(self, pokemon):
         # having just a name present in the list makes them vip
         # Not seen pokemons also will become vip if it's not disabled in config
-        if self.bot.config.vips.get(pokemon["name"]) == {}:
+        if self.bot.config.vips.get(pokemon["name"]) == {} or (self.config_treat_unseen_as_vip and not inventory.pokedex().seen(pokemon["pokemon_id"])):
             return True
 
     def _is_needed_pokedex(self, pokemon):
