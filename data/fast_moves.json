@@ -376,5 +376,14 @@
         "duration": 1230,
         "energy": 10,
         "dps": 0
+    },
+    {
+        "id": 231,
+        "name": "Hidden Power",
+        "type": "Normal",
+        "damage": 0,
+        "duration": 1230,
+        "energy": 10,
+        "dps": 0
     }
 ]
