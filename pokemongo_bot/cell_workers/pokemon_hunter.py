@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import time
+from collections import Counter
 
 from geopy.distance import great_circle
 from s2sphere import Cell, CellId, LatLng
@@ -105,7 +106,11 @@ class PokemonHunter(BaseTask):
                     self.search_points = self.search_points[1:] + self.search_points[:1]
             else:
                 if self.no_log_until < now:
-                    self.logger.info("There is no nearby pokemon worth hunting down [%s]", ", ".join(p["name"] for p in pokemons))
+                    # Show like "Pidgey (12), Zubat(2)"
+                    names = Counter((p["name"] for p in pokemons))
+                    sorted(names) # unicode object, no lower? , key=str.lower)
+
+                    self.logger.info("There is no nearby pokemon worth hunting down [%s]", ", ".join('{}({})'.format(key, val) for key, val in names.items()))
                     self.no_log_until = now + 120
 
                 self.last_cell_id = None
