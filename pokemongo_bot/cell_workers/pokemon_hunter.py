@@ -92,7 +92,7 @@ class PokemonHunter(BaseTask):
                     self.logger.info("This is a VIP Pokemon! Starting hunt.")
                     if self.config_lock_on_target:
                         self.bot.hunter_locked_target = self.destination
-                if self._is_needed_pokedex(self.destination):
+                elif self._is_needed_pokedex(self.destination):
                     self.logger.info("I need a %(name)s to complete the Pokedex! I have %(candies)s candies.", self.destination)
                     if self.config_lock_on_target and not self.config_lock_vip_only:
                         self.bot.hunter_locked_target = self.destination
