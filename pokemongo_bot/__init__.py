@@ -206,7 +206,7 @@ class PokemonGoBot(object):
         )
         self.event_manager.register_event('api_error')
         self.event_manager.register_event('config_error')
-        
+
         self.event_manager.register_event('captcha')
 
         self.event_manager.register_event('login_started')
@@ -987,7 +987,6 @@ class PokemonGoBot(object):
             level='info',
             formatted="Login successful."
         )
-        
         # Start of security, to get various API Versions from different sources
         # Get Official API
         link = "https://pgorelease.nianticlabs.com/plfe/version"
@@ -1067,14 +1066,14 @@ class PokemonGoBot(object):
                 formatted='Captcha Encountered, URL: {}'.format(captcha_url)
             )
             sys.exit(1)
-        
+
         self.event_manager.emit(
             'captcha',
             sender=self,
             level='info',
             formatted="Captcha Check Passed"
         )
-        
+
         self.heartbeat()
 
     def get_encryption_lib(self):
@@ -1237,6 +1236,13 @@ class PokemonGoBot(object):
             'Revive: ' + str(items_inventory.get(201).count) +
             ' | MaxRevive: ' + str(items_inventory.get(202).count))
             
+        self.logger.info(
+            'Sun Stone: ' + str(items_inventory.get(1101).count) +
+            ' | Kings Rock: ' + str(items_inventory.get(1102).count) +
+            ' | Metal Coat: ' + str(items_inventory.get(1103).count) +
+            ' | Dragon Scale: ' + str(items_inventory.get(1104).count) +
+            ' | Upgrade: ' + str(items_inventory.get(1105).count))
+
         self.logger.info(
             'Sun Stone: ' + str(items_inventory.get(1101).count) +
             ' | Kings Rock: ' + str(items_inventory.get(1102).count) +
