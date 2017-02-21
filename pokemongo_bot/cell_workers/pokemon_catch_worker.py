@@ -475,7 +475,18 @@ class PokemonCatchWorker(BaseTask):
         if self.min_ultraball_to_keep is not None and self.min_ultraball_to_keep >= 0:
             min_ultraball_to_keep = self.min_ultraball_to_keep
 
-        berry_id = ITEM_RAZZBERRY
+        # Razz makes catching easier
+        # Nanab makes the flying around less ITEM_NANAB_BERRY
+        nanab_count = self.inventory.get(ITEM_NANAB_BERRY).count
+        # Pinap doubles the amount of candies a pokemon drops ITEM_PINAP_BERRY
+        pinap_count = self.inventory.get(ITEM_PINAP_BERRY).count
+
+        razz_berry_id = ITEM_RAZZBERRY
+        #
+        # ITEM_WEPAR_BERRY Not yet in game?
+        #
+        candies = inventory.candies().get(pokemon.pokemon_id).quantity
+
         maximum_ball = ITEM_GREATBALL if ball_count[ITEM_ULTRABALL] < min_ultraball_to_keep else ITEM_ULTRABALL
         ideal_catch_rate_before_throw = self.vip_berry_threshold if is_vip else self.berry_threshold
 
@@ -501,10 +512,23 @@ class PokemonCatchWorker(BaseTask):
             # check if we've got berries to spare
             berries_to_spare = berry_count > 0 if is_vip else berry_count > num_next_balls + 30
 
+            # If we have never seen this pokemon before, use a Pinap
+            if inventory.pokedex().seen(pokemon.pokemon_id) == False or candies == 0:
+                if pinab_count > 0:
+                    new_catch_rate_by_ball = self._use_berry(ITEM_PINAP_BERRY, pinap_count, encounter_id, catch_rate_by_ball, current_ball)
+                    self.inventory.get(ITEM_PINAP_BERRY).remove(1)
+                    pinap_count -= 1
+
+            if catch_rate_by_ball[current_ball] < ideal_catch_rate_before_throw and nanab_count > 0:
+                # Just always use these if needed
+                new_catch_rate_by_ball = self._use_berry(ITEM_NANAB_BERRY, nanab_count, encounter_id, catch_rate_by_ball, current_ball)
+                self.inventory.get(ITEM_NANAB_BERRY).remove(1)
+                nanab_count -= 1
+
             # use a berry if we are under our ideal rate and have berries to spare
             changed_ball = False
             if catch_rate_by_ball[current_ball] < ideal_catch_rate_before_throw and berries_to_spare and not used_berry:
-                new_catch_rate_by_ball = self._use_berry(berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
+                new_catch_rate_by_ball = self._use_berry(razz_berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
                 if new_catch_rate_by_ball != catch_rate_by_ball:
                     catch_rate_by_ball = new_catch_rate_by_ball
                     self.inventory.get(ITEM_RAZZBERRY).remove(1)
@@ -522,7 +546,7 @@ class PokemonCatchWorker(BaseTask):
 
             # if the rate is still low and we didn't throw a berry before, throw one
             if catch_rate_by_ball[current_ball] < ideal_catch_rate_before_throw and berry_count > 0 and not used_berry:
-                new_catch_rate_by_ball = self._use_berry(berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
+                new_catch_rate_by_ball = self._use_berry(razz_berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
                 if new_catch_rate_by_ball != catch_rate_by_ball:
                     catch_rate_by_ball = new_catch_rate_by_ball
                     self.inventory.get(ITEM_RAZZBERRY).remove(1)

@@ -88,7 +88,7 @@ class PokemonHunter(BaseTask):
                 self.logger.info("We found a %(name)s while hunting. Aborting the current search.", self.destination)
                 self.destination = None
                 wait = uniform(120, 600)
-                self.no_hunt_until = now + wait
+                self.no_hunt_until = time.time() + wait
                 self.logger.info("Hunting on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
                 return WorkerResult.SUCCESS
 
