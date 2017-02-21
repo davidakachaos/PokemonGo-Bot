@@ -137,6 +137,7 @@ class PokemonHunter(BaseTask):
                     self.destination = None
                     wait = uniform(120, 600)
                     self.no_hunt_until = now + wait
+                    self.logger.info("Will look again around {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
 
                 self.last_cell_id = None
 
