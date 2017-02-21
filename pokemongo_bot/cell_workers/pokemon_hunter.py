@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import time
+from datetime import datetime, timedelta
 from collections import Counter
 
 from geopy.distance import great_circle
@@ -15,7 +16,7 @@ from pokemongo_bot.walkers.step_walker import StepWalker
 from pokemongo_bot.worker_result import WorkerResult
 
 import random
-
+from random import uniform
 
 class PokemonHunter(BaseTask):
     SUPPORTED_TASK_API_VERSION = 1
@@ -34,6 +35,8 @@ class PokemonHunter(BaseTask):
         self.distance_to_target = 0
         self.distance_counter = 0
         self.recent_tries = []
+        self.no_hunt_until = None
+        self.hunt_started_at = None
 
         self.config_max_distance = self.config.get("max_distance", 2000)
         self.config_hunt_all = self.config.get("hunt_all", False)
@@ -59,6 +62,13 @@ class PokemonHunter(BaseTask):
         if not self.config_lock_on_target:
             self.bot.hunter_locked_target = None
 
+        if self.no_hunt_until != None and self.no_hunt_until > time.time():
+            # No hunting now, cooling down
+            return WorkerResult.SUCCESS
+        else:
+            # Resume hunting
+            self.no_hunt_until = None
+
         if self.bot.catch_disabled:
             if not hasattr(self.bot,"hunter_disabled_global_warning") or \
                         (hasattr(self.bot,"hunter_disabled_global_warning") and not self.bot.hunter_disabled_global_warning):
@@ -73,6 +83,15 @@ class PokemonHunter(BaseTask):
             self.last_cell_id = None
             return WorkerResult.SUCCESS
 
+        if self.destination is not None:
+            if self.destination_caught():
+                self.logger.info("We found a %(name)s while hunting. Aborting the current search.", self.destination)
+                self.destination = None
+                wait = uniform(120, 600)
+                self.no_hunt_until = now + wait
+                self.logger.info("Hunting on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
+                return WorkerResult.SUCCESS
+
         now = time.time()
         pokemons = self.get_nearby_pokemons()
         pokemons = filter(lambda x: x["pokemon_id"] not in self.recent_tries, pokemons)
@@ -86,6 +105,7 @@ class PokemonHunter(BaseTask):
                 # Prevents the bot from looping the same Pokemon
                 self.destination = worth_pokemons[0]
                 self.lost_counter = 0
+                self.hunt_started_at = datetime.now()
 
                 self.logger.info("New destination at %(distance).2f meters: %(name)s", self.destination)
                 if self._is_vip_pokemon(self.destination):
@@ -114,6 +134,9 @@ class PokemonHunter(BaseTask):
 
                     self.logger.info("There is no nearby pokemon worth hunting down [%s]", ", ".join('{}({})'.format(key, val) for key, val in names.items()))
                     self.no_log_until = now + 120
+                    self.destination = None
+                    wait = uniform(120, 600)
+                    self.no_hunt_until = now + wait
 
                 self.last_cell_id = None
 
@@ -123,11 +146,10 @@ class PokemonHunter(BaseTask):
             if self.bot.hunter_locked_target == None:
                 self.logger.info("We found a %(name)s while hunting. Aborting the current search.", self.destination)
                 self.destination = None
+                wait = uniform(120, 600)
+                self.no_hunt_until = now + wait
+                self.logger.info("Hunting on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
                 return WorkerResult.SUCCESS
-        elif self.config_lock_on_target and self.config_lock_vip_only:
-            # Now can't reset the search because we don't know if we caught it yet.
-            pass
-
 
         if any(self.destination["encounter_id"] == p["encounter_id"] for p in self.bot.cell["catchable_pokemons"] + self.bot.cell["wild_pokemons"]):
             self.destination = None
@@ -141,6 +163,9 @@ class PokemonHunter(BaseTask):
                 self.logger.info("I haven't found %(name)s", self.destination)
                 self.bot.hunter_locked_target = None
                 self.destination = None
+                wait = uniform(120, 600)
+                self.no_hunt_until = now + wait
+                self.logger.info("Hunting on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
             else:
                 self.logger.info("Now searching for %(name)s", self.destination)
 
@@ -163,6 +188,9 @@ class PokemonHunter(BaseTask):
                 self.logger.info("I cant move toward %(name)s! Aborting search.", self.destination)
                 self.bot.hunter_locked_target = None
                 self.destination = None
+                wait = uniform(120, 600)
+                self.no_hunt_until = now + wait
+                self.logger.info("Hunting on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
                 return WorkerResult.ERROR
             else:
                 self.logger.info("Moving to destination at %s meters: %s", round(distance, 2), self.destination["name"])
@@ -253,3 +281,18 @@ class PokemonHunter(BaseTask):
         index = points.index(closest)
 
         return points[index:] + points[:index]
+
+    def destination_caught(self):
+        # self.logger.info("Searching for a {} since {}".format(self.destination["name"], self.hunt_started_at.strftime("%Y-%m-%d %H:%M:%S")))
+
+        with self.bot.database as conn:
+            c = conn.cursor()
+            c.execute(
+                "SELECT COUNT(pokemon) FROM catch_log where pokemon = '{}' and dated > Datetime('{}')".format(self.destination["name"], self.hunt_started_at.strftime("%Y-%m-%d %H:%M:%S")))
+        # Now check if there is 1 or more caught
+        amount = c.fetchone()[0]
+        caught = amount > 0
+        if caught:
+            self.logger.info("We caught {} {}(s) since {}".format(amount, self.destination["name"], self.hunt_started_at.strftime("%Y-%m-%d %H:%M:%S")))
+
+        return caught
