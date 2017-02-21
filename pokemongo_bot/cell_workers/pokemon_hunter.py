@@ -288,7 +288,7 @@ class PokemonHunter(BaseTask):
         with self.bot.database as conn:
             c = conn.cursor()
             c.execute(
-                "SELECT COUNT(pokemon) FROM catch_log where pokemon = '{}' and dated > Datetime('{}')".format(self.destination["name"], self.hunt_started_at.strftime("%Y-%m-%d %H:%M:%S")))
+                "SELECT COUNT(pokemon) FROM catch_log where pokemon = '{}' and  datetime(dated, 'localtime') > Datetime('{}')".format(self.destination["name"], self.hunt_started_at.strftime("%Y-%m-%d %H:%M:%S")))
         # Now check if there is 1 or more caught
         amount = c.fetchone()[0]
         caught = amount > 0
