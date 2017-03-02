@@ -512,18 +512,18 @@ class PokemonCatchWorker(BaseTask):
             # check if we've got berries to spare
             berries_to_spare = berry_count > 0 if is_vip else berry_count > num_next_balls + 30
 
-            # If we have never seen this pokemon before, use a Pinap
-            if inventory.pokedex().seen(pokemon.pokemon_id) == False or candies == 0:
-                if pinab_count > 0:
-                    new_catch_rate_by_ball = self._use_berry(ITEM_PINAP_BERRY, pinap_count, encounter_id, catch_rate_by_ball, current_ball)
-                    self.inventory.get(ITEM_PINAP_BERRY).remove(1)
-                    pinap_count -= 1
+            # # If we have never seen this pokemon before, use a Pinap
+            # if inventory.pokedex().seen(pokemon.pokemon_id) == False or candies == 0:
+            #     if pinab_count > 0:
+            #         new_catch_rate_by_ball = self._use_berry(ITEM_PINAP_BERRY, pinap_count, encounter_id, catch_rate_by_ball, current_ball)
+            #         self.inventory.get(ITEM_PINAP_BERRY).remove(1)
+            #         pinap_count -= 1
 
-            if catch_rate_by_ball[current_ball] < ideal_catch_rate_before_throw and nanab_count > 0:
-                # Just always use these if needed
-                new_catch_rate_by_ball = self._use_berry(ITEM_NANAB_BERRY, nanab_count, encounter_id, catch_rate_by_ball, current_ball)
-                self.inventory.get(ITEM_NANAB_BERRY).remove(1)
-                nanab_count -= 1
+            # if catch_rate_by_ball[current_ball] < ideal_catch_rate_before_throw and nanab_count > 0:
+            #     # Just always use these if needed
+            #     new_catch_rate_by_ball = self._use_berry(ITEM_NANAB_BERRY, nanab_count, encounter_id, catch_rate_by_ball, current_ball)
+            #     self.inventory.get(ITEM_NANAB_BERRY).remove(1)
+            #     nanab_count -= 1
 
             # use a berry if we are under our ideal rate and have berries to spare
             changed_ball = False
