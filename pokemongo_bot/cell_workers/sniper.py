@@ -310,18 +310,18 @@ class Sniper(BaseTask):
             self._trace('{} is catchable!'.format(pokemon.get('pokemon_name')))
         else:
             # Not catchable. Having a good IV should suppress the not in catch/vip list (most important)
-            if pokemon.get('iv', 0) and pokemon.get('iv', 0) <= self.special_iv:
-                self._trace('{} is not catchable, but has a decent IV!'.format(pokemon.get('pokemon_name')))
+            # if pokemon.get('iv', 0) and pokemon.get('iv', 0) <= self.special_iv:
+            #     self._log('{} is not catchable, but has a decent IV({})!'.format(pokemon.get('pokemon_name'), pokemon.get('iv', 0)))
+            # else:
+            # Not catchable and IV is not good enough (if any). Check VIP list
+            if pokemon.get('vip', False):
+                self._log('{} is not catchable and bad IV (if any), however its a VIP!'.format(pokemon.get('pokemon_name')))
             else:
-                # Not catchable and IV is not good enough (if any). Check VIP list
-                if pokemon.get('vip', False):
-                    self._trace('{} is not catchable and bad IV (if any), however its a VIP!'.format(pokemon.get('pokemon_name')))
+                if pokemon.get('missing', False):
+                    self._log('{} is not catchable, not VIP and bad IV (if any), however its a missing one.'.format(pokemon.get('pokemon_name')))
                 else:
-                    if pokemon.get('missing', False):
-                        self._trace('{} is not catchable, not VIP and bad IV (if any), however its a missing one.'.format(pokemon.get('pokemon_name')))
-                    else:
-                        self._trace('{} is not catchable, nor a VIP or a missing one and bad IV (if any). Skipping...'.format(pokemon.get('pokemon_name')))
-                        return False
+                    self._trace('{} is not catchable, nor a VIP or a missing one and bad IV (if any). Skipping...'.format(pokemon.get('pokemon_name')))
+                    return False
 
         return True
 
