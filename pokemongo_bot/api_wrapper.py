@@ -8,7 +8,7 @@ import urllib
 import sys
 from pgoapi.exceptions import (ServerSideRequestThrottlingException,
                                NotLoggedInException, ServerBusyOrOfflineException,
-                               NoPlayerPositionSetException, 
+                               NoPlayerPositionSetException,
                                UnexpectedResponseException)
 from pgoapi.pgoapi import PGoApi
 from pgoapi.pgoapi import PGoApiRequest
@@ -29,7 +29,7 @@ class ApiWrapper(PGoApi, object):
     def __init__(self, config=None):
         self.config = config
         self.gen_device_id()
-        
+
         device_info = {
             "device_id": ApiWrapper.DEVICE_ID,
             "device_brand": 'Apple',
@@ -94,7 +94,7 @@ class ApiWrapper(PGoApi, object):
     def login(self, provider, username, password):
         # login needs base class "create_request"
         self.useVanillaRequest = True
-        
+
         try:
             PGoApi.set_authentication(
                     self,
@@ -158,7 +158,14 @@ class ApiRequest(PGoApiRequest):
         return True
 
     def _call(self):
-        return PGoApiRequest.call(self)
+        for _attempt in range(10):
+            try:
+                return PGoApiRequest.call(self)
+            except:
+                self.log.info('Request failed, retrying.')
+                sleep(1)
+            else:
+                break
 
     def _pop_request_callers(self):
         r = self.request_callers

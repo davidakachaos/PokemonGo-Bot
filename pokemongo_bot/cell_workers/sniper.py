@@ -519,7 +519,7 @@ class Sniper(BaseTask):
                 self._log("Loitering for {} seconds after sniping to allow Niantic flags to drop off...".format(loiter))
                 time.sleep(loiter)
             if self.cooldown_enabled:
-                wait = uniform(60, 360)
+                wait = uniform(120, 720)
                 self.no_snipe_until = time.time() + wait
                 self._log("Snipe on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
 
