@@ -1,0 +1,508 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	0	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+websocket_server	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "websocket_server": false,$/;"	function	line:2
+heartbeat_threshold	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "heartbeat_threshold": 10,$/;"	function	line:3
+enable_social	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "enable_social": false,$/;"	function	line:4
+check_niantic_api	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "check_niantic_api": false,$/;"	function	line:5
+live_config_update	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "live_config_update": {$/;"	function	line:6
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "enabled": true,$/;"	function	line:7
+tasks_only	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "tasks_only": true$/;"	function	line:8
+tasks	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "tasks": [$/;"	function	line:10
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "TelegramTask",$/;"	function	line:12
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:13
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": true,$/;"	function	line:14
+master	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "master": "193530065",$/;"	function	line:15
+password	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "password": "1010110",$/;"	function	line:16
+// old syntax, still supported: alert_catch	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "\/\/ old syntax, still supported: alert_catch": [$/;"	function	line:17
+// new syntax:	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "\/\/ new syntax:": {},$/;"	function	line:20
+alert_catch	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "alert_catch": {$/;"	function	line:21
+all	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "all": {$/;"	function	line:22
+operator	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "operator": "or",$/;"	function	line:23
+cp	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "cp": 2000,$/;"	function	line:24
+iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "iv": 0.95$/;"	function	line:25
+Snorlax	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "Snorlax": {$/;"	function	line:27
+operator	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "operator": "or",$/;"	function	line:28
+cp	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "cp": 900,$/;"	function	line:29
+iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "iv": 0.9$/;"	function	line:30
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "DiscordTask",$/;"	function	line:36
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:37
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": false,$/;"	function	line:38
+master	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "master": null,$/;"	function	line:39
+// old syntax, still supported: alert_catch	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "\/\/ old syntax, still supported: alert_catch": [$/;"	function	line:40
+// new syntax:	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "\/\/ new syntax:": {},$/;"	function	line:43
+alert_catch	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "alert_catch": {$/;"	function	line:44
+all	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "all": {$/;"	function	line:45
+operator	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "operator": "and",$/;"	function	line:46
+cp	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "cp": 1300,$/;"	function	line:47
+iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "iv": 0.95$/;"	function	line:48
+Snorlax	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "Snorlax": {$/;"	function	line:50
+operator	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "operator": "or",$/;"	function	line:51
+cp	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "cp": 900,$/;"	function	line:52
+iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "iv": 0.9$/;"	function	line:53
+//NOTE: This task MUST be placed on the top of task list	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "\/\/NOTE: This task MUST be placed on the top of task list": {},$/;"	function	line:59
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "RandomAlivePause",$/;"	function	line:60
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:61
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": true,$/;"	function	line:62
+min_duration	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "min_duration": "00:00:10",$/;"	function	line:63
+max_duration	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "max_duration": "00:10:00",$/;"	function	line:64
+min_interval	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "min_interval": "00:05:00",$/;"	function	line:65
+max_interval	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "max_interval": "01:30:00"$/;"	function	line:66
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "HandleSoftBan"$/;"	function	line:70
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "RandomPause",$/;"	function	line:73
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:74
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": false,$/;"	function	line:75
+min_duration	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "min_duration": "00:00:10",$/;"	function	line:76
+max_duration	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "max_duration": "00:10:00",$/;"	function	line:77
+min_interval	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "min_interval": "00:10:00",$/;"	function	line:78
+max_interval	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "max_interval": "02:00:00"$/;"	function	line:79
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "CompleteTutorial",$/;"	function	line:83
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:84
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": false,$/;"	function	line:85
+// set a name	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "\/\/ set a name": "",$/;"	function	line:86
+nickname	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "nickname": "",$/;"	function	line:87
+// 0 = No Team, 1 = Blue, 2 = Red, 3 = Yellow	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "\/\/ 0 = No Team, 1 = Blue, 2 = Red, 3 = Yellow": "",$/;"	function	line:88
+team	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "team": 0$/;"	function	line:89
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "CollectLevelUpReward",$/;"	function	line:93
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:94
+collect_reward	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "collect_reward": true,$/;"	function	line:95
+level_limit	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "level_limit": -1$/;"	function	line:96
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "BuddyPokemon",$/;"	function	line:100
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:101
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": false,$/;"	function	line:102
+buddy_list	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "buddy_list": "dratini, magikarp",$/;"	function	line:103
+best_in_family	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "best_in_family": true,$/;"	function	line:104
+// candy_limit = 0 means no limit, so it will never change current buddy	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "\/\/ candy_limit = 0 means no limit, so it will never change current buddy": {},$/;"	function	line:105
+candy_limit	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "candy_limit": 0,$/;"	function	line:106
+candy_limit_absolute	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "candy_limit_absolute": 0,$/;"	function	line:107
+// force_first_change = true will always change buddy at start removing current one	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "\/\/ force_first_change = true will always change buddy at start removing current one": {},$/;"	function	line:108
+force_first_change	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "force_first_change": false,$/;"	function	line:109
+buddy_change_wait_min	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "buddy_change_wait_min": 3,$/;"	function	line:110
+buddy_change_wait_max	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "buddy_change_wait_max": 5,$/;"	function	line:111
+min_interval	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "min_interval": 120$/;"	function	line:112
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "IncubateEggs",$/;"	function	line:116
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:117
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": true,$/;"	function	line:118
+infinite_longer_eggs_first	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "infinite_longer_eggs_first": true,$/;"	function	line:119
+infinite_random_eggs	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "infinite_random_eggs": true,$/;"	function	line:120
+breakable_longer_eggs_first	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "breakable_longer_eggs_first": true,$/;"	function	line:121
+min_interval	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "min_interval": 120,$/;"	function	line:122
+infinite	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "infinite": [$/;"	function	line:123
+breakable	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "breakable": [$/;"	function	line:128
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "UpdateLiveStats",$/;"	function	line:135
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:136
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": true,$/;"	function	line:137
+min_interval	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "min_interval": 10,$/;"	function	line:138
+stats	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "stats": [$/;"	function	line:139
+terminal_log	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "terminal_log": false,$/;"	function	line:148
+terminal_title	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "terminal_title": true$/;"	function	line:149
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "UpdateLiveInventory",$/;"	function	line:153
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:154
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": true,$/;"	function	line:155
+min_interval	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "min_interval": 120,$/;"	function	line:156
+show_all_multiple_lines	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "show_all_multiple_lines": true,$/;"	function	line:157
+items	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "items": [$/;"	function	line:158
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "ShowBestPokemon",$/;"	function	line:168
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:169
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": true,$/;"	function	line:170
+min_interval	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "min_interval": 60,$/;"	function	line:171
+amount	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "amount": 5,$/;"	function	line:172
+order_by	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "order_by": "cp",$/;"	function	line:173
+info_to_show	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "info_to_show": [$/;"	function	line:174
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "NicknamePokemon",$/;"	function	line:183
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:184
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": true,$/;"	function	line:185
+nickname_above_iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "nickname_above_iv": 0.94,$/;"	function	line:186
+nickname_template	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "nickname_template": "{iv_pct}-{iv_ads}",$/;"	function	line:187
+nickname_wait_min	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "nickname_wait_min": 3,$/;"	function	line:188
+nickname_wait_max	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "nickname_wait_max": 5$/;"	function	line:189
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "PokemonOptimizer",$/;"	function	line:193
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:194
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": true,$/;"	function	line:195
+min_slots_left	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "min_slots_left": 5,$/;"	function	line:196
+action_wait_min	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "action_wait_min": 3,$/;"	function	line:197
+action_wait_max	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "action_wait_max": 5,$/;"	function	line:198
+transfer	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "transfer": true,$/;"	function	line:199
+evolve	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "evolve": true,$/;"	function	line:200
+debug	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "debug": false,$/;"	function	line:201
+evolve_to_final	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "evolve_to_final": false,$/;"	function	line:202
+evolve_time	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "evolve_time": 25,$/;"	function	line:203
+evolve_for_xp	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "evolve_for_xp": true,$/;"	function	line:204
+evolve_only_with_lucky_egg	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "evolve_only_with_lucky_egg": false,$/;"	function	line:205
+evolve_count_for_lucky_egg	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "evolve_count_for_lucky_egg": 70,$/;"	function	line:206
+may_use_lucky_egg	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "may_use_lucky_egg": true,$/;"	function	line:207
+upgrade	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "upgrade": true,$/;"	function	line:208
+upgrade_level	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "upgrade_level": 30,$/;"	function	line:209
+groups	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "groups": {$/;"	function	line:210
+gym	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "gym": [$/;"	function	line:211
+rules	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "rules": [$/;"	function	line:230
+mode	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "mode": "overall",$/;"	function	line:232
+top	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "top": 10,$/;"	function	line:233
+sort	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "sort": [$/;"	function	line:234
+upgrade	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "upgrade": true$/;"	function	line:239
+mode	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "mode": "by_pokemon",$/;"	function	line:242
+names	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "names": [$/;"	function	line:243
+top	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "top": 10,$/;"	function	line:246
+sort	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "sort": [$/;"	function	line:247
+upgrade	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "upgrade": true$/;"	function	line:251
+// Buddy the Pokemon having the less candies. In case no Pokemon match first rule	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                      "\/\/ Buddy the Pokemon having the less candies. In case no Pokemon match first rule": {},$/;"	function	line:254
+mode	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                      "mode": "overall",$/;"	function	line:255
+top	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                      "top": 1,$/;"	function	line:256
+names	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                      "names": ["Chansey"],$/;"	function	line:257
+sort	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                      "sort": [$/;"	function	line:258
+evolve	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                      "evolve": false,$/;"	function	line:263
+buddy	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                      "buddy": true$/;"	function	line:264
+// Buddy the Pokemon having the less candies. In case no Pokemon match first rule	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "\/\/ Buddy the Pokemon having the less candies. In case no Pokemon match first rule": {},$/;"	function	line:267
+mode	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "mode": "overall",$/;"	function	line:268
+top	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "top": 1,$/;"	function	line:269
+sort	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "sort": [$/;"	function	line:270
+evolve	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "evolve": false,$/;"	function	line:275
+buddy	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "buddy": true$/;"	function	line:276
+mode	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "mode": "by_family",$/;"	function	line:279
+top	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "top": 1,$/;"	function	line:280
+sort	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "sort": [$/;"	function	line:281
+evolve	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "evolve": {$/;"	function	line:285
+iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "iv": 0.9,$/;"	function	line:286
+ncp	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "ncp": 0.9$/;"	function	line:287
+upgrade	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "upgrade": {$/;"	function	line:289
+iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "iv": 0.9,$/;"	function	line:290
+ncp	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "ncp": 0.9$/;"	function	line:291
+mode	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "mode": "by_pokemon",$/;"	function	line:295
+names	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "names": [$/;"	function	line:296
+top	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "top": 3,$/;"	function	line:299
+sort	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "sort": [$/;"	function	line:300
+evolve	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "evolve": {$/;"	function	line:305
+iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "iv": 0.9,$/;"	function	line:306
+ncp	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "ncp": 0.9$/;"	function	line:307
+upgrade	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "upgrade": true$/;"	function	line:309
+// Keep best iv of each family and evolve it if its iv is greater than 0.9	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "\/\/ Keep best iv of each family and evolve it if its iv is greater than 0.9": {},$/;"	function	line:312
+mode	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "mode": "by_family",$/;"	function	line:313
+top	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "top": 1,$/;"	function	line:314
+sort	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "sort": [$/;"	function	line:315
+evolve	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "evolve": {$/;"	function	line:318
+iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "iv": 0.9$/;"	function	line:319
+// Keep best ncp of each family and evolve it if its ncp is greater than 0.9	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "\/\/ Keep best ncp of each family and evolve it if its ncp is greater than 0.9": {},$/;"	function	line:323
+mode	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "mode": "by_family",$/;"	function	line:324
+top	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "top": 1,$/;"	function	line:325
+sort	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "sort": [$/;"	function	line:326
+evolve	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "evolve": {$/;"	function	line:329
+ncp	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "ncp": 0.9$/;"	function	line:330
+keep	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "keep": {$/;"	function	line:332
+ncp	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "ncp": 0.9$/;"	function	line:333
+// Keep best cp of each family and evolve it if its iv is greater than 0.9	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "\/\/ Keep best cp of each family and evolve it if its iv is greater than 0.9": {},$/;"	function	line:337
+mode	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "mode": "by_family",$/;"	function	line:338
+top	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "top": 1,$/;"	function	line:339
+sort	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "sort": [$/;"	function	line:340
+evolve	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "evolve": {$/;"	function	line:343
+iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "iv": 0.9$/;"	function	line:344
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "RecycleItems",$/;"	function	line:351
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:352
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": true,$/;"	function	line:353
+min_empty_space	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "min_empty_space": 15,$/;"	function	line:354
+max_balls_keep	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "max_balls_keep": 150,$/;"	function	line:355
+max_potions_keep	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "max_potions_keep": 50,$/;"	function	line:356
+max_berries_keep	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "max_berries_keep": 90,$/;"	function	line:357
+max_revives_keep	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "max_revives_keep": 70,$/;"	function	line:358
+item_filter	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "item_filter": {$/;"	function	line:359
+Pokeball	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "Pokeball": {$/;"	function	line:360
+keep	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "keep": 100$/;"	function	line:361
+Potion	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "Potion": {$/;"	function	line:363
+keep	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "keep": 0$/;"	function	line:364
+Super Potion	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "Super Potion": {$/;"	function	line:366
+keep	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "keep": 10$/;"	function	line:367
+Hyper Potion	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "Hyper Potion": {$/;"	function	line:369
+keep	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "keep": 40$/;"	function	line:370
+Revive	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "Revive": {$/;"	function	line:372
+keep	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "keep": 0$/;"	function	line:373
+Max Revive	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "Max Revive": {$/;"	function	line:375
+keep	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "keep": 50$/;"	function	line:376
+Razz Berry	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "Razz Berry": {$/;"	function	line:378
+keep	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "keep": 50$/;"	function	line:379
+Nanab Berry	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "Nanab Berry": {$/;"	function	line:381
+keep	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "keep": 5$/;"	function	line:382
+Pinap Berry	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "Pinap Berry": {$/;"	function	line:384
+keep	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "keep": 30$/;"	function	line:385
+recycle_wait_min	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "recycle_wait_min": 3,$/;"	function	line:388
+recycle_wait_max	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "recycle_wait_max": 5,$/;"	function	line:389
+recycle_force	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "recycle_force": true,$/;"	function	line:390
+recycle_force_min	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "recycle_force_min": "00:01:00",$/;"	function	line:391
+recycle_force_max	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "recycle_force_max": "00:15:00"$/;"	function	line:392
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "CatchLimiter",$/;"	function	line:396
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:397
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": true,$/;"	function	line:398
+min_balls	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "min_balls": 20,$/;"	function	line:399
+duration	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "duration": 15$/;"	function	line:400
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "Sniper",$/;"	function	line:404
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:405
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": true,$/;"	function	line:406
+debug	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "debug": false,$/;"	function	line:407
+mode	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "mode": "url",$/;"	function	line:408
+bullets	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "bullets": 3,$/;"	function	line:409
+homing_shots	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "homing_shots": true,$/;"	function	line:410
+cooldown_enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "cooldown_enabled": true,$/;"	function	line:411
+loiter_after_snipe	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "loiter_after_snipe": false,$/;"	function	line:412
+disable_sniping_while_hunting	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "disable_sniping_while_hunting": true,$/;"	function	line:413
+special_iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "special_iv": 100,$/;"	function	line:414
+order	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "order": [$/;"	function	line:415
+sources	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "sources": [$/;"	function	line:421
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "enabled": true,$/;"	function	line:423
+url	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "url": "http:\/\/v1.iv100.top\/apix.php",$/;"	function	line:424
+timeout	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "timeout": 50,$/;"	function	line:425
+mappings	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "mappings": {$/;"	function	line:426
+iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "iv": {$/;"	function	line:427
+param	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                                "param": "iv"$/;"	function	line:428
+name	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "name": {$/;"	function	line:430
+param	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                                "param": "name"$/;"	function	line:431
+latitude	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "latitude": {$/;"	function	line:433
+param	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                                "param": "coords"$/;"	function	line:434
+longitude	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "longitude": {$/;"	function	line:436
+param	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                                "param": "coords"$/;"	function	line:437
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "enabled": true,$/;"	function	line:442
+url	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "url": "http:\/\/pokesniper.org\/newapiman.txt",$/;"	function	line:443
+timeout	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "timeout": 50,$/;"	function	line:444
+mappings	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "mappings": {$/;"	function	line:445
+iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "iv": {$/;"	function	line:446
+param	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                                "param": "iv"$/;"	function	line:447
+name	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "name": {$/;"	function	line:449
+param	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                                "param": "name"$/;"	function	line:450
+latitude	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "latitude": {$/;"	function	line:452
+param	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                                "param": "coords"$/;"	function	line:453
+longitude	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "longitude": {$/;"	function	line:455
+param	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                                "param": "coords"$/;"	function	line:456
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "enabled": true,$/;"	function	line:461
+url	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "url": "http:\/\/pokesnipers.com\/api\/v1\/pokemon.json",$/;"	function	line:462
+timeout	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "timeout": 10,$/;"	function	line:463
+key	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "key": "results",$/;"	function	line:464
+mappings	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                        "mappings": {$/;"	function	line:465
+id	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "id": {$/;"	function	line:466
+param	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                              "param": "id"$/;"	function	line:467
+iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "iv": {$/;"	function	line:469
+param	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                                "param": "iv"$/;"	function	line:470
+name	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "name": {$/;"	function	line:472
+param	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                                "param": "name"$/;"	function	line:473
+latitude	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "latitude": {$/;"	function	line:475
+param	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                                "param": "coords"$/;"	function	line:476
+longitude	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "longitude": {$/;"	function	line:478
+param	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                                "param": "coords"$/;"	function	line:479
+expiration	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                            "expiration": {$/;"	function	line:481
+param	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                                "param": "until",$/;"	function	line:482
+format	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                                "format": "utc"$/;"	function	line:483
+catch	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "catch": {$/;"	function	line:488
+Porygon2	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "Porygon2": 1000,$/;"	function	line:489
+Ursaring	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "Ursaring": 1000,$/;"	function	line:490
+Blissey	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "Blissey": 2000,$/;"	function	line:491
+Chansey	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "Chansey": 1500,$/;"	function	line:492
+Tyranitar	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "Tyranitar": 1000$/;"	function	line:493
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "CatchPokemon",$/;"	function	line:498
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:499
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": true,$/;"	function	line:500
+catch_visible_pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "catch_visible_pokemon": true,$/;"	function	line:501
+catch_lured_pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "catch_lured_pokemon": true,$/;"	function	line:502
+catch_incensed_pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "catch_incensed_pokemon": true,$/;"	function	line:503
+min_ultraball_to_keep	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "min_ultraball_to_keep": 2,$/;"	function	line:504
+berry_threshold	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "berry_threshold": 0.35,$/;"	function	line:505
+use_pinap_on_vip	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "use_pinap_on_vip": true,$/;"	function	line:506
+vip_berry_threshold	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "vip_berry_threshold": 0.9,$/;"	function	line:507
+treat_unseen_as_vip	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "treat_unseen_as_vip": true,$/;"	function	line:508
+daily_catch_limit	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "daily_catch_limit": 800,$/;"	function	line:509
+vanish_settings	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "vanish_settings": {$/;"	function	line:510
+consecutive_vanish_limit	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "consecutive_vanish_limit": 10,$/;"	function	line:511
+rest_duration_min	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "rest_duration_min": "02:00:00",$/;"	function	line:512
+rest_duration_max	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "rest_duration_max": "04:00:00"$/;"	function	line:513
+catch_throw_parameters	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "catch_throw_parameters": {$/;"	function	line:515
+excellent_rate	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "excellent_rate": 0.1,$/;"	function	line:516
+great_rate	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "great_rate": 0.5,$/;"	function	line:517
+nice_rate	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "nice_rate": 0.3,$/;"	function	line:518
+normal_rate	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "normal_rate": 0.1,$/;"	function	line:519
+spin_success_rate	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "spin_success_rate": 0.6,$/;"	function	line:520
+hit_rate	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "hit_rate": 0.75$/;"	function	line:521
+catch_simulation	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "catch_simulation": {$/;"	function	line:523
+flee_count	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "flee_count": 3,$/;"	function	line:524
+flee_duration	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "flee_duration": 2,$/;"	function	line:525
+catch_wait_min	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "catch_wait_min": 3,$/;"	function	line:526
+catch_wait_max	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "catch_wait_max": 6,$/;"	function	line:527
+berry_wait_min	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "berry_wait_min": 3,$/;"	function	line:528
+berry_wait_max	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "berry_wait_max": 5,$/;"	function	line:529
+changeball_wait_min	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "changeball_wait_min": 3,$/;"	function	line:530
+changeball_wait_max	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "changeball_wait_max": 5,$/;"	function	line:531
+newtodex_wait_min	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "newtodex_wait_min": 20,$/;"	function	line:532
+newtodex_wait_max	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                    "newtodex_wait_max": 30$/;"	function	line:533
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "SpinFort",$/;"	function	line:538
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:539
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": true,$/;"	function	line:540
+spin_wait_min	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "spin_wait_min": 3,$/;"	function	line:541
+spin_wait_max	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "spin_wait_max": 5,$/;"	function	line:542
+daily_spin_limit	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "daily_spin_limit": 1900$/;"	function	line:543
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "UpdateWebInventory",$/;"	function	line:547
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:548
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": true$/;"	function	line:549
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "CampFort",$/;"	function	line:553
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:554
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": true,$/;"	function	line:555
+max_distance	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "max_distance": 2000,$/;"	function	line:556
+min_forts_count	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "min_forts_count": 4,$/;"	function	line:557
+min_lured_forts_count	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "min_lured_forts_count": 2,$/;"	function	line:558
+camping_time	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "camping_time": 1800,$/;"	function	line:559
+moving_time	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "moving_time": 600$/;"	function	line:560
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "PokemonHunter",$/;"	function	line:564
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:565
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": true,$/;"	function	line:566
+max_distance	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "max_distance": 1500,$/;"	function	line:567
+hunt_all	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "hunt_all": false,$/;"	function	line:568
+hunt_vip	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "hunt_vip": true,$/;"	function	line:569
+hunt_pokedex	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "hunt_pokedex": true,$/;"	function	line:570
+lock_on_target	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "lock_on_target": true,$/;"	function	line:571
+enable_cooldown	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enable_cooldown": false$/;"	function	line:572
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "MoveToFort",$/;"	function	line:576
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:577
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": true,$/;"	function	line:578
+lure_attraction	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "lure_attraction": true,$/;"	function	line:579
+lure_max_distance	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "lure_max_distance": 2000,$/;"	function	line:580
+walker	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "walker": "PolylineWalker",$/;"	function	line:581
+log_interval	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "log_interval": 5$/;"	function	line:582
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "FollowCluster",$/;"	function	line:586
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:587
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": false,$/;"	function	line:588
+radius	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "radius": 50,$/;"	function	line:589
+lured	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "lured": true$/;"	function	line:590
+type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "type": "FollowSpiral",$/;"	function	line:594
+config	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "config": {$/;"	function	line:595
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": true,$/;"	function	line:596
+diameter	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "diameter": 4,$/;"	function	line:597
+step_size	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "step_size": 70$/;"	function	line:598
+map_object_cache_time	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "map_object_cache_time": 5,$/;"	function	line:602
+forts	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "forts": {$/;"	function	line:603
+avoid_circles	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "avoid_circles": true,$/;"	function	line:604
+max_circle_size	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "max_circle_size": 10,$/;"	function	line:605
+cache_recent_forts	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "cache_recent_forts": true$/;"	function	line:606
+pokemon_bag	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "pokemon_bag": {$/;"	function	line:608
+// if 'show_at_start' is true, it will log all the pokemons in the bag (not eggs) at bot start	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ if 'show_at_start' is true, it will log all the pokemons in the bag (not eggs) at bot start": {},$/;"	function	line:609
+show_at_start	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "show_at_start": true,$/;"	function	line:610
+// if 'show_count' is true, it will show the amount of each pokemon (minimum 1)	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ if 'show_count' is true, it will show the amount of each pokemon (minimum 1)": {},$/;"	function	line:611
+show_count	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "show_count": false,$/;"	function	line:612
+// if 'show_candies' is true, it will show the amount of candies for each pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ if 'show_candies' is true, it will show the amount of candies for each pokemon": {},$/;"	function	line:613
+show_candies	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "show_candies": false,$/;"	function	line:614
+// 'pokemon_info' parameter define which info to show for each pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ 'pokemon_info' parameter define which info to show for each pokemon": {},$/;"	function	line:615
+// the available options are	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ the available options are": {},$/;"	function	line:616
+// ['cp', 'iv_ads', 'iv_pct', 'ivcp', 'ncp', 'level', 'hp', 'moveset', 'dps']	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ ['cp', 'iv_ads', 'iv_pct', 'ivcp', 'ncp', 'level', 'hp', 'moveset', 'dps']": {},$/;"	function	line:617
+pokemon_info	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "pokemon_info": [$/;"	function	line:618
+walk_max	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "walk_max": 5.16,$/;"	function	line:623
+walk_min	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "walk_min": 2.16,$/;"	function	line:624
+alt_min	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "alt_min": 500,$/;"	function	line:625
+alt_max	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "alt_max": 1000,$/;"	function	line:626
+sleep_schedule	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "sleep_schedule": {$/;"	function	line:627
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "enabled": true,$/;"	function	line:628
+enable_reminder	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "enable_reminder": true,$/;"	function	line:629
+reminder_interval	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "reminder_interval": 600,$/;"	function	line:630
+entries	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "entries": [$/;"	function	line:631
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": true,$/;"	function	line:633
+time	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "time": "12:00",$/;"	function	line:634
+duration	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "duration": "0:30",$/;"	function	line:635
+time_random_offset	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "time_random_offset": "00:30",$/;"	function	line:636
+duration_random_offset	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "duration_random_offset": "00:30",$/;"	function	line:637
+wake_up_at_location	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "wake_up_at_location": ""$/;"	function	line:638
+enabled	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "enabled": true,$/;"	function	line:641
+time	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "time": "22:45",$/;"	function	line:642
+duration	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "duration": "7:00",$/;"	function	line:643
+time_random_offset	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "time_random_offset": "01:00",$/;"	function	line:644
+duration_random_offset	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "duration_random_offset": "00:30",$/;"	function	line:645
+wake_up_at_location	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "wake_up_at_location": "Times Square"$/;"	function	line:646
+gps_default_altitude	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "gps_default_altitude": 8,$/;"	function	line:650
+replicate_gps_xy_noise	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "replicate_gps_xy_noise": true,$/;"	function	line:651
+replicate_gps_z_noise	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "replicate_gps_z_noise": true,$/;"	function	line:652
+gps_xy_noise_range	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "gps_xy_noise_range": 1.25E-4,$/;"	function	line:653
+gps_z_noise_range	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "gps_z_noise_range": 12.5,$/;"	function	line:654
+debug	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "debug": false,$/;"	function	line:655
+test	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "test": false,$/;"	function	line:656
+walker_limit_output	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "walker_limit_output": true,$/;"	function	line:657
+health_record	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "health_record": true,$/;"	function	line:658
+location_cache	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "location_cache": true,$/;"	function	line:659
+distance_unit	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "distance_unit": "km",$/;"	function	line:660
+reconnecting_timeout	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "reconnecting_timeout": 15,$/;"	function	line:661
+logging	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "logging": {$/;"	function	line:662
+color	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "color": true,$/;"	function	line:663
+show_datetime	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "show_datetime": true,$/;"	function	line:664
+show_process_name	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "show_process_name": false,$/;"	function	line:665
+show_log_level	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "show_log_level": true,$/;"	function	line:666
+show_thread_name	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "show_thread_name": false$/;"	function	line:667
+catch	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "catch": {$/;"	function	line:669
+any	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "any": {$/;"	function	line:670
+candy_threshold	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "candy_threshold": 400,$/;"	function	line:671
+catch_above_cp	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "catch_above_cp": 0,$/;"	function	line:672
+catch_above_iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "catch_above_iv": 0,$/;"	function	line:673
+logic	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "logic": "or"$/;"	function	line:674
+Dratini	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "Dratini": {$/;"	function	line:676
+candy_threshold	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "candy_threshold": 800,$/;"	function	line:677
+catch_above_cp	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "catch_above_cp": 200,$/;"	function	line:678
+catch_above_iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "catch_above_iv": 0.9,$/;"	function	line:679
+logic	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "logic": "or"$/;"	function	line:680
+// Example of always catching Rattata:	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ Example of always catching Rattata:": {},$/;"	function	line:682
+Pidgey	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "Pidgey": {$/;"	function	line:683
+always_catch	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "always_catch": true$/;"	function	line:684
+release	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "release": {$/;"	function	line:687
+any	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "any": {$/;"	function	line:688
+release_below_cp	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "release_below_cp": 100,$/;"	function	line:689
+release_below_iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "release_below_iv": 0.10,$/;"	function	line:690
+release_below_ivcp	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "release_below_ivcp": 0,$/;"	function	line:691
+logic	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "logic": "or"$/;"	function	line:692
+// Example of always releasing Rattata:	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ Example of always releasing Rattata:": {},$/;"	function	line:694
+// Rattata	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ Rattata": {$/;"	function	line:695
+always_release	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "always_release": true$/;"	function	line:696
+// Example of keeping 3 stronger (based on CP) Pidgey:	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ Example of keeping 3 stronger (based on CP) Pidgey:": {},$/;"	function	line:698
+// Pidgey	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ Pidgey": {$/;"	function	line:699
+keep_best_cp	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "keep_best_cp": 3$/;"	function	line:700
+// Example of keeping 2 best (based on IV) Zubat:	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ Example of keeping 2 best (based on IV) Zubat:": {},$/;"	function	line:702
+// Zubat	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ Zubat": [$/;"	function	line:703
+keep_best_iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "keep_best_iv": 2$/;"	function	line:705
+keep_best_cp	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "keep_best_cp": 2,$/;"	function	line:708
+keep_best_iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "keep_best_iv": 3$/;"	function	line:709
+keep_best_custom	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "keep_best_custom": "iv, cp, hp_max",$/;"	function	line:712
+amount	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "amount": 2$/;"	function	line:713
+// Keep no more than 3 best IV pokemon for every pokemon type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ Keep no more than 3 best IV pokemon for every pokemon type": {},$/;"	function	line:716
+// any	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ any": [$/;"	function	line:717
+keep_best_iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "keep_best_iv": 3$/;"	function	line:719
+keep_best_ivcp	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^                "keep_best_ivcp": 3$/;"	function	line:722
+// Keep no more than 3 best IVCP pokemon for every pokemon type	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ Keep no more than 3 best IVCP pokemon for every pokemon type": {},$/;"	function	line:725
+// Discard all pokemon in bag except 100 pokemon with best CP	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ Discard all pokemon in bag except 100 pokemon with best CP": {},$/;"	function	line:726
+// all	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ all": {$/;"	function	line:727
+keep_best_cp	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "keep_best_cp": 100$/;"	function	line:728
+// Example of keeping the 2 strongest (based on CP) and 3 best (based on IV) Zubat:	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ Example of keeping the 2 strongest (based on CP) and 3 best (based on IV) Zubat:": {},$/;"	function	line:730
+// Example of custom order of static criterion	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ Example of custom order of static criterion": {}$/;"	function	line:731
+vips	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "vips": {$/;"	function	line:733
+Any pokemon put here directly force to use Berry & Best Ball to capture, to secure the capture rate	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "Any pokemon put here directly force to use Berry & Best Ball to capture, to secure the capture rate": {},$/;"	function	line:734
+any	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "any": {$/;"	function	line:735
+catch_above_cp	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "catch_above_cp": 3000,$/;"	function	line:736
+catch_above_iv	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "catch_above_iv": 0.97,$/;"	function	line:737
+logic	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^            "logic": "or"$/;"	function	line:738
+// legendaries niet in game even niet Lapras	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ legendaries niet in game even niet Lapras": {},$/;"	function	line:740
+// Moltres	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ Moltres": {},$/;"	function	line:741
+// Zapdos	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ Zapdos": {},$/;"	function	line:742
+// Articuno	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ Articuno": {},$/;"	function	line:743
+// S-Tier pokemons (if pokemon can be evolved into tier, list the representative)	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ S-Tier pokemons (if pokemon can be evolved into tier, list the representative)": {},$/;"	function	line:744
+Mewtwo	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "Mewtwo": {},$/;"	function	line:745
+// even niet Dragonite	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ even niet Dragonite": {},$/;"	function	line:746
+Snorlax	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "Snorlax": {},$/;"	function	line:747
+// Mew evolves to Mewtwo	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ Mew evolves to Mewtwo": {},$/;"	function	line:748
+Mew	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "Mew": {},$/;"	function	line:749
+/// Arcanine	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/\/ Arcanine": {},$/;"	function	line:750
+Gyarados	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "Gyarados": {},$/;"	function	line:751
+// hopen op een shiny!	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ hopen op een shiny!": {},$/;"	function	line:752
+Magikarp	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "Magikarp": {},$/;"	function	line:753
+// Exeggutor	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "\/\/ Exeggutor": {},$/;"	function	line:754
+Muk	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "Muk": {},$/;"	function	line:755
+Porygon2	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "Porygon2": {},$/;"	function	line:756
+Ampharos	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "Ampharos": {},$/;"	function	line:757
+Typhlosion	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "Typhlosion": {},$/;"	function	line:758
+Feraligatr	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "Feraligatr": {},$/;"	function	line:759
+Ursaring	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "Ursaring": {},$/;"	function	line:760
+Espeon	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "Espeon": {},$/;"	function	line:761
+Scizor	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "Scizor": {},$/;"	function	line:762
+Heracross	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "Heracross": {},$/;"	function	line:763
+Blissey	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "Blissey": {},$/;"	function	line:764
+Tyranitar	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "Tyranitar": {}$/;"	function	line:765
+websocket	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^    "websocket": {$/;"	function	line:767
+start_embedded_server	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "start_embedded_server": true,$/;"	function	line:768
+server_url	/Users/david/Broncode/personal/PokemonGo-Bot/configs/config.json	/^        "server_url": "127.0.0.1:4000"$/;"	function	line:769

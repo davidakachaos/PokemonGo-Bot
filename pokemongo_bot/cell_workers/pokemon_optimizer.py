@@ -421,6 +421,9 @@ class PokemonOptimizer(BaseTask):
         if type(req) is bool:
             return req
 
+        if type(req) is int:
+            return False
+
         satisfy = True
 
         for a, v in req.items():
@@ -639,7 +642,10 @@ class PokemonOptimizer(BaseTask):
                 self.logger.info("Transferring %s Pokemon", transfer_count)
 
                 for pokemon in transfer:
-                    self.transfer_pokemon(pokemon)
+                    if pokemon.shiny:
+                        self.logger.info("Not transferring shiny %s!", pokemon.name)
+                    else:
+                        self.transfer_pokemon(pokemon)
 
         if self.config_evolve or self.bot.config.test:
             evolve_xp_count = evolve_count + xp_count

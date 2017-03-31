@@ -258,6 +258,7 @@ class Sniper(BaseTask):
         self.order = self.config.get('order', SniperOrderMode.DEFAULT)
         self.cooldown_enabled = self.config.get('cooldown_enabled', False)
         self.loiter_after_snipe = self.config.get('loiter_after_snipe', False)
+        self.disable_sniping_while_hunting = self.config.get('disable_sniping_while_hunting', False)
         self.catch_list = self.config.get('catch', {})
         self.altitude = uniform(self.bot.config.alt_min, self.bot.config.alt_max)
         self.sources = [SniperSource(data) for data in self.config.get('sources', [])]
@@ -448,6 +449,10 @@ class Sniper(BaseTask):
     def work(self):
         #Check if telegram is called
 
+        if self.disable_sniping_while_hunting and hasattr(self.bot,"hunter_locked_target"):
+            if self.bot.hunter_locked_target != None:
+                return WorkerResult.SUCCESS
+
         if self.no_snipe_until != None and self.no_snipe_until > time.time():
             # No hunting now, cooling down
             return WorkerResult.SUCCESS
@@ -519,7 +524,7 @@ class Sniper(BaseTask):
                 self._log("Loitering for {} seconds after sniping to allow Niantic flags to drop off...".format(loiter))
                 time.sleep(loiter)
             if self.cooldown_enabled:
-                wait = uniform(120, 720)
+                wait = uniform(360, 720)
                 self.no_snipe_until = time.time() + wait
                 self._log("Snipe on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
 

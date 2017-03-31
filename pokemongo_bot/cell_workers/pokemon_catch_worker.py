@@ -25,8 +25,9 @@ CATCH_STATUS_MISSED = 4
 ENCOUNTER_STATUS_SUCCESS = 1
 ENCOUNTER_STATUS_NOT_IN_RANGE = 5
 ENCOUNTER_STATUS_POKEMON_INVENTORY_FULL = 7
-INCENSE_ENCOUNTER_AVAILABLE = 1
+
 INCENSE_ENCOUNTER_NOT_AVAILABLE = 2
+INCENSE_POKEMON_INVENTORY_FULL = 3
 
 ITEM_POKEBALL = 1
 ITEM_GREATBALL = 2
@@ -123,11 +124,13 @@ class PokemonCatchWorker(BaseTask):
 
         responses = response_dict['responses']
         response = responses[self.response_key]
-        if response[self.response_status_key] != ENCOUNTER_STATUS_SUCCESS and response[self.response_status_key] != INCENSE_ENCOUNTER_AVAILABLE:
+        if response[self.response_status_key] != ENCOUNTER_STATUS_SUCCESS:
             if response[self.response_status_key] == ENCOUNTER_STATUS_NOT_IN_RANGE:
                 self.emit_event('pokemon_not_in_range', formatted='Pokemon went out of range!')
             elif response[self.response_status_key] == INCENSE_ENCOUNTER_NOT_AVAILABLE:
                 self.emit_event('pokemon_not_in_range', formatted='Incensed Pokemon went out of range!')
+            elif response[self.response_status_key] == INCENSE_POKEMON_INVENTORY_FULL:
+                self.emit_event('pokemon_inventory_full', formatted='Your Pokemon inventory is full! Could not catch!')
             elif response[self.response_status_key] == ENCOUNTER_STATUS_POKEMON_INVENTORY_FULL:
                 self.emit_event('pokemon_inventory_full', formatted='Your Pokemon inventory is full! Could not catch!')
             return WorkerResult.ERROR
@@ -213,6 +216,8 @@ class PokemonCatchWorker(BaseTask):
         while True:
             if result[0] < self.daily_catch_limit:
             # catch that pokemon!
+                # self.logger.info("Encounter id: %s" % self.pokemon['encounter_id'])
+                # self.logger.info("Pokemon: %s" % self.pokemon)
                 encounter_id = self.pokemon['encounter_id']
                 catch_rate_by_ball = [0] + response['capture_probability']['capture_probability']  # offset so item ids match indces
                 self._do_catch(pokemon, encounter_id, catch_rate_by_ball, is_vip=is_vip)
@@ -258,7 +263,7 @@ class PokemonCatchWorker(BaseTask):
             self.response_key = 'INCENSE_ENCOUNTER'
             self.response_status_key = 'result'
             request.incense_encounter(
-                encounter_id=encounter_id,
+                encounter_id=self.pokemon['encounter_id'],
                 encounter_location=self.pokemon['encounter_location']
             )
         return request.call()
@@ -599,6 +604,9 @@ class PokemonCatchWorker(BaseTask):
             try:
                 catch_pokemon_status = response_dict['responses']['CATCH_POKEMON']['status']
             except KeyError:
+                self.logger.error("Can't catch! encounter_id: %s" % encounter_id )
+                self.logger.error("Pokemon: %s" % pokemon)
+                self.logger.error("Resp: %s" % response_dict)
                 break
 
             # retry failed pokemon

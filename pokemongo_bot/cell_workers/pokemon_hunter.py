@@ -42,6 +42,7 @@ class PokemonHunter(BaseTask):
         self.config_hunt_all = self.config.get("hunt_all", False)
         self.config_hunt_vip = self.config.get("hunt_vip", True)
         self.config_hunt_pokedex = self.config.get("hunt_pokedex", True)
+        self.config_enable_cooldown = self.config.get("enable_cooldown", True)
         # Lock on Target; ignore all other Pokémon until we found our target.
         self.config_lock_on_target = self.config.get("lock_on_target", False)
         # Lock only VIP Pokemon (unseen / VIP)
@@ -87,9 +88,10 @@ class PokemonHunter(BaseTask):
             if self.destination_caught():
                 self.logger.info("We found a %(name)s while hunting. Aborting the current search.", self.destination)
                 self.destination = None
-                wait = uniform(120, 600)
-                self.no_hunt_until = time.time() + wait
-                self.logger.info("Hunting on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
+                if self.config_enable_cooldown:
+                    wait = uniform(120, 600)
+                    self.no_hunt_until = time.time() + wait
+                    self.logger.info("Hunting on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
                 return WorkerResult.SUCCESS
 
         now = time.time()
@@ -135,7 +137,7 @@ class PokemonHunter(BaseTask):
                     self.logger.info("There is no nearby pokemon worth hunting down [%s]", ", ".join('{}({})'.format(key, val) for key, val in names.items()))
                     self.no_log_until = now + 120
                     self.destination = None
-                    wait = uniform(120, 600)
+                    wait = uniform(120, 360)
                     self.no_hunt_until = now + wait
                     self.logger.info("Will look again around {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
 
@@ -147,9 +149,10 @@ class PokemonHunter(BaseTask):
             if self.bot.hunter_locked_target == None:
                 self.logger.info("We found a %(name)s while hunting. Aborting the current search.", self.destination)
                 self.destination = None
-                wait = uniform(120, 600)
-                self.no_hunt_until = now + wait
-                self.logger.info("Hunting on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
+                if self.config_enable_cooldown:
+                    wait = uniform(120, 600)
+                    self.no_hunt_until = time.time() + wait
+                    self.logger.info("Hunting on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
                 return WorkerResult.SUCCESS
 
         if any(self.destination["encounter_id"] == p["encounter_id"] for p in self.bot.cell["catchable_pokemons"] + self.bot.cell["wild_pokemons"]):
@@ -164,9 +167,10 @@ class PokemonHunter(BaseTask):
                 self.logger.info("I haven't found %(name)s", self.destination)
                 self.bot.hunter_locked_target = None
                 self.destination = None
-                wait = uniform(120, 600)
-                self.no_hunt_until = now + wait
-                self.logger.info("Hunting on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
+                if self.config_enable_cooldown:
+                    wait = uniform(120, 600)
+                    self.no_hunt_until = time.time() + wait
+                    self.logger.info("Hunting on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
             else:
                 self.logger.info("Now searching for %(name)s", self.destination)
 
@@ -189,9 +193,10 @@ class PokemonHunter(BaseTask):
                 self.logger.info("I cant move toward %(name)s! Aborting search.", self.destination)
                 self.bot.hunter_locked_target = None
                 self.destination = None
-                wait = uniform(120, 600)
-                self.no_hunt_until = now + wait
-                self.logger.info("Hunting on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
+                if self.config_enable_cooldown:
+                    wait = uniform(120, 600)
+                    self.no_hunt_until = time.time() + wait
+                    self.logger.info("Hunting on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
                 return WorkerResult.ERROR
             else:
                 self.logger.info("Moving to destination at %s meters: %s", round(distance, 2), self.destination["name"])

@@ -405,7 +405,10 @@ class PokemonGoBot(object):
                 'encounter_id',
                 'encounter_location',
                 'latitude',
-                'longitude'
+                'longitude',
+                'disappear_timestamp_ms',
+                'pokemon_display',
+                'result'
             )
         )
         self.event_manager.register_event(
