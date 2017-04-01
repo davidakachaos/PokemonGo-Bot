@@ -640,16 +640,7 @@ class PokemonOptimizer(BaseTask):
         if self.config_transfer or self.bot.config.test:
             if transfer_count > 0:
                 self.logger.info("Transferring %s Pokemon", transfer_count)
-
-<<<<<<< HEAD
-                for pokemon in transfer:
-                    if pokemon.shiny:
-                        self.logger.info("Not transferring shiny %s!", pokemon.name)
-                    else:
-                        self.transfer_pokemon(pokemon)
-=======
                 self.transfer_pokemon(transfer)
->>>>>>> dev
 
         if self.config_evolve or self.bot.config.test:
             evolve_xp_count = evolve_count + xp_count
