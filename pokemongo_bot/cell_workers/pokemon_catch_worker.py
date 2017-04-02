@@ -82,6 +82,7 @@ class PokemonCatchWorker(BaseTask):
         self.daily_catch_limit = self.config.get('daily_catch_limit', 800)
         self.use_pinap_on_vip = self.config.get('use_pinap_on_vip', False)
         self.pinap_on_level_below = self.config.get('pinap_on_level_below', 0)
+        self.pinap_on_candy_below = self.config.get('pinap_on_candy_below', 0)
         self.pinap_operator = self.config.get('pinap_operator', "or")
         self.pinap_ignore_threshold = self.config.get('pinap_ignore_threshold', False)
 
@@ -473,12 +474,17 @@ class PokemonCatchWorker(BaseTask):
 
         :type pokemon: Pokemon
         """
+        # First check if we need a pinap based on candy amount
+        if self.pinap_on_candy_below > 0:
+            candies = inventory.candies().get(pokemon.pokemon_id).quantity
+            if candies < self.pinap_on_candy_below:
+                berry_id = ITEM_PINAPBERRY
 
         if self.use_pinap_on_vip and is_vip and pokemon.level <= self.pinap_on_level_below and self.pinap_operator == "and":
             berry_id = ITEM_PINAPBERRY
         else:
             berry_id = ITEM_RAZZBERRY
-        
+
         if self.pinap_operator == "or":
             if (self.use_pinap_on_vip and is_vip) or (pokemon.level <= self.pinap_on_level_below):
                 berry_id = ITEM_PINAPBERRY
@@ -500,10 +506,10 @@ class PokemonCatchWorker(BaseTask):
 
         used_berry = False
         original_catch_rate_by_ball = catch_rate_by_ball
-        
+
         if DEBUG_ON:
             print "Pokemon Level: " + str(pokemon.level) + " Berries count: " + str(berry_count) + " Berries ID: " + str(berry_id) + " Catch rate: " + str(ideal_catch_rate_before_throw)
-        
+
         while True:
 
             # find lowest available ball
