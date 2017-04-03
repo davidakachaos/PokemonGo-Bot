@@ -17,7 +17,9 @@ class CatchLimiter(BaseTask):
         self.config = config
         self.enabled = self.config.get("enabled",False)
         self.min_balls = self.config.get("min_balls",20)
+        self.resume_balls = self.config.get("resume_balls",100)
         self.duration = self.config.get("duration",15)
+        self.no_log_until = None
         if not hasattr(self.bot, "catch_resume_at"): self.bot.catch_resume_at = None
 
     def work(self):
@@ -26,7 +28,7 @@ class CatchLimiter(BaseTask):
 
         now = datetime.now()
         balls_on_hand = self.get_pokeball_count()
-        
+
         # If resume time has passed, resume catching tasks
         if self.bot.catch_disabled and now >= self.bot.catch_resume_at:
             if balls_on_hand > self.min_balls:
@@ -36,17 +38,28 @@ class CatchLimiter(BaseTask):
                         format(balls_on_hand,self.min_balls)
                 )
                 self.bot.catch_disabled = False
-
+        # If balls_on_hand is more than resume_balls, resume catch tasks
+        if self.bot.catch_disabled and balls_on_hand >= self.resume_balls:
+            self.emit_event(
+                'catch_limit_off',
+                formatted="Balls on hand ({}) exceeds threshold {}. Re-enabling catch tasks.".
+                    format(balls_on_hand, self.resume_balls)
+            )
+            self.bot.catch_disabled = False
         # If balls_on_hand less than threshold, pause catching tasks for duration minutes
         if not self.bot.catch_disabled and balls_on_hand <= self.min_balls:
             self.bot.catch_resume_at = now + timedelta(minutes = self.duration)
+            self.no_log_until = now + timedelta(minutes = 2)
             self.bot.catch_disabled = True
             self.emit_event(
                 'catch_limit_on',
                 formatted="Balls on hand ({}) has reached threshold {}. Disabling catch tasks until {} or balls on hand > threshold (whichever is later).".
                     format(balls_on_hand, self.min_balls, self.bot.catch_resume_at.strftime("%H:%M:%S"))
             )
-            
+        if self.bot.catch_disabled and self.no_log_until <= now:
+            self.logger.info("All catch tasks disabled until %s" % self.bot.catch_resume_at.strftime("%H:%M:%S"))
+            self.no_log_until = now + timedelta(minutes = 2)
+
         return WorkerResult.SUCCESS
 
     def get_pokeball_count(self):
