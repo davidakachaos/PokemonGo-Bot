@@ -475,19 +475,24 @@ class PokemonCatchWorker(BaseTask):
         :type pokemon: Pokemon
         """
         # First check if we need a pinap based on candy amount
+        catch_for_candy = False
         if self.pinap_on_candy_below > 0:
             candies = inventory.candies().get(pokemon.pokemon_id).quantity
             if candies < self.pinap_on_candy_below:
                 berry_id = ITEM_PINAPBERRY
+                catch_for_candy = True
 
         if self.use_pinap_on_vip and is_vip and pokemon.level <= self.pinap_on_level_below and self.pinap_operator == "and":
             berry_id = ITEM_PINAPBERRY
+            catch_for_candy = False
         else:
             berry_id = ITEM_RAZZBERRY
+            catch_for_candy = False
 
         if self.pinap_operator == "or":
             if (self.use_pinap_on_vip and is_vip) or (pokemon.level <= self.pinap_on_level_below):
                 berry_id = ITEM_PINAPBERRY
+                catch_for_candy = False
 
         berry_count = self.inventory.get(berry_id).count
 
@@ -528,13 +533,15 @@ class PokemonCatchWorker(BaseTask):
                 num_next_balls += ball_count[next_ball]
 
             # If pinap berry is not enough, use razz berry
-            if berry_count == 0 and berry_id == ITEM_PINAPBERRY:
+            if berry_count == 0 and berry_id == ITEM_PINAPBERRY and not catch_for_candy:
                 berry_id = ITEM_RAZZBERRY
                 ideal_catch_rate_before_throw = self.vip_berry_threshold if is_vip else self.berry_threshold
                 berry_count = self.inventory.get(berry_id).count
 
             # check if we've got berries to spare
             berries_to_spare = berry_count > 0 if is_vip else berry_count > num_next_balls + 30
+            # using pinap for extra candies?
+            berries_to_spare = berry_count > 0 if catch_for_candy else berry_count > num_next_balls + 30
 
             changed_ball = False
 
