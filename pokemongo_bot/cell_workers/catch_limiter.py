@@ -38,6 +38,7 @@ class CatchLimiter(BaseTask):
                         format(balls_on_hand,self.min_balls)
                 )
                 self.bot.catch_disabled = False
+                
         # If balls_on_hand is more than resume_balls, resume catch tasks
         if self.bot.catch_disabled and balls_on_hand >= self.resume_balls:
             self.emit_event(
@@ -46,6 +47,7 @@ class CatchLimiter(BaseTask):
                     format(balls_on_hand, self.resume_balls)
             )
             self.bot.catch_disabled = False
+            
         # If balls_on_hand less than threshold, pause catching tasks for duration minutes
         if not self.bot.catch_disabled and balls_on_hand <= self.min_balls:
             self.bot.catch_resume_at = now + timedelta(minutes = self.duration)
