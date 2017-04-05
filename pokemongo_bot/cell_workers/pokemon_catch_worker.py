@@ -474,14 +474,6 @@ class PokemonCatchWorker(BaseTask):
 
         :type pokemon: Pokemon
         """
-        # First check if we need a pinap based on candy amount
-        catch_for_candy = False
-        if self.pinap_on_candy_below > 0:
-            candies = inventory.candies().get(pokemon.pokemon_id).quantity
-            if candies < self.pinap_on_candy_below:
-                berry_id = ITEM_PINAPBERRY
-                catch_for_candy = True
-
         if self.use_pinap_on_vip and is_vip and pokemon.level <= self.pinap_on_level_below and self.pinap_operator == "and":
             berry_id = ITEM_PINAPBERRY
             catch_for_candy = False
@@ -493,6 +485,12 @@ class PokemonCatchWorker(BaseTask):
             if (self.use_pinap_on_vip and is_vip) or (pokemon.level <= self.pinap_on_level_below):
                 berry_id = ITEM_PINAPBERRY
                 catch_for_candy = False
+
+        # Only non VIP; use pinap if low on candy
+        if not is_vip and self.pinap_on_candy_below > 0:
+            candies = inventory.candies().get(pokemon.pokemon_id).quantity
+            if candies < self.pinap_on_candy_below:
+                berry_id = ITEM_PINAPBERRY
 
         berry_count = self.inventory.get(berry_id).count
 
