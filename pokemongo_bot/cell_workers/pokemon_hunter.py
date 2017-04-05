@@ -237,7 +237,20 @@ class PokemonHunter(BaseTask):
         if candies > 150:
             return False
             # We have enough candies, pass on hunting this Pokemon
-        if any(not inventory.pokedex().seen(fid) for fid in self.get_family_ids(pokemon)):
+        # get family ids, gets ALL ids, also for previous evo!
+        # We could see a Ivysaur on the map, and need a Bulbasaur
+        # Then we have no need for a Ivysaur. If we see a Bulbasaur and need
+        # a Ivysaur, then we DO need this pokemon.
+        got_current_evo = False
+        ids = []
+        for fid in self.get_family_ids(pokemon):
+            if got_current_evo:
+                ids += [fid]
+            else:
+                if fid == pokemon.id:
+                    ids += [fid]
+                    got_current_evo = True
+        if any(not inventory.pokedex().seen(fid) for fid in ids):
             return True
 
     def get_worth_pokemons(self, pokemons):
@@ -260,7 +273,7 @@ class PokemonHunter(BaseTask):
         family_id = inventory.pokemons().data_for(pokemon["pokemon_id"]).first_evolution_id
         ids = [family_id]
         ids += inventory.pokemons().data_for(family_id).next_evolutions_all[:]
-
+        # ids have now all family ids
         return ids
 
     def get_distance(self, location, pokemon):
