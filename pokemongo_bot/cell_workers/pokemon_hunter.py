@@ -247,9 +247,10 @@ class PokemonHunter(BaseTask):
             if got_current_evo:
                 ids += [fid]
             else:
-                if fid == pokemon.id:
+                if fid == pokemon["pokemon_id"]:
                     ids += [fid]
                     got_current_evo = True
+        # Check if we need this, or a next EVO in the Pokedex
         if any(not inventory.pokedex().seen(fid) for fid in ids):
             return True
 
