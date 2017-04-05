@@ -224,25 +224,23 @@ class PokemonOptimizer(BaseTask):
         if self.get_pokemon_slot_left() > self.config_min_slots_left:
             return WorkerResult.SUCCESS
 
-        # Repeat the optimizer 2 times, to get rid of the trash evolved.
-        for _ in itertools.repeat(None, 2):
-            transfer_all = []
-            evolve_all = []
-            upgrade_all = []
-            xp_all = []
-            for family_id, pokemon_list in self.group_by_family_id(inventory.pokemons().all()):
-                keep = [p for p in keep_all if self.get_family_id(p) == family_id]
-                try_evolve = [p for p in try_evolve_all if self.get_family_id(p) == family_id]
-                try_upgrade = [p for p in try_upgrade_all if self.get_family_id(p) == family_id]
+        transfer_all = []
+        evolve_all = []
+        upgrade_all = []
+        xp_all = []
+        for family_id, pokemon_list in self.group_by_family_id(inventory.pokemons().all()):
+            keep = [p for p in keep_all if self.get_family_id(p) == family_id]
+            try_evolve = [p for p in try_evolve_all if self.get_family_id(p) == family_id]
+            try_upgrade = [p for p in try_upgrade_all if self.get_family_id(p) == family_id]
 
-                transfer, evolve, upgrade, xp = self.get_evolution_plan(family_id, pokemon_list, keep, try_evolve, try_upgrade)
+            transfer, evolve, upgrade, xp = self.get_evolution_plan(family_id, pokemon_list, keep, try_evolve, try_upgrade)
 
-                transfer_all += transfer
-                evolve_all += evolve
-                upgrade_all += upgrade
-                xp_all += xp
+            transfer_all += transfer
+            evolve_all += evolve
+            upgrade_all += upgrade
+            xp_all += xp
 
-            self.apply_optimization(transfer_all, evolve_all, upgrade_all, xp_all)
+        self.apply_optimization(transfer_all, evolve_all, upgrade_all, xp_all)
 
         return WorkerResult.SUCCESS
 
@@ -692,7 +690,7 @@ class PokemonOptimizer(BaseTask):
                 for pokemon in upgrade:
                     self.upgrade_pokemon(pokemon)
 
-    def transfer_pokemon(self, transfer):
+    def transfer_pokemon(self, pokemons):
         error_codes = {
             0: 'UNSET',
             1: 'SUCCESS',
@@ -721,13 +719,13 @@ class PokemonOptimizer(BaseTask):
                             return False
                 except Exception:
                     return False
-                
+
                 for pokemon in transfered:
                     candy = inventory.candies().get(pokemon.pokemon_id)
 
                     if self.config_transfer and (not self.bot.config.test):
                         candy.add(1)
-                        
+
                     self.emit_event("pokemon_release",
                                     formatted="Exchanged {pokemon} [IV {iv}] [CP {cp}] [{candy} candies]",
                                     data={"pokemon": pokemon.name,
