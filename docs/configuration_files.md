@@ -29,26 +29,31 @@
     - [`flee_count` and `flee_duration`](#flee_count-and-flee_duration)
     - [Previous `catch_simulation` Behaviour](#previous-catch_simulation-behaviour)
 - [CatchLimiter Settings](#catchlimiter-settings)
-- [Sniping _(MoveToLocation)_](#sniping-_-movetolocation-_)
+- [Sniping _(MoveToLocation)_](#sniping-movetolocation)
     - [Description](#description)
     - [Options](#options)
         - [Example](#example)
 - [Sniping _(Sniper)_](#sniper)
-    - [Description](#description)
-    - [Options](#options)
+    - [Description](#description-1)
+    - [Options](#options-1)
         - [Example](#example)
 - [FollowPath Settings](#followpath-settings)
-    - [Description](#description)
-    - [Options](#options)
-    - [Sample Configuration](#sample-configuration)
+    - [Description](#description-2)
+    - [Options](#options-2)
+    - [Sample Configuration](#sample-configuration-1)
 - [UpdateLiveStats Settings](#updatelivestats-settings)
-    - [Options](#options)
-    - [Sample Configuration](#sample-configuration)
+    - [Options](#options-3)
+    - [Sample Configuration](#sample-configuration-2)
 - [UpdateLiveInventory Settings](#updateliveinventory-settings)
-    - [Description](#description)
-    - [Options](#options)
-    - [Sample configuration](#sample-configuration)
+    - [Description](#description-3)
+    - [Options](#options-4)
+    - [Sample configuration](#sample-configuration-3)
     - [Example console output](#example-console-output)
+- [UpdateHashStats Settings](#updatehashstats-settings)
+    - [Description](#description-4)
+    - [Options](#options-5)
+    - [Sample configuration](#sample-configuration-4)
+    - [Example console output](#example-console-output-1)
 - [Random Pause](#random-pause)
 - [Egg Incubator](#egg-incubator)
 - [ShowBestPokemon](#showbestpokemon)
@@ -58,7 +63,7 @@
 - [BuddyPokemon](#buddypokemon)
 - [PokemonHunter](#pokemonhunter)
 
-#Configuration files
+# Configuration files
 
 Document the configuration options of PokemonGo-Bot.
 
@@ -116,7 +121,7 @@ Pauses the execution of the bot every day for some time
 
 Simulates the user going to sleep every day for some time, the sleep time and the duration is changed every day by a random offset defined in the config file.
 
-###Example Config
+### Example Config
 ```
 "sleep_schedule": {
   "enabled": true,
@@ -431,7 +436,7 @@ Define a list of criteria to keep the best Pokemons according to those criteria.
 
 The list of criteria is the following:```'cp','iv', 'iv_attack', 'iv_defense', 'iv_stamina', 'moveset.attack_perfection', 'moveset.defense_perfection', 'hp', 'hp_max'```
 
-####Examples:
+#### Examples:
 
 - Keep the top 25 Zubat with the best hp_max:
 
@@ -1097,6 +1102,39 @@ Available `items` :
 2016-08-20 18:56:22,754 [UpdateLiveInventory] [INFO] [show_inventory] Items: 335/350 | Pokeballs: 8 | GreatBalls: 186 | UltraBalls: 0 | RazzBerries: 51 | LuckyEggs: 3
 ```
 
+## UpdateHashStats Settings
+[[back to top](#table-of-contents)]
+
+### Description
+[[back to top](#table-of-contents)]
+
+Periodically displays the hash stats in the terminal.
+
+### Options
+[[back to top](#table-of-contents)]
+
+* `min_interval` : The minimum interval at which the stats are displayed, in seconds (defaults to 60 seconds). The update interval cannot be accurate as workers run synchronously.
+* `stats` : An array of items to display and their display order (implicitly), see available items below (defaults to ["period", "remaining", "maximum", "expiration"]).
+
+### Sample configuration
+[[back to top](#table-of-contents)]
+```json
+{
+    "type": "UpdateHashStats",
+    "config": {
+        "enabled": true,
+        "min_interval": 60,
+        "stats": ["period", "remaining", "maximum", "expiration"]
+    }
+}
+```
+
+### Example console output
+[[back to top](#table-of-contents)]
+```
+[2017-04-03 17:55:15] [MainThread] [UpdateHashStats] [INFO] Period: 2017-04-03 09:56:37 | Remaining: 147 | Maximum: 150 | Expiration: 2017-04-15 06:21:11
+```
+
 ## Random Pause
 [[back to top](#table-of-contents)]
 
@@ -1109,7 +1147,7 @@ Simulates the random pause of the day (speaking to someone, getting into a store
 - `min_interval`: (HH:MM:SS) the minimum interval between each pause
 - `max_interval`: (HH:MM:SS) the maximum interval between each pause
 
-###Example Config
+### Example Config
 ```
 {
   "type": "RandomPause",
@@ -1122,7 +1160,7 @@ Simulates the random pause of the day (speaking to someone, getting into a store
 }
 ```
 
-##Egg Incubator
+## Egg Incubator
 [[back to top](#table-of-contents)]
 
 Configure how the bot should use the incubators.
@@ -1132,7 +1170,7 @@ Configure how the bot should use the incubators.
 - `infinite`: ([2], [2,5], [2,5,10], []) the type of egg the infinite (ie. unbreakable) incubator(s) can incubate. If set to [2,5], the incubator(s) can only incubate the 2km and 5km eggs. If set to [], the incubator(s) will not incubate any type of egg.
 - `breakable`: ([2], [2,5], [2,5,10], []) the type of egg the breakable incubator(s) can incubate. If set to [2,5], the incubator(s) can only incubate the 2km and 5km eggs. If set to [], the incubator(s) will not incubate any type of egg.
 
-###Example Config
+### Example Config
 ```
 {
   "type": "IncubateEggs",
