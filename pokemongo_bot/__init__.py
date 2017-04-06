@@ -441,6 +441,7 @@ class PokemonGoBot(object):
             'threw_berry',
             parameters=(
                 'berry_name',
+                'berry_count',
                 'ball_name',
                 'new_catch_rate'
             )

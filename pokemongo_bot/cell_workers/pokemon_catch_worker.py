@@ -131,8 +131,8 @@ class PokemonCatchWorker(BaseTask):
         if response[self.response_status_key] != ENCOUNTER_STATUS_SUCCESS:
             if response[self.response_status_key] == ENCOUNTER_STATUS_NOT_IN_RANGE:
                 self.emit_event('pokemon_not_in_range', formatted='Pokemon went out of range!')
-            elif response[self.response_status_key] == INCENSE_ENCOUNTER_NOT_AVAILABLE:
-                self.emit_event('pokemon_not_in_range', formatted='Incensed Pokemon went out of range!')
+            # elif response[self.response_status_key] == INCENSE_ENCOUNTER_NOT_AVAILABLE:
+            #     self.emit_event('pokemon_not_in_range', formatted='Incensed Pokemon went out of range!')
             elif response[self.response_status_key] == INCENSE_POKEMON_INVENTORY_FULL:
                 self.emit_event('pokemon_inventory_full', formatted='Your Pokemon inventory is full! Could not catch!')
             elif response[self.response_status_key] == ENCOUNTER_STATUS_POKEMON_INVENTORY_FULL:
@@ -420,9 +420,10 @@ class PokemonCatchWorker(BaseTask):
                     new_catch_rate_by_ball.append(float(responses['USE_ITEM_ENCOUNTER']['capture_probability']['capture_probability'][current_ball-1]))
                 self.emit_event(
                     'threw_berry',
-                    formatted="Threw a {berry_name}! Catch rate with {ball_name} is now: {new_catch_rate}",
+                    formatted="Threw a {berry_name} ({berry_count} left)! Catch rate with {ball_name} is now: {new_catch_rate}",
                     data={
                         'berry_name': self.inventory.get(berry_id).name,
+                        'berry_count': berry_count - 1,
                         'ball_name': self.inventory.get(current_ball).name,
                         'new_catch_rate': self._pct(new_catch_rate_by_ball[current_ball])
                     }
@@ -487,10 +488,13 @@ class PokemonCatchWorker(BaseTask):
                 catch_for_candy = False
 
         # Only non VIP; use pinap if low on candy
+        catch_for_candy = False
         if not is_vip and self.pinap_on_candy_below > 0:
             candies = inventory.candies().get(pokemon.pokemon_id).quantity
             if candies < self.pinap_on_candy_below:
+                # self.logger.info("Current candies ({}) lower then threshold ({})".format(candies, self.pinap_on_candy_below))
                 berry_id = ITEM_PINAPBERRY
+                catch_for_candy = True
 
         berry_count = self.inventory.get(berry_id).count
 
@@ -505,7 +509,9 @@ class PokemonCatchWorker(BaseTask):
 
         maximum_ball = ITEM_GREATBALL if ball_count[ITEM_ULTRABALL] < min_ultraball_to_keep else ITEM_ULTRABALL
         ideal_catch_rate_before_throw = self.vip_berry_threshold if is_vip else self.berry_threshold
-        ideal_catch_rate_before_throw = 1 if self.pinap_ignore_threshold and berry_id == ITEM_PINAPBERRY else ideal_catch_rate_before_throw
+        # This seems to mean, always use ULTRA if pinap??
+        if not catch_for_candy:
+            ideal_catch_rate_before_throw = 1 if self.pinap_ignore_threshold and berry_id == ITEM_PINAPBERRY else ideal_catch_rate_before_throw
 
         used_berry = False
         original_catch_rate_by_ball = catch_rate_by_ball
@@ -537,14 +543,20 @@ class PokemonCatchWorker(BaseTask):
                 berry_count = self.inventory.get(berry_id).count
 
             # check if we've got berries to spare
-            berries_to_spare = berry_count > 0 if is_vip else berry_count > num_next_balls + 30
-            # using pinap for extra candies?
-            berries_to_spare = berry_count > 0 if catch_for_candy else berry_count > num_next_balls + 30
+            berries_to_spare = berry_count > 0 if (is_vip or catch_for_candy) else berry_count > num_next_balls + 30
 
             changed_ball = False
 
             # use a berry if we are under our ideal rate and have berries to spare
             if catch_rate_by_ball[current_ball] < ideal_catch_rate_before_throw and berries_to_spare and not used_berry:
+                new_catch_rate_by_ball = self._use_berry(berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
+                if new_catch_rate_by_ball != catch_rate_by_ball:
+                    catch_rate_by_ball = new_catch_rate_by_ball
+                    self.inventory.get(berry_id).remove(1)
+                    berry_count -= 1
+                    used_berry = True
+            # If ideal rate already reached, but we use berry for candy, throw!
+            if not used_berry and berries_to_spare and catch_for_candy:
                 new_catch_rate_by_ball = self._use_berry(berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
                 if new_catch_rate_by_ball != catch_rate_by_ball:
                     catch_rate_by_ball = new_catch_rate_by_ball
