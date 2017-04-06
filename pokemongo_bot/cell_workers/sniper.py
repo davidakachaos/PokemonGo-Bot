@@ -164,6 +164,14 @@ class SniperSource(object):
         except:
             raise
 
+    def _build_unique_id(self, pokemon):
+        # Build unique id for this pokemon from id, latitude, longitude and expiration
+        uniqueid = str(pokemon.get('pokemon_id','')) + str(pokemon.get('latitude','')) + str(pokemon.get('longitude','')) + str(pokemon.get('expiration',''))
+        md5str = hashlib.md5()
+        md5str.update(uniqueid)
+        uniqueid = str(md5str.hexdigest())
+        return uniqueid
+
     def _fixname(self,name):
         if name:
             name = name.replace("mr-mime","mr. mime")
@@ -457,8 +465,8 @@ class Sniper(BaseTask):
             # No hunting now, cooling down
             return WorkerResult.SUCCESS
         else:
-            # Resume hunting
-            self.no_hunt_until = None
+            # Resume sniping
+            self.no_snipe_until = None
 
         # Do nothing if this task was invalidated
         if self.disabled:
@@ -492,7 +500,7 @@ class Sniper(BaseTask):
                 self._trace('+----+------+----------------+-------+----------+---------+---------+----------+')
                 self._trace('|  # |   Id | Name           |    IV | Verified | VIP     | Missing | Priority |')
                 self._trace('+----+------+----------------+-------+----------+---------+---------+----------+')
-                row_format ="|{:>3} |{:>5} | {:<15}|{:>6} | {:<9}| {:<8}| {:<8}|{:>9} |"
+                row_format = "|{:>3} |{:>5} | {:<15}|{:>6} | {:<9}| {:<8}| {:<8}|{:>9} |"
                 for index, target in enumerate(targets):
                     self._trace(row_format.format(*[index+1, target.get('pokemon_id'), target.get('pokemon_name'), target.get('iv'), str(target.get('verified')), str(target.get('vip')), str(target.get('missing')), target.get('priority')]))
 
@@ -540,11 +548,13 @@ class Sniper(BaseTask):
             pokemon['vip'] = pokemon.get('pokemon_name') in self.bot.config.vips
             pokemon['missing'] = not self.pokedex.captured(pokemon.get('pokemon_id'))
             pokemon['priority'] = self.catch_list.get(pokemon.get('pokemon_name'), 0)
+            pokemon['expiration'] = pokemon.get('expiration', 0)
 
             # Check whether this is a valid target
             if self.is_snipeable(pokemon):
                 result.append(pokemon)
-
+        # Add to the DB
+        self._add_pokemons_to_db(result)
         return result
 
     def _get_pokemons_from_telegram(self):
@@ -617,6 +627,39 @@ class Sniper(BaseTask):
             if len(self.bot.sniper_cache) >= self.MAX_CACHE_LIST_SIZE:
                 self.bot.sniper_cache.pop(0)
             self.bot.sniper_cache.append(uniqueid)
+
+    def _add_pokemons_to_db(self, pokemons):
+        with self.bot.database as conn:
+            c = conn.cursor()
+            c.execute("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='sniper_mons'")
+            result = c.fetchone()
+            if result[0] < 1:
+                # self._trace('No db table!'')
+                return True
+            # insert into database
+            for pokemon in pokemons:
+                uniqueid = self._build_unique_id(pokemon)
+                c.execute("SELECT COUNT(unique_id) FROM sniper_mons WHERE unique_id=?", [uniqueid])
+                result = c.fetchone()
+                if result[0] > 0:
+                    # Already in DB, skip to next
+                    continue
+
+                sql = ('INSERT INTO sniper_mons (unique_id, expiration_timestamp_ms'
+                       ', last_modified_timestamp_ms, encounter_id, spawn_point_id, pokemon_name, latitude'
+                       ', longitude , expiration, iv, pokemon_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+                conn.execute(sql, [uniqueid,
+                                   pokemon['expiration_timestamp_ms'],
+                                   pokemon['last_modified_timestamp_ms'],
+                                   pokemon['encounter_id'],
+                                   pokemon['spawn_point_id'],
+                                   pokemon['pokemon_name'],
+                                   pokemon['latitude'],
+                                   pokemon['longitude'],
+                                   pokemon['expiration'],
+                                   pokemon['iv'],
+                                   pokemon['pokemon_id']
+                                  ])
 
     def _build_unique_id(self, pokemon):
         # Build unique id for this pokemon from id, latitude, longitude and expiration
