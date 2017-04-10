@@ -227,30 +227,6 @@ class PokemonOptimizer(BaseTask):
                 if (not self.buddy) or (self.buddy["id"] != new_buddy.unique_id):
                     self.set_buddy_pokemon(new_buddy)
 
-<<<<<<< HEAD
-        transfer_all = []
-        evolve_all = []
-        upgrade_all = []
-        xp_all = []
-        for family_id, pokemon_list in self.group_by_family_id(inventory.pokemons().all()):
-            keep = [p for p in keep_all if self.get_family_id(p) == family_id]
-            try_evolve = [p for p in try_evolve_all if self.get_family_id(p) == family_id]
-            try_upgrade = [p for p in try_upgrade_all if self.get_family_id(p) == family_id]
-
-            transfer, evolve, upgrade, xp = self.get_evolution_plan(family_id, pokemon_list, keep, try_evolve, try_upgrade)
-
-            transfer_all += transfer
-            evolve_all += evolve
-            upgrade_all += upgrade
-            xp_all += xp
-
-        self.apply_optimization(transfer_all, evolve_all, upgrade_all, xp_all)
-=======
-<<<<<<< Updated upstream
-        # Repeat the optimizer 2 times, to get rid of the trash evolved.
-        for _ in itertools.repeat(None, 2):
-=======
->>>>>>> Stashed changes
             transfer_all = []
             evolve_all = []
             upgrade_all = []
@@ -268,7 +244,6 @@ class PokemonOptimizer(BaseTask):
                 xp_all += xp
 
             self.apply_optimization(transfer_all, evolve_all, upgrade_all, xp_all)
->>>>>>> optimizer_fix
 
         return WorkerResult.SUCCESS
 
@@ -448,9 +423,6 @@ class PokemonOptimizer(BaseTask):
     def satisfy_requirements(self, pokemon, req):
         if type(req) is bool:
             return req
-
-        if type(req) is int:
-            return False
 
         satisfy = True
 
@@ -668,6 +640,7 @@ class PokemonOptimizer(BaseTask):
         if self.config_transfer or self.bot.config.test:
             if transfer_count > 0:
                 self.logger.info("Transferring %s Pokemon", transfer_count)
+
                 self.transfer_pokemon(transfer)
 
         if self.config_evolve or self.bot.config.test:
