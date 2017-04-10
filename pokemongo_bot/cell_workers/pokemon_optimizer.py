@@ -129,27 +129,81 @@ class PokemonOptimizer(BaseTask):
         if self.lock_buddy and (self.get_pokemon_slot_left() > self.config_min_slots_left):
             return WorkerResult.SUCCESS
 
-        self.open_inventory()
+        if self.get_pokemon_slot_left() > self.config_min_slots_left:
+            return WorkerResult.SUCCESS
 
-        keep_all = []
-        try_evolve_all = []
-        try_upgrade_all = []
-        buddy_all = []
+        # Repeat the optimizer 2 times, to get rid of the trash evolved.
+        # Moved up from 227 to see if we fix issue #5999
+        for _ in itertools.repeat(None, 2):
+            self.open_inventory()
 
-        for rule in self.config_rules:
-            mode = rule.get("mode", "by_family")
-            names = rule.get("names", [])
-            whitelist, blacklist = self.get_colorlist(names)
+            keep_all = []
+            try_evolve_all = []
+            try_upgrade_all = []
+            buddy_all = []
 
-            if mode == "by_pokemon":
-                for pokemon_id, pokemon_list in self.group_by_pokemon_id(inventory.pokemons().all()):
-                    name = inventory.pokemons().name_for(pokemon_id)
+            for rule in self.config_rules:
+                mode = rule.get("mode", "by_family")
+                names = rule.get("names", [])
+                whitelist, blacklist = self.get_colorlist(names)
 
-                    if name in blacklist:
-                        continue
+                if mode == "by_pokemon":
+                    for pokemon_id, pokemon_list in self.group_by_pokemon_id(inventory.pokemons().all()):
+                        name = inventory.pokemons().name_for(pokemon_id)
 
-                    if whitelist and (name not in whitelist):
-                        continue
+                        if name in blacklist:
+                            continue
+
+                        if whitelist and (name not in whitelist):
+                            continue
+
+                        sorted_list = self.score_and_sort(pokemon_list, rule)
+
+                        if len(sorted_list) == 0:
+                            continue
+
+                        keep, try_evolve, try_upgrade, buddy = self.get_best_pokemon_for_rule(sorted_list, rule)
+                        keep_all += keep
+                        try_evolve_all += try_evolve
+                        try_upgrade_all += try_upgrade
+                        buddy_all += buddy
+                elif mode == "by_family":
+                    for family_id, pokemon_list in self.group_by_family_id(inventory.pokemons().all()):
+                        matching_names = self.get_family_names(family_id)
+
+                        if any(n in blacklist for n in matching_names):
+                            continue
+
+                        if whitelist and not any(n in whitelist for n in matching_names):
+                            continue
+
+                        sorted_list = self.score_and_sort(pokemon_list, rule)
+
+                        if len(sorted_list) == 0:
+                            continue
+
+                        if family_id == 133:  # "Eevee"
+                            keep, try_evolve, try_upgrade, buddy = self.get_multi_best_pokemon_for_rule(sorted_list, rule, 3)
+                        else:
+                            keep, try_evolve, try_upgrade, buddy = self.get_best_pokemon_for_rule(sorted_list, rule)
+
+                        keep_all += keep
+                        try_evolve_all += try_evolve
+                        try_upgrade_all += try_upgrade
+                        buddy_all += buddy
+                elif mode == "overall":
+                    pokemon_list = []
+
+                    for pokemon in inventory.pokemons().all():
+                        name = pokemon.name
+
+                        if name in blacklist:
+                            continue
+
+                        if whitelist and (name not in whitelist):
+                            continue
+
+                        pokemon_list.append(pokemon)
 
                     sorted_list = self.score_and_sort(pokemon_list, rule)
 
@@ -161,69 +215,19 @@ class PokemonOptimizer(BaseTask):
                     try_evolve_all += try_evolve
                     try_upgrade_all += try_upgrade
                     buddy_all += buddy
-            elif mode == "by_family":
-                for family_id, pokemon_list in self.group_by_family_id(inventory.pokemons().all()):
-                    matching_names = self.get_family_names(family_id)
 
-                    if any(n in blacklist for n in matching_names):
-                        continue
+            keep_all = self.unique_pokemon_list(keep_all)
+            try_evolve_all = self.unique_pokemon_list(try_evolve_all)
+            try_upgrade_all = self.unique_pokemon_list(try_upgrade_all)
+            buddy_all = self.unique_pokemon_list(buddy_all)
 
-                    if whitelist and not any(n in whitelist for n in matching_names):
-                        continue
+            if (not self.lock_buddy) and (len(buddy_all) > 0):
+                new_buddy = buddy_all[0]
 
-                    sorted_list = self.score_and_sort(pokemon_list, rule)
+                if (not self.buddy) or (self.buddy["id"] != new_buddy.unique_id):
+                    self.set_buddy_pokemon(new_buddy)
 
-                    if len(sorted_list) == 0:
-                        continue
-
-                    if family_id == 133:  # "Eevee"
-                        keep, try_evolve, try_upgrade, buddy = self.get_multi_best_pokemon_for_rule(sorted_list, rule, 3)
-                    else:
-                        keep, try_evolve, try_upgrade, buddy = self.get_best_pokemon_for_rule(sorted_list, rule)
-
-                    keep_all += keep
-                    try_evolve_all += try_evolve
-                    try_upgrade_all += try_upgrade
-                    buddy_all += buddy
-            elif mode == "overall":
-                pokemon_list = []
-
-                for pokemon in inventory.pokemons().all():
-                    name = pokemon.name
-
-                    if name in blacklist:
-                        continue
-
-                    if whitelist and (name not in whitelist):
-                        continue
-
-                    pokemon_list.append(pokemon)
-
-                sorted_list = self.score_and_sort(pokemon_list, rule)
-
-                if len(sorted_list) == 0:
-                    continue
-
-                keep, try_evolve, try_upgrade, buddy = self.get_best_pokemon_for_rule(sorted_list, rule)
-                keep_all += keep
-                try_evolve_all += try_evolve
-                try_upgrade_all += try_upgrade
-                buddy_all += buddy
-
-        keep_all = self.unique_pokemon_list(keep_all)
-        try_evolve_all = self.unique_pokemon_list(try_evolve_all)
-        try_upgrade_all = self.unique_pokemon_list(try_upgrade_all)
-        buddy_all = self.unique_pokemon_list(buddy_all)
-
-        if (not self.lock_buddy) and (len(buddy_all) > 0):
-            new_buddy = buddy_all[0]
-
-            if (not self.buddy) or (self.buddy["id"] != new_buddy.unique_id):
-                self.set_buddy_pokemon(new_buddy)
-
-        if self.get_pokemon_slot_left() > self.config_min_slots_left:
-            return WorkerResult.SUCCESS
-
+<<<<<<< HEAD
         transfer_all = []
         evolve_all = []
         upgrade_all = []
@@ -241,6 +245,30 @@ class PokemonOptimizer(BaseTask):
             xp_all += xp
 
         self.apply_optimization(transfer_all, evolve_all, upgrade_all, xp_all)
+=======
+<<<<<<< Updated upstream
+        # Repeat the optimizer 2 times, to get rid of the trash evolved.
+        for _ in itertools.repeat(None, 2):
+=======
+>>>>>>> Stashed changes
+            transfer_all = []
+            evolve_all = []
+            upgrade_all = []
+            xp_all = []
+            for family_id, pokemon_list in self.group_by_family_id(inventory.pokemons().all()):
+                keep = [p for p in keep_all if self.get_family_id(p) == family_id]
+                try_evolve = [p for p in try_evolve_all if self.get_family_id(p) == family_id]
+                try_upgrade = [p for p in try_upgrade_all if self.get_family_id(p) == family_id]
+
+                transfer, evolve, upgrade, xp = self.get_evolution_plan(family_id, pokemon_list, keep, try_evolve, try_upgrade)
+
+                transfer_all += transfer
+                evolve_all += evolve
+                upgrade_all += upgrade
+                xp_all += xp
+
+            self.apply_optimization(transfer_all, evolve_all, upgrade_all, xp_all)
+>>>>>>> optimizer_fix
 
         return WorkerResult.SUCCESS
 
