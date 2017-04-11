@@ -235,8 +235,9 @@ class PokemonHunter(BaseTask):
     def _is_needed_pokedex(self, pokemon):
         candies = inventory.candies().get(pokemon["pokemon_id"]).quantity
         if candies > 150:
-            return False
             # We have enough candies, pass on hunting this Pokemon
+            return False
+
         # get family ids, gets ALL ids, also for previous evo!
         # We could see a Ivysaur on the map, and need a Bulbasaur
         # Then we have no need for a Ivysaur. If we see a Bulbasaur and need

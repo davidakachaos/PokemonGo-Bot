@@ -4347,7 +4347,9 @@
     "Next Evolution Requirements": {
       "Amount": 50,
       "Family": 95,
-      "Name": "Onix candies"
+      "Name": "Onix candies",
+      "EvoItem": 1103,
+      "EvoItemNeeded": 1
     },
     "Next evolution(s)": [
       {
@@ -5250,7 +5252,9 @@
     "Next Evolution Requirements": {
       "Amount": 100,
       "Family": 116,
-      "Name": "Horsea candies"
+      "Name": "Horsea candies",
+      "EvoItem": 1104,
+      "EvoItemNeeded": 1
     },
     "Next evolution(s)": [
       {
@@ -6065,7 +6069,9 @@
     "Next Evolution Requirements": {
       "Amount": 50,
       "Family": 137,
-      "Name": "Porygon candies"
+      "Name": "Porygon candies",
+      "EvoItem": 1105,
+      "EvoItemNeeded": 1
     },
     "Next evolution(s)": [
       {
@@ -8458,7 +8464,9 @@
     "Next Evolution Requirements": {
       "Amount": 50,
       "Family": 191,
-      "Name": "Sunkern candies"
+      "Name": "Sunkern candies",
+      "EvoItem": 1101,
+      "EvoItemNeeded": 1
     },
     "Next evolution(s)": [
       {
