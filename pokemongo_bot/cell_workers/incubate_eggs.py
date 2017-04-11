@@ -62,7 +62,7 @@ class IncubateEggs(BaseTask):
             eggs = self._filter_sort_eggs(self.infinite_incubator,
                     self.infinite_longer_eggs_first)
             if self.infinite_random_eggs:
-                eggs = random.shuffle(eggs)
+                random.shuffle(eggs)
             self._apply_incubators(eggs, self.ready_infinite_incubators)
         if self.ready_breakable_incubators:
             # get available eggs
