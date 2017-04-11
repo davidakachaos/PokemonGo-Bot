@@ -58,6 +58,7 @@ class PokemonOptimizer(BaseTask):
             self.log_file.seek(0, 2)
 
         self.config_bulktransfer_enabled = self.config.get("bulktransfer_enabled", False)
+        self.config_use_evolution_items = self.config.get("use_evolution_items", False)
         self.config_max_bulktransfer = self.config.get("max_bulktransfer", 10)
         self.config_min_slots_left = self.config.get("min_slots_left", 5)
         self.config_action_wait_min = self.config.get("action_wait_min", 3)
@@ -549,11 +550,15 @@ class PokemonOptimizer(BaseTask):
             pokemon_id = pokemon.pokemon_id
             needed_evolution_item = inventory.pokemons().evolution_item_for(pokemon_id)
             if needed_evolution_item is not None:
-                # We need a special Item to evolve this Pokemon!
-                item = inventory.items().get(needed_evolution_item)
-                needed = inventory.pokemons().evolution_items_needed_for(pokemon_id)
-                if item.count < needed:
-                    self.logger.info("To evolve a {} we need {} of {}. We have {}".format(pokemon.name, needed, item.name, item.count))
+                if self.config_use_evolution_items:
+                    # We need a special Item to evolve this Pokemon!
+                    item = inventory.items().get(needed_evolution_item)
+                    needed = inventory.pokemons().evolution_items_needed_for(pokemon_id)
+                    if item.count < needed:
+                        self.logger.info("To evolve a {} we need {} of {}. We have {}".format(pokemon.name, needed, item.name, item.count))
+                        continue
+                else:
+                    # pass for this Pokemon
                     continue
 
             if self.config_evolve_to_final:
@@ -824,7 +829,15 @@ class PokemonOptimizer(BaseTask):
             pokemon = self.evolution_map[pokemon.unique_id]
 
         if self.config_evolve and (not self.bot.config.test):
-            response_dict = self.bot.api.evolve_pokemon(pokemon_id=pokemon.unique_id)
+            needed_evolution_item = inventory.pokemons().evolution_item_for(pokemon.pokemon_id)
+            if needed_evolution_item is not None:
+                if self.config_use_evolution_items:
+                    # We need evolution_item_requirement with some!!
+                    response_dict = self.bot.api.evolve_pokemon(pokemon_id=pokemon.unique_id, evolution_item_requirement=needed_evolution_item)
+                else:
+                    return False
+            else:
+                response_dict = self.bot.api.evolve_pokemon(pokemon_id=pokemon.unique_id)
         else:
             response_dict = {"responses": {"EVOLVE_POKEMON": {"result": SUCCESS}}}
 
@@ -834,6 +847,9 @@ class PokemonOptimizer(BaseTask):
         result = response_dict.get("responses", {}).get("EVOLVE_POKEMON", {}).get("result", 0)
 
         if result != SUCCESS:
+            self.logger.info("Can't evolve %s" % pokemon.name)
+            self.logger.info(response_dict)
+            self.logger.info(result)
             return False
 
         xp = response_dict.get("responses", {}).get("EVOLVE_POKEMON", {}).get("experience_awarded", 0)
