@@ -44,6 +44,15 @@ class CampFort(BaseTask):
         if not self.enabled:
             return WorkerResult.SUCCESS
 
+        if self.bot.hunter_locked_target is not None:
+            if not hasattr(self.bot,"no_camper_while_hunting_global_warning") or \
+                        (hasattr(self.bot,"no_camper_while_hunting_global_warning") and not self.bot.no_camper_while_hunting_global_warning):
+                        self.logger.info("Pokemon hunter locked a target. Not camping right now...")
+            self.bot.no_camper_while_hunting_global_warning = True
+            return WorkerResult.SUCCESS
+        else:
+            self.bot.no_camper_while_hunting_global_warning = False
+
         if self.bot.catch_disabled:
             if not hasattr(self.bot,"camper_disabled_global_warning") or \
                         (hasattr(self.bot,"camper_disabled_global_warning") and not self.bot.camper_disabled_global_warning):
