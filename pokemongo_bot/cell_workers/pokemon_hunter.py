@@ -71,8 +71,8 @@ class PokemonHunter(BaseTask):
             self.no_hunt_until = None
 
         if self.bot.catch_disabled:
-            if not hasattr(self.bot,"hunter_disabled_global_warning") or \
-                        (hasattr(self.bot,"hunter_disabled_global_warning") and not self.bot.hunter_disabled_global_warning):
+            if not hasattr(self.bot, "hunter_disabled_global_warning") or \
+                        (hasattr(self.bot, "hunter_disabled_global_warning") and not self.bot.hunter_disabled_global_warning):
                 self.logger.info("All catching tasks are currently disabled until {}. Pokemon Hunter will resume when catching tasks are re-enabled".format(self.bot.catch_resume_at.strftime("%H:%M:%S")))
             self.bot.hunter_disabled_global_warning = True
             return WorkerResult.SUCCESS
@@ -128,6 +128,8 @@ class PokemonHunter(BaseTask):
                     self.walker = PolylineWalker(self.bot, self.search_points[0][0], self.search_points[0][1])
                     self.search_cell_id = self.destination["s2_cell_id"]
                     self.search_points = self.search_points[1:] + self.search_points[:1]
+                # We have a target
+                return WorkerResult.SUCCESS
             else:
                 if self.no_log_until < now:
                     # Show like "Pidgey (12), Zubat(2)"
@@ -144,6 +146,29 @@ class PokemonHunter(BaseTask):
                 self.last_cell_id = None
 
                 return WorkerResult.SUCCESS
+
+        # Make sure a VIP is treated that way
+        if self.config_lock_on_target and self.destination is not None:
+            if self._is_vip_pokemon(self.destination) and self.bot.hunter_locked_target is None:
+                self.bot.hunter_locked_target = self.destination
+
+        if (self.destination is not None and
+                self.config_lock_on_target and
+                self.config_lock_vip_only and
+                self.bot.hunter_locked_target is None):
+            worth_pokemons = self.get_worth_pokemons(pokemons)
+            # We have a none VIP target set, check for VIP targets!
+            if len(worth_pokemons) > 0:
+                for pokemon in worth_pokemons:
+                    if self._is_vip_pokemon(pokemon):
+                        self.destination = pokemon
+                        self.lost_counter = 0
+                        self.hunt_started_at = datetime.now()
+                        if self.config_lock_on_target:
+                            self.bot.hunter_locked_target = self.destination
+                        self.logger.info("Found a VIP Pokemon! Looking for a %(name)s at %(distance).2f.", self.destination)
+                        return WorkerResult.SUCCESS
+            pass
 
         if self.config_lock_on_target and not self.config_lock_vip_only:
             if self.bot.hunter_locked_target == None:
