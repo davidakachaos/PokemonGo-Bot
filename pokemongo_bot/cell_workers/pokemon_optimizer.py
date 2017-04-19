@@ -602,6 +602,7 @@ class PokemonOptimizer(BaseTask):
             self.ongoing_stardust_count -= full_upgrade_stardust_cost
 
             if (candies < 0) or (self.ongoing_stardust_count < 0):
+                self.ongoing_stardust_count += full_upgrade_stardust_cost
                 continue
 
             upgrade.append(pokemon)
