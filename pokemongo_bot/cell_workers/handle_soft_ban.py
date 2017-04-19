@@ -1,6 +1,7 @@
 from random import randint
 
 from pgoapi.utilities import f2i
+from datetime import datetime, timedelta
 
 from pokemongo_bot.constants import Constants
 from pokemongo_bot.base_task import BaseTask
@@ -15,6 +16,8 @@ class HandleSoftBan(BaseTask):
     def work(self):
         if not self.should_run():
             return
+        if not hasattr(self.bot, "catch_resume_at"): self.bot.catch_resume_at = None
+        if not hasattr(self.bot, "catch_disabled"): self.bot.catch_disabled = False
 
         forts = self.bot.get_forts(order_by_distance=True)
 
@@ -45,8 +48,11 @@ class HandleSoftBan(BaseTask):
             self.bot.softban = False
             self.emit_event(
                 'softban_fix_done',
-                formatted='Softban should be fixed'
+                formatted='Softban should be fixed, disabling catch tasks for 1 minute.'
             )
+            # Disable catching for a bit
+            self.bot.catch_disabled = True
+            self.bot.catch_resume_at = datetime.now() + timedelta(minutes = 1)
 
     def spin_fort(self, fort):
         fort_id = fort['id']
