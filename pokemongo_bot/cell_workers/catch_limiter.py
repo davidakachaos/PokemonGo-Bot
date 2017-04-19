@@ -19,7 +19,7 @@ class CatchLimiter(BaseTask):
         self.min_balls = self.config.get("min_balls",20)
         self.resume_balls = self.config.get("resume_balls",100)
         self.duration = self.config.get("duration",15)
-        self.no_log_until = None
+        self.no_log_until = datetime.now()
         if not hasattr(self.bot, "catch_resume_at"): self.bot.catch_resume_at = None
 
     def work(self):
@@ -60,7 +60,10 @@ class CatchLimiter(BaseTask):
             )
 
         if self.bot.catch_disabled and self.no_log_until <= now:
-            self.logger.info("All catch tasks disabled until %s" % self.bot.catch_resume_at.strftime("%H:%M:%S"))
+            if now >= self.bot.catch_resume_at:
+                self.logger.info("All catch tasks disabled until balls on hand ({}) > threshold." % balls_on_hand)
+            else:
+                self.logger.info("All catch tasks disabled until %s" % self.bot.catch_resume_at.strftime("%H:%M:%S"))
             self.no_log_until = now + timedelta(minutes = 2)
 
         return WorkerResult.SUCCESS
