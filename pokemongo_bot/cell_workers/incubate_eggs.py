@@ -50,6 +50,11 @@ class IncubateEggs(BaseTask):
             else:
                 self.bot.metrics.next_hatching_km(km_left)
 
+            # Disabled catching if needed
+            if not self.bot.catch_disabled:
+                self._finish_eggs()
+            # km_left = self.used_incubators[0]['km']-self.km_walked
+
         if self._should_print():
             self._print_eggs()
             self._compute_next_update()
@@ -251,6 +256,9 @@ class IncubateEggs(BaseTask):
                     break
 
         self.bot.metrics.hatched_eggs(len(pokemon_list))
+        if self.bot.catch_disabled:
+            self.logger.info("Egg hatched, resuming catching tasks.")
+            self.bot.catch_disabled = False
         return True
 
     def _print_eggs(self):
@@ -285,3 +293,14 @@ class IncubateEggs(BaseTask):
         :rtype: None
         """
         self.next_update = datetime.now() + timedelta(seconds=self.min_interval)
+
+    def _finish_eggs(self):
+        if len(self.used_incubators) == 0:
+            return True
+        km_left = self.used_incubators[0]['km'] - self.km_walked
+        # if less then 150 meters left, disable catching.
+        if km_left < 0.15:
+            # Disable all catching untill eggs are hatched!
+            self.logger.info("Egg hatches in {:.2f} km! Disabling catching untill hatched!".format(km_left))
+            self.bot.catch_disabled = True
+            self.bot.catch_resume_at = datetime.now() + timedelta(minutes = 10)
