@@ -200,6 +200,14 @@
             }
         },
         {
+            "type": "HealPokemon",
+            "config": {
+                "enabled": true,
+                "revive": true,
+                "heal": true
+            }
+        },
+        {
             "type": "NicknamePokemon",
             "config": {
                 "enabled": false,
