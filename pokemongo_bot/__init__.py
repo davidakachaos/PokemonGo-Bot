@@ -238,6 +238,20 @@ class PokemonGoBot(object):
             )
         )
         self.event_manager.register_event(
+            'healing_pokemon',
+            parameters=(
+                'name',
+                'hp',
+                'hp_max'
+            )
+        )
+        self.event_manager.register_event(
+            'revived_pokemon',
+            parameters=(
+                'name'
+            )
+        )
+        self.event_manager.register_event(
             'position_update',
             parameters=(
                 'current_position',
