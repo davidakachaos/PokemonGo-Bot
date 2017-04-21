@@ -5514,7 +5514,9 @@
     "Next Evolution Requirements": {
       "Amount": 50,
       "Family": 123,
-      "Name": "Scyther candies"
+      "Name": "Scyther candies",
+      "EvoItem": 1103,
+      "EvoItemNeeded": 1
     },
     "Next evolution(s)": [
       {
