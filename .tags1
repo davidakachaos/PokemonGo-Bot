@@ -4,16 +4,27 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
-unicode_literals	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/catch_limiter.py	/^from __future__ import unicode_literals$/;"	namespace	line:2
-absolute_import	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/catch_limiter.py	/^from __future__ import absolute_import$/;"	namespace	line:3
-datetime	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/catch_limiter.py	/^from datetime import datetime, timedelta$/;"	namespace	line:5
-timedelta	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/catch_limiter.py	/^from datetime import datetime, timedelta$/;"	namespace	line:5
-BaseTask	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/catch_limiter.py	/^from pokemongo_bot.base_task import BaseTask$/;"	namespace	line:6
-WorkerResult	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/catch_limiter.py	/^from pokemongo_bot.worker_result import WorkerResult$/;"	namespace	line:7
-inventory	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/catch_limiter.py	/^from pokemongo_bot import inventory$/;"	namespace	line:8
-Item	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/catch_limiter.py	/^from pokemongo_bot.item_list import Item$/;"	namespace	line:9
-CatchLimiter	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/catch_limiter.py	/^class CatchLimiter(BaseTask):$/;"	class	line:11
-SUPPORTED_TASK_API_VERSION	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/catch_limiter.py	/^    SUPPORTED_TASK_API_VERSION = 1$/;"	variable	line:12	class:CatchLimiter
-__init__	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/catch_limiter.py	/^    def __init__(self, bot, config):$/;"	member	line:14	class:CatchLimiter
-work	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/catch_limiter.py	/^    def work(self):$/;"	member	line:25	class:CatchLimiter
-get_pokeball_count	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/catch_limiter.py	/^    def get_pokeball_count(self):$/;"	member	line:68	class:CatchLimiter
+Counter	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^from collections import Counter$/;"	namespace	line:1
+datetime	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^from datetime import datetime, timedelta$/;"	namespace	line:2
+timedelta	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^from datetime import datetime, timedelta$/;"	namespace	line:2
+random	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^import random$/;"	namespace	line:3
+inventory	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^from pokemongo_bot import inventory$/;"	namespace	line:5
+sleep	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^from pokemongo_bot.human_behaviour import sleep$/;"	namespace	line:6
+BaseTask	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^from pokemongo_bot.base_task import BaseTask$/;"	namespace	line:7
+WorkerResult	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^from pokemongo_bot.worker_result import WorkerResult$/;"	namespace	line:8
+reduce	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^from functools import reduce$/;"	namespace	line:9
+IncubateEggs	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^class IncubateEggs(BaseTask):$/;"	class	line:12
+SUPPORTED_TASK_API_VERSION	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    SUPPORTED_TASK_API_VERSION = 1$/;"	variable	line:13	class:IncubateEggs
+last_km_walked	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    last_km_walked = 0$/;"	variable	line:15	class:IncubateEggs
+__init__	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def __init__(self, bot, config):$/;"	member	line:17	class:IncubateEggs
+initialize	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def initialize(self):$/;"	member	line:20	class:IncubateEggs
+_process_config	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def _process_config(self):$/;"	member	line:31	class:IncubateEggs
+work	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def work(self):$/;"	member	line:39	class:IncubateEggs
+_filter_sort_eggs	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def _filter_sort_eggs(self, allowed, sorting):$/;"	member	line:81	class:IncubateEggs
+_apply_incubators	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def _apply_incubators(self, available_eggs, available_incubators):$/;"	member	line:88	class:IncubateEggs
+_check_inventory	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def _check_inventory(self, lookup_ids=[]):$/;"	member	line:136	class:IncubateEggs
+_hatch_eggs	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def _hatch_eggs(self):$/;"	member	line:192	class:IncubateEggs
+_print_eggs	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def _print_eggs(self):$/;"	member	line:264	class:IncubateEggs
+_should_print	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def _should_print(self):$/;"	member	line:281	class:IncubateEggs
+_compute_next_update	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def _compute_next_update(self):$/;"	member	line:289	class:IncubateEggs
+_finish_eggs	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def _finish_eggs(self):$/;"	member	line:297	class:IncubateEggs
