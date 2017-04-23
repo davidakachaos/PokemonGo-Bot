@@ -1075,6 +1075,7 @@ class PokemonOptimizer(BaseTask):
                                 data={"pokemon": pokemon.name,
                                       "iv": pokemon.iv,
                                       "cp": pokemon.cp})
+        action_delay(self.config_action_wait_min, self.config_action_wait_max)
 
     def unfavor_pokemon(self, pokemon):
         response_dict = self.bot.api.set_favorite_pokemon(pokemon_id=pokemon.unique_id, is_favorite=False)
@@ -1088,3 +1089,4 @@ class PokemonOptimizer(BaseTask):
                                 data={"pokemon": pokemon.name,
                                       "iv": pokemon.iv,
                                       "cp": pokemon.cp})
+        action_delay(self.config_action_wait_min, self.config_action_wait_max)
