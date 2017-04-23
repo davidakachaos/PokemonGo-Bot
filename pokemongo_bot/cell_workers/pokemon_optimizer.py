@@ -223,8 +223,8 @@ class PokemonOptimizer(BaseTask):
         # Like a buddy
         if self.config_may_unfavor_pokemon:
             unfavor = []
-            for pokemon in inventory.pokemons().all() if pokemon not in try_favor_all:
-                if pokemon.is_favorite:
+            for pokemon in inventory.pokemons().all():
+                if not pokemon in try_favor_all and pokemon.is_favorite:
                     unfavor.append(pokemon)
             if len(unfavor) > 0:
                 self.logger.info("Marking %s Pokemon as no longer favorite", len(unfavor))
