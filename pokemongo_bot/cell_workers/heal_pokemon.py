@@ -83,6 +83,7 @@ class HealPokemon(BaseTask):
         amount = inventory.items().get(item).count
         if amount > 0:
             response_dict_revive = self.bot.api.use_item_revive(item_id=item, pokemon_id=pokemon.unique_id)
+            action_delay(1, 2)
             if response_dict_revive:
                 result = response_dict_revive.get('responses', {}).get('USE_ITEM_REVIVE', {}).get('result', 0)
                 if result is 1:  # Request success
@@ -123,6 +124,7 @@ class HealPokemon(BaseTask):
         for item_id, max_heal in zip(potions, heals):
             if inventory.items().get(item_id).count > 0:
                 while hp_to_restore > max_heal:
+                    delay_action(1, 2)
                     # More than 200 to restore, use a hyper first
                     if self._use_potion(item_id, pokemon):
                         hp_to_restore -= max_heal
@@ -132,6 +134,7 @@ class HealPokemon(BaseTask):
         # Now we use the least
         potion_id = 101 # Normals first
         while hp_to_restore > 0:
+            action_delay(0, 2)
             if inventory.items().get(potion_id).count > 0:
                 if potion_id == 104:
                     self.logger.info("Using MAX potion to heal a %s" % pokemon.name)
