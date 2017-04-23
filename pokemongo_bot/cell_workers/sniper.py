@@ -468,9 +468,13 @@ class Sniper(BaseTask):
             # Resume sniping
             self.no_snipe_until = None
 
+        sniped = False
         # Do nothing if this task was invalidated
         if self.disabled:
-            self._error("Sniper was disabled for some reason. Scroll up to find out.")
+            if not hasattr(self.bot,"sniper_disabled_global_warning") or \
+                        (hasattr(self.bot,"sniper_disabled_global_warning") and not self.bot.sniper_disabled_global_warning):
+                self._error("Sniper was disabled for some reason. Scroll up to find out.")
+                self.bot.sniper_disabled_global_warning = True
 
         elif self.bot.catch_disabled:
             if not hasattr(self.bot,"sniper_disabled_global_warning") or \
