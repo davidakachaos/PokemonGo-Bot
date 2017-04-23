@@ -545,7 +545,7 @@ class Sniper(BaseTask):
 
         # Build up the pokemon. Pops are used to destroy random attribute names and keep the known ones!
         for pokemon in pokemon_dictionary_list:
-            pokemon['iv'] = pokemon.get('iv', 100)
+            pokemon['iv'] = pokemon.get('iv', 0)
             pokemon['pokemon_name'] = pokemon.get('pokemon_name', Pokemons.name_for(pokemon.get('pokemon_id')))
             pokemon['vip'] = pokemon.get('pokemon_name') in self.bot.config.vips
             pokemon['missing'] = not self.pokedex.captured(pokemon.get('pokemon_id'))
@@ -556,7 +556,7 @@ class Sniper(BaseTask):
             if self.is_snipeable(pokemon):
                 result.append(pokemon)
         # Add to the DB
-        self._add_pokemons_to_db(result)
+        # self._add_pokemons_to_db(result)
         return result
 
     def _get_pokemons_from_telegram(self):
