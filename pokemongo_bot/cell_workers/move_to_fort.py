@@ -22,6 +22,10 @@ class MoveToFort(BaseTask):
         self.walker = self.config.get('walker', 'StepWalker')
         self.wait_at_fort = self.config.get('wait_on_lure', False)
         self.wait_log_sent = None
+        # Note if we are able to move toward the fort
+        self.recent_tries = []
+        self.distance_to_target = 0
+        self.distance_counter = 0
 
     def should_run(self):
         has_space_for_loot = inventory.Items.has_space_for_loot()
@@ -68,6 +72,23 @@ class MoveToFort(BaseTask):
         moving = noised_dist > Constants.MAX_DISTANCE_FORT_IS_REACHABLE if self.bot.config.replicate_gps_xy_noise else dist > Constants.MAX_DISTANCE_FORT_IS_REACHABLE
 
         if moving:
+            # Check if we are able to move to the fort
+            if round(dist, 2) == self.distance_to_target:
+                # Hmm, not moved toward the fort?
+                self.distance_counter += 1
+            else:
+                self.distance_counter = 0
+            # If the distance stays the same for 3 runs, abort moving to this fort
+            if self.distance_counter >= 3:
+                # Ignore last 3
+                if len(self.recent_tries) > 3:
+                    self.recent_tries.pop()
+                self.recent_tries.append(fortID)
+                self.logger.info("Can't move toward %s", fort_name)
+                return WorkerResult.ERROR
+            else:
+                self.distance_to_target = round(dist, 2)
+
             self.wait_log_sent = None
             fort_event_data = {
                 'fort_name': u"{}".format(fort_name),
@@ -163,6 +184,8 @@ class MoveToFort(BaseTask):
             ),
             forts
         )
+        # Remove forts we can't seem to move to
+        forts = filter(lambda x: x["id"] not in self.recent_tries, forts)
 
         next_attracted_pts, lure_distance = self._get_nearest_fort_on_lure_way(forts)
 
@@ -178,7 +201,7 @@ class MoveToFort(BaseTask):
         if len(forts) >= 3:
             # Get ID of fort, store it. Check index 0 & index 2. Both must not be same
             nearest_fort = forts[0]
-            
+
             if len(self.fort_ids) < 3:
                 self.fort_ids.extend(nearest_fort['id'])
             else:
@@ -191,7 +214,7 @@ class MoveToFort(BaseTask):
                 else:
                     self.fort_ids.pop(0)
                     self.fort_ids.extend(nearest_fort['id'])
-                    
+
             return nearest_fort
         else:
             return None
