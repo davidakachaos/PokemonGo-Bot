@@ -265,7 +265,12 @@ class UpdateLiveStats(BaseTask):
             ttl = (float(remaining_xp) / float(experience_per_hour))
             hours = int(ttl)
             minutes = int((ttl - hours) * 60)
-            time_to_level = "%s hours %s minutes" % (hours, minutes)
+            if hours > 24:
+                days = hours / 24
+                hours = hours % 24
+                time_to_level = "%s days %s hours %s minutes" % (days, hours, minutes)
+            else:
+                time_to_level = "%s hours %s minutes" % (hours, minutes)
         else:
             time_to_level = "Unknown"
         xp_earned = metrics.xp_earned()
