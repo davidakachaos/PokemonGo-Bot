@@ -6,7 +6,7 @@ from pokemongo_bot.base_task import BaseTask
 
 class RandomPause(BaseTask):
     """Pauses the execution of the bot at a random time for a random duration
-    
+
     Simulates the user doing "something random" for some time.
     Example Config:
     {
@@ -18,8 +18,8 @@ class RandomPause(BaseTask):
           "max_interval": "01:30:00"
         }
     }
-    
-    Inspired from sleep_schedule. 
+
+    Inspired from sleep_schedule.
     ... In retrospect, we could have used a generic class for both.
     """
     SUPPORTED_TASK_API_VERSION = 1
@@ -49,25 +49,31 @@ class RandomPause(BaseTask):
         try:
             x = dt.strptime(strTime, '%H:%M:%S')
             seconds = int(timedelta(hours=x.hour,minutes=x.minute,seconds=x.second).total_seconds())
-        except ValueError: 
+        except ValueError:
             seconds = 0;
-            
+
         if seconds < 0:
             seconds = 0;
-              
+
         return seconds
-    
+
     def _process_config(self):
         self.minDuration = self.getSeconds(self.config.get('min_duration', '00:00:10'))
         self.maxDuration = self.getSeconds(self.config.get('max_duration', '00:10:00'))
         self.minInterval = self.getSeconds(self.config.get('min_interval', '00:10:00'))
         self.maxInterval = self.getSeconds(self.config.get('max_interval', '01:10:00'))
-        
+
+        if 'enable_reminder' in self.config and self.config['enable_reminder'] == True:
+            self._enable_reminder = True
+            self._reminder_interval = config['reminder_interval'] if 'reminder_interval' in config else 120
+        else:
+            self._enable_reminder = False
+
         if self.minDuration > self.maxDuration:
             raise ValueError('random pause min_duration is bigger than random pause max_duration') #TODO there must be a more elegant way to do it...
         if self.minInterval > self.maxInterval:
             raise ValueError('random pause min_interval is bigger than random pause max_interval') #TODO there must be a more elegant way to do it...
-        
+
     def _schedule_next_pause(self):
         '''
         Schedule the time and the duration of the next pause.
@@ -89,6 +95,20 @@ class RandomPause(BaseTask):
             return False
         if dt.now() >= self._next_pause:
             return True
+
+        if self._enable_reminder:
+            diff = dt.now() - self._last_reminder
+            if (diff.total_seconds() >= self._reminder_interval):
+                self.bot.event_manager.emit(
+                    'next_random_pause',
+                    sender=self,
+                    formatted="Next random pause at {time}, for a duration of {duration}",
+                    data={
+                        'time': str(self._next_pause.strftime("%H:%M:%S")),
+                        'duration': str(timedelta(seconds=self._next_duration))
+                    }
+                )
+                self._last_reminder = now
 
         return False
 
