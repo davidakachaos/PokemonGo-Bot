@@ -39,6 +39,7 @@ class PokemonOptimizer(BaseTask):
         self.buddyid = 0
         self.lock_buddy = True
         self.no_log_until = 0
+        self.ignore_favorite = []
 
         pokemon_upgrade_cost_file = os.path.join(_base_dir, "data", "pokemon_upgrade_cost.json")
 
@@ -224,6 +225,7 @@ class PokemonOptimizer(BaseTask):
                     buddy_all += buddy
                     favor_all += favor
 
+
             keep_all = self.unique_pokemon_list(keep_all)
             try_evolve_all = self.unique_pokemon_list(try_evolve_all)
             try_upgrade_all = self.unique_pokemon_list(try_upgrade_all)
@@ -242,8 +244,9 @@ class PokemonOptimizer(BaseTask):
                         self.unfavor_pokemon(pokemon)
             # Dont favor Pokemon if already a favorite
             try_favor_all = [p for p in try_favor_all if not p.is_favorite]
+            try_favor_all = [p for p in try_favor_all if p.unique_id not in self.ignore_favorite]
             if len(try_favor_all) > 0:
-                self.logger.info("Setting %s Poken as favorite", len(try_favor_all))
+                self.logger.info("Marking %s Pokemon as favorite", len(try_favor_all))
 
                 for pokemon in try_favor_all:
                     if pokemon.is_favorite is False:
@@ -266,7 +269,6 @@ class PokemonOptimizer(BaseTask):
                 keep = [p for p in keep_all if self.get_family_id(p) == family_id]
                 try_evolve = [p for p in try_evolve_all if self.get_family_id(p) == family_id]
                 try_upgrade = [p for p in try_upgrade_all if self.get_family_id(p) == family_id]
-                try_favor = [p for p in try_favor_all if self.get_family_id(p) == family_id]
 
                 transfer, evolve, upgrade, xp = self.get_evolution_plan(family_id, pokemon_list, keep, try_evolve, try_upgrade)
 
@@ -1065,9 +1067,11 @@ class PokemonOptimizer(BaseTask):
 
     def favor_pokemon(self, pokemon):
         response_dict = self.bot.api.set_favorite_pokemon(pokemon_id=pokemon.unique_id, is_favorite=True)
+        sleep(1.2)  # wait a bit after request
         if response_dict:
             result = response_dict.get('responses', {}).get('SET_FAVORITE_POKEMON', {}).get('result', 0)
             if result is 1:  # Request success
+                action_delay(self.config_action_wait_min, self.config_action_wait_max)
                 # Mark Pokemon as favorite
                 pokemon.is_favorite = True
                 self.emit_event("pokemon_favored",
@@ -1075,10 +1079,15 @@ class PokemonOptimizer(BaseTask):
                                 data={"pokemon": pokemon.name,
                                       "iv": pokemon.iv,
                                       "cp": pokemon.cp})
-        action_delay(self.config_action_wait_min, self.config_action_wait_max)
+            else:
+                # Pokemon not found??
+                self.ignore_favorite.append(pokemon.unique_id)
+                pokemon.is_favorite = True
+                self.logger.info("Unable to set %s as favorite!" % pokemon.name)
 
     def unfavor_pokemon(self, pokemon):
         response_dict = self.bot.api.set_favorite_pokemon(pokemon_id=pokemon.unique_id, is_favorite=False)
+        sleep(1.2)  # wait a bit after request
         if response_dict:
             result = response_dict.get('responses', {}).get('SET_FAVORITE_POKEMON', {}).get('result', 0)
             if result is 1:  # Request success
@@ -1089,4 +1098,4 @@ class PokemonOptimizer(BaseTask):
                                 data={"pokemon": pokemon.name,
                                       "iv": pokemon.iv,
                                       "cp": pokemon.cp})
-        action_delay(self.config_action_wait_min, self.config_action_wait_max)
+                action_delay(self.config_action_wait_min, self.config_action_wait_max)
