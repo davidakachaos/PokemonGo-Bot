@@ -3,11 +3,19 @@ from __future__ import unicode_literals
 
 import os
 import json
+import difflib
+import itertools
+import math
+import time
+import datetime
+
+from pokemongo_bot import inventory
 from pokemongo_bot.base_task import BaseTask
 from pokemongo_bot.human_behaviour import sleep, action_delay
 from pokemongo_bot.inventory import Attack
 from pokemongo_bot.inventory import Pokemon
 from pokemongo_bot.inventory import pokemons
+from pokemongo_bot.base_dir import _base_dir
 
 import re
 
@@ -191,12 +199,15 @@ class NicknamePokemon(BaseTask):
 
     # noinspection PyAttributeOutsideInit
     def initialize(self):
+        self.pokemon_names = [p.name for p in inventory.pokemons().STATIC_DATA]
         self.ignore_favorites = self.config.get('dont_nickname_favorite', DEFAULT_IGNORE_FAVORITES)
         self.good_attack_threshold = self.config.get('good_attack_threshold', DEFAULT_GOOD_ATTACK_THRESHOLD)
-        self.template = self.config.get('nickname_template', DEFAULT_TEMPLATE)
-        self.nickname_above_iv = self.config.get('nickname_above_iv', 0)
         self.nickname_wait_min = self.config.get('nickname_wait_min', DEFAULT_NICKNAME_WAIT_MIN)
         self.nickname_wait_max = self.config.get('nickname_wait_max', DEFAULT_NICKNAME_WAIT_MAX)
+        self.config_groups = self.config.get("groups", {"gym": ["Dragonite", "Snorlax", "Lapras", "Arcanine"]})
+        self.debug = self.config.get('debug', False)
+
+        self.config_rules = self.config.get("rules", [{"nickname_template": DEFAULT_TEMPLATE, "mode": "overall", "top": 1, "sort": ["max_cp", "cp"], "rename": {"iv": 1.0}}])
 
         self.translate = None
         locale = self.config.get('locale', 'en')
@@ -204,17 +215,114 @@ class NicknamePokemon(BaseTask):
             fn = 'data/locales/{}.json'.format(locale)
             if os.path.isfile(fn):
                 self.translate = json.load(open(fn))
+        # Default groups
+        self.config_groups["with_next_evolution"] = []
+        self.config_groups["with_previous_evolution"] = []
+
+        for pokemon in inventory.Pokemons.STATIC_DATA:
+            if pokemon.has_next_evolution:
+                self.config_groups["with_next_evolution"].append(pokemon.name)
+
+            if pokemon.prev_evolutions_all:
+                self.config_groups["with_previous_evolution"].append(pokemon.name)
+
+        if self.debug:
+            log_file_path = os.path.join(_base_dir, "data", "pokemon-nicknamer-%s.log" % self.bot.config.username)
+
+            with open(log_file_path, "a") as _:
+                pass
+
+            self.log_file = open(log_file_path, "r+")
+            self.log_file.seek(0, 2)
 
     def work(self):
         """
-        Iterate over all user pokemons and nickname if needed
+        Iterate over all rules to nickname pokemons and nickname if needed
         """
-        for pokemon in pokemons().all():  # type: Pokemon
-            if not pokemon.is_favorite or not self.ignore_favorites:
-                if pokemon.iv >= self.nickname_above_iv:
-                    if self._nickname_pokemon(pokemon):
-                        # Make the bot appears more human
+        already_renamed = []
+
+        for rule in self.config_rules:
+            mode = rule.get("mode", "by_family")
+            names = rule.get("names", [])
+            template = rule.get("nickname_template")
+            whitelist, blacklist = self.get_colorlist(names)
+            rename_pokemons = []
+
+            if mode == "by_pokemon":
+                for pokemon_id, pokemon_list in self.group_by_pokemon_id(inventory.pokemons().all()):
+                    name = inventory.pokemons().name_for(pokemon_id)
+
+                    if name in blacklist:
+                        continue
+
+                    if whitelist and (name not in whitelist):
+                        continue
+
+                    sorted_list = self.score_and_sort(pokemon_list, rule)
+
+                    if len(sorted_list) == 0:
+                        continue
+
+                    rename_pokemons += self.get_best_pokemon_for_rule(sorted_list, rule)
+            elif mode == "by_family":
+                for family_id, pokemon_list in self.group_by_family_id(inventory.pokemons().all()):
+                    matching_names = self.get_family_names(family_id)
+
+                    if any(n in blacklist for n in matching_names):
+                        continue
+
+                    if whitelist and not any(n in whitelist for n in matching_names):
+                        continue
+
+                    sorted_list = self.score_and_sort(pokemon_list, rule)
+
+                    if len(sorted_list) == 0:
+                        continue
+
+                    rename = self.get_best_pokemon_for_rule(sorted_list, rule)
+
+                    rename_pokemons += rename
+            elif mode == "overall":
+                pokemon_list = []
+
+                for pokemon in inventory.pokemons().all():
+                    name = pokemon.name
+
+                    if name in blacklist:
+                        continue
+
+                    if whitelist and (name not in whitelist):
+                        continue
+
+                    pokemon_list.append(pokemon)
+
+                sorted_list = self.score_and_sort(pokemon_list, rule)
+
+                if len(sorted_list) == 0:
+                    continue
+
+                rename_pokemons += self.get_best_pokemon_for_rule(sorted_list, rule)
+            # Now rename_pokemons are the pokemons we need to check and name
+            # Ignore Pokemon renamed by previous rules
+            rename_pokemons = [p for p in rename_pokemons if not p in already_renamed]
+            already_renamed += rename_pokemons
+            for pokemon in rename_pokemons:
+                if not pokemon.is_favorite or not self.ignore_favorites:
+                    if self._nickname_pokemon(pokemon, template):
                         action_delay(self.nickname_wait_min, self.nickname_wait_max)
+
+        # for pokemon in pokemons().all():  # type: Pokemon
+        #     if not pokemon.is_favorite or not self.ignore_favorites:
+        #         if self.nickname_above_operator == "or":
+        #             if pokemon.iv >= self.nickname_above_iv or pokemon.cp >= self.nickname_above_cp:
+        #                 if self._nickname_pokemon(pokemon):
+        #                     # Make the bot appears more human
+        #                     action_delay(self.nickname_wait_min, self.nickname_wait_max)
+        #         elif self.nickname_above_operator == "and":
+        #             if pokemon.iv < self.nickname_below_iv and pokemon.iv >= self.nickname_above_iv and pokemon.cp >= self.nickname_above_cp:
+        #                 if self._nickname_pokemon(pokemon):
+        #                     # Make the bot appears more human
+        #                     action_delay(self.nickname_wait_min, self.nickname_wait_max)
 
     def _localize(self, string):
         if self.translate and string in self.translate:
@@ -222,13 +330,12 @@ class NicknamePokemon(BaseTask):
         else:
             return string
 
-    def _nickname_pokemon(self, pokemon):
+    def _nickname_pokemon(self, pokemon, template):
         # type: (Pokemon) -> bool
         # returns False if no wait needed (no API calls tried before return), True if wait is needed
         """
         Nicknaming process
         """
-
         # We need id of the specific pokemon unstance to be able to rename it
         instance_id = pokemon.unique_id
         if not instance_id:
@@ -241,7 +348,7 @@ class NicknamePokemon(BaseTask):
         # Generate new nickname
         old_nickname = pokemon.nickname
         try:
-            new_nickname = self._generate_new_nickname(pokemon, self.template)
+            new_nickname = self._generate_new_nickname(pokemon, template)
         except KeyError as bad_key:
             self.emit_event(
                 'config_error',
@@ -307,7 +414,7 @@ class NicknamePokemon(BaseTask):
 
         # Filter template
         # only convert the keys to lowercase, leaving the format specifier alone
-        template = re.sub(r"{[\w_\d]*", lambda x:x.group(0).lower(), template).strip()
+        template = re.sub(r"{[\w_\d]*", lambda x: x.group(0).lower(), template).strip()
 
         # Individial Values of the current specific pokemon (different for each)
         iv_attack = pokemon.iv_attack
@@ -337,8 +444,8 @@ class NicknamePokemon(BaseTask):
         moveset = pokemon.moveset
 
         pokemon.name = self._localize(pokemon.name)
-        
-        # Remove spaces from Nidoran M/F 
+
+        # Remove spaces from Nidoran M/F
         pokemon.name = pokemon.name.replace("Nidoran M", "NidoranM")
         pokemon.name = pokemon.name.replace("Nidoran F", "NidoranF")
 
@@ -429,6 +536,179 @@ class NicknamePokemon(BaseTask):
 
         # 12 is a max allowed length for the nickname
         return new_name[:MAXIMUM_NICKNAME_LENGTH]
+
+    def log(self, txt):
+        if self.log_file.tell() >= 1024 * 1024:
+            self.log_file.seek(0, 0)
+
+        self.log_file.write("[%s] %s\n" % (datetime.datetime.now().isoformat(str(" ")), txt))
+        self.log_file.flush()
+
+    def get_colorlist(self, names):
+        whitelist = []
+        blacklist = []
+
+        for name in names:
+            if not name:
+                continue
+
+            if name[0] not in ['!', '-']:
+                group = self.config_groups.get(name, [])
+
+                if not group:
+                    name = self.get_closest_name(name)
+
+                if name:
+                    whitelist.append(name)
+                    whitelist_sub, blacklist_sub = self.get_colorlist(group)
+                    whitelist += whitelist_sub
+                    blacklist += blacklist_sub
+            else:
+                name = name[1:]
+                group = self.config_groups.get(name, [])
+
+                if not group:
+                    name = self.get_closest_name(name)
+
+                if name:
+                    blacklist.append(name)
+                    blacklist_sub, whitelist_sub = self.get_colorlist(group)
+                    blacklist += blacklist_sub
+                    whitelist += whitelist_sub
+
+        return (whitelist, blacklist)
+
+    def get_family_names(self, family_id):
+        ids = [family_id]
+        ids += inventory.pokemons().data_for(family_id).next_evolutions_all[:]
+        return [inventory.pokemons().name_for(x) for x in ids]
+
+    def get_closest_name(self, name):
+        mapping = {ord(x): ord(y) for x, y in zip("\u2641\u2642.-", "fm  ")}
+        clean_names = {n.lower().translate(mapping): n for n in self.pokemon_names}
+        closest_names = difflib.get_close_matches(name.lower().translate(mapping), clean_names.keys(), 1)
+
+        if closest_names:
+            closest_name = clean_names[closest_names[0]]
+
+            if name != closest_name:
+                self.logger.warning("Unknown Pokemon name [%s]. Assuming it is [%s]", name, closest_name)
+
+            return closest_name
+        else:
+            raise ConfigException("Unknown Pokemon name [%s]" % name)
+
+    def group_by_pokemon_id(self, pokemon_list):
+        sorted_list = sorted(pokemon_list, key=self.get_pokemon_id)
+        return itertools.groupby(sorted_list, self.get_pokemon_id)
+
+    def group_by_family_id(self, pokemon_list):
+        sorted_list = sorted(pokemon_list, key=self.get_family_id)
+        return itertools.groupby(sorted_list, self.get_family_id)
+
+    def get_pokemon_id(self, pokemon):
+        return pokemon.pokemon_id
+
+    def get_family_id(self, pokemon):
+        return pokemon.first_evolution_id
+
+    def score_and_sort(self, pokemon_list, rule):
+        pokemon_list = list(pokemon_list)
+
+        if self.debug:
+            self.log("Pokemon %s" % pokemon_list)
+            self.log("Rule %s" % rule)
+
+        for pokemon in pokemon_list:
+            setattr(pokemon, "__score__", self.get_score(pokemon, rule))
+
+        rename = [p for p in pokemon_list if p.__score__[1] is True]
+        rename.sort(key=lambda p: p.__score__[0], reverse=True)
+
+        return rename
+
+    def get_score(self, pokemon, rule):
+        score = []
+
+        for a in rule.get("sort", []):
+            if a[0] == "-":
+                value = -getattr(pokemon, a[1:], 0)
+            else:
+                value = getattr(pokemon, a, 0)
+
+            score.append(value)
+
+        rule_rename = rule.get("rename", True)
+
+        rename = rule_rename not in [False, {}]
+        rename &= self.satisfy_requirements(pokemon, rule_rename)
+
+        if self.debug:
+            self.log("P:%s Score:%s Renaming:%s" % (pokemon, tuple(score), rename))
+
+        return tuple(score), rename
+
+    def satisfy_requirements(self, pokemon, req):
+        if type(req) is bool:
+            return req
+
+        satisfy = True
+
+        for a, v in req.items():
+            value = getattr(pokemon, a, 0)
+
+            if (type(v) is str) or (type(v) is unicode):
+                v = float(v)
+
+            if type(v) is list:
+                if type(v[0]) is list:
+                    satisfy_range = False
+
+                    for r in v:
+                        satisfy_range |= (value >= r[0]) and (value <= r[1])
+
+                    satisfy &= satisfy_range
+                else:
+                    satisfy &= (value >= v[0]) and (value <= v[1])
+            elif v < 0:
+                satisfy &= (value <= abs(v))
+            else:
+                satisfy &= (value >= v)
+
+        return satisfy
+
+    def get_best_pokemon_for_rule(self, pokemon_list, rule):
+        pokemon_list = list(pokemon_list)
+
+        if len(pokemon_list) == 0:
+            return ([], [], [], [])
+
+        top = max(rule.get("top", 0), 0)
+        index = int(math.ceil(top)) - 1
+
+        if 0 < top < 1:
+            worst = object()
+
+            for a in rule.get("sort", []):
+                best_attribute = getattr(pokemon_list[0], a)
+                setattr(worst, a, best_attribute * (1 - top))
+
+            setattr(worst, "__score__", self.get_score(worst, rule))
+        elif 0 <= index < len(pokemon_list):
+            worst = pokemon_list[index]
+        else:
+            worst = pokemon_list[-1]
+
+        return self.get_better_pokemon(pokemon_list, worst)
+
+    def get_better_pokemon(self, pokemon_list, worst, limit=1000):
+        rename = [p for p in pokemon_list if p.__score__[0] >= worst.__score__[0]][:limit]
+        # try_evolve = [p for p in rename if p.__score__[2] is True]
+        # try_upgrade = [p for p in rename if (p.__score__[2] is False) and (p.__score__[3] is True)]
+        # buddy = [p for p in rename if p.__score__[4] is True]
+        # favor = [p for p in rename if p.__score__[5] is True]
+
+        return rename
 
     def attack_char(self, attack):
         # type: (Attack) -> string
