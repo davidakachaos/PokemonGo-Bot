@@ -62,7 +62,7 @@ class CatchPokemon(BaseTask):
 
         if hasattr(self.bot, "skipped_pokemon"):
             # Skip pokemon the catcher told us to ignore
-            self.pokemon = [ p for p in self.pokemon if p not in self.bot.skipped_pokemon ]
+            self.pokemon = [p for p in self.pokemon if p not in self.bot.skipped_pokemon]
 
         num_pokemon = len(self.pokemon)
 
