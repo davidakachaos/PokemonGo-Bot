@@ -31,5 +31,16 @@ class SocketIoRunner(object):
 
     def _start_listening_blocking(self):
         # deploy as an eventlet WSGI server
-        listener = eventlet.listen((self.host, self.port))
-        self.server = wsgi.server(listener, self.app, log_output=False, debug=False)
+        tries = 0
+        while True:
+            try:
+                listener = eventlet.listen((self.host, self.port))
+                self.server = wsgi.server(listener, self.app, log_output=False, debug=False)
+            except:
+                if tries <= 4:
+                    self.port += 1
+                    tries += 1
+                    continue
+                else:
+                    raise
+            break
