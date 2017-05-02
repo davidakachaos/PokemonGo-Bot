@@ -289,6 +289,19 @@ class Items(_BaseInventoryComponent):
         return cls.STATIC_DATA[str(item_id)]
 
     @classmethod
+    def id_for(cls, item_name):
+        """
+        Search the ID for an item from its name.
+        :param item_name: Item's name to search for.
+        :return: Item's ID.
+        :rtype: int
+        """
+        for data in cls.STATIC_DATA:
+            if data.name.lower() == item_name.lower():
+                return data.id
+        raise Exception('Could not find item named {}'.format(item_name))
+
+    @classmethod
     def get_space_used(cls):
         """
         Counts the space used in item inventory.
@@ -849,6 +862,19 @@ class PokemonInfo(object):
         #candies
         self.candyid = int(data['Candy']['FamilyID'])
         self.candyName = (data['Candy']['Name'])
+        # Evolution branch if present
+        self.evolution_branches = []
+        # if 'Evolution Branch' in data:
+        #     # Pokemon can evolve in 2 or more Pokemon!
+        #     for branch_data in data['Evolution Branch']:
+        #         branch = {}
+        #         branch['Number'] = branch_data['Number']
+        #         branch['NeedsEvoItem'] = 'EvoItem' in branch_data
+        #         if branch['NeedsEvoItem']:
+        #             branch['EvoItem'] = Item.id_for(branch_data['EvoItem'])
+        #             branch['EvoItemAmount'] = branch_data['EvoItemNeeded']
+        #         self.evolution_branches.append(branch)
+
         self.next_evolutions_all = []
         if self.has_next_evolution:
             ids = [int(e['Number']) for e in data['Next evolution(s)']]

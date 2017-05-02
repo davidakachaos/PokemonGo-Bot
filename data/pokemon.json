@@ -2772,6 +2772,14 @@
       "Family": 60,
       "Name": "Poliwag candies"
     },
+    "Evolution Branch": [{
+      "Number": "062"
+    },
+    {
+      "Number": "186",
+      "EvoItem": "Kings Rock",
+      "EvoItemNeeded": 1
+    }],
     "Next evolution(s)": [
       {
         "Number": "062",
