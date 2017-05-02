@@ -275,7 +275,7 @@ class Sniper(BaseTask):
         self.catch_list = self.config.get('catch', {})
         self.altitude = uniform(self.bot.config.alt_min, self.bot.config.alt_max)
         self.sources = [SniperSource(data) for data in self.config.get('sources', [])]
-        self.no_snipe_until = None
+        self.no_snipe_until = time.time() + 20 # Wait 20 secs before sniping, handle softban first
 
         if not hasattr(self.bot,"sniper_cache"):
             self.bot.sniper_cache = []
@@ -352,7 +352,7 @@ class Sniper(BaseTask):
         return True
 
     # Snipe a target. This function admits that if a target really exists, it will be 'caught'.
-    def snipe(self, pokemon, have_more_targets=False, org_position=None):
+    def snipe(self, pokemon, port_back=True, org_position=None):
         success = False
 
         # Apply snipping business rules and snipe if its good
@@ -451,7 +451,7 @@ class Sniper(BaseTask):
 
                 else:
                     self._error('Damn! Its not here. Reasons: too far, caught, expired or fake data. Skipping...')
-                    if not have_more_targets:
+                    if port_back:
                         self._teleport_back(last_position)
 
                 #Set always to false to re-enable sniper to check for telegram data
@@ -525,9 +525,11 @@ class Sniper(BaseTask):
                     sniped = True
                     if shots < self.bullets:
                         # Last shot or last target? Always teleport back!!
-                        if shots == (self.bullets - 1) or index < len(targets):
+                        if shots == (self.bullets - 1) or index == (len(targets) - 1):
+                            #self._log("Porting back! Shots: {} Targets: {} Index: {}".format(shots, len(targets), index))
                             port_back = True
                         else:
+                            #self._log("Not porting back! Shots: {} Targets: {} Index: {}".format(shots, len(targets), index))
                             # No need to port back if not found
                             port_back = False
 
@@ -545,6 +547,9 @@ class Sniper(BaseTask):
 
                 # Always set telegram back to false
         TelegramSnipe.ENABLED = False
+        # Check if we need to teleport back to the original spot.
+        if org_position != self.bot.position[0:2]:
+            self._teleport_back(org_position)
 
         if sniped:
             if self.loiter_after_snipe:
