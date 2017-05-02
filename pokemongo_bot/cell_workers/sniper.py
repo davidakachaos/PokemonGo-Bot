@@ -61,12 +61,19 @@ class SniperSource(object):
             for result in results:
                 iv = result.get(self.mappings.iv.param)
                 id = result.get(self.mappings.id.param)
+                # Sometimes the name is undefined and craps out, skip that result
+                if result.get(self.mappings.name.param) == "undefined":
+                    continue
                 name = self._get_closest_name(self._fixname(result.get(self.mappings.name.param)))
                 latitude = result.get(self.mappings.latitude.param)
                 longitude = result.get(self.mappings.longitude.param)
                 expiration = result.get(self.mappings.expiration.param)
                 encounter = result.get(self.mappings.encounter.param)
                 spawnpoint = result.get(self.mappings.spawnpoint.param)
+
+                # Zapdos is not released, used as a fake mon in some sources
+                if name.lower() == "zapdos":
+                    continue
 
                 # If this is a composite param, split it ("coords": "-31.415553, -64.190480")
                 if self.mappings.latitude.param == self.mappings.longitude.param:
@@ -334,10 +341,10 @@ class Sniper(BaseTask):
             else:
                 # Not catchable and IV is not good enough (if any). Check VIP list
                 if pokemon.get('vip', False):
-                    self._log('{} is not catchable and bad IV (if any), however its a VIP!'.format(pokemon.get('pokemon_name')))
+                    self._trace('{} is not catchable and bad IV (if any), however its a VIP!'.format(pokemon.get('pokemon_name')))
                 else:
                     if pokemon.get('missing', False):
-                        self._log('{} is not catchable, not VIP and bad IV (if any), however its a missing one.'.format(pokemon.get('pokemon_name')))
+                        self._trace('{} is not catchable, not VIP and bad IV (if any), however its a missing one.'.format(pokemon.get('pokemon_name')))
                     else:
                         self._trace('{} is not catchable, nor a VIP or a missing one and bad IV (if any). Skipping...'.format(pokemon.get('pokemon_name')))
                         return False
@@ -345,7 +352,7 @@ class Sniper(BaseTask):
         return True
 
     # Snipe a target. This function admits that if a target really exists, it will be 'caught'.
-    def snipe(self, pokemon):
+    def snipe(self, pokemon, have_more_targets=False, org_position=None):
         success = False
 
         # Apply snipping business rules and snipe if its good
@@ -363,7 +370,10 @@ class Sniper(BaseTask):
                 self._trace('{} was already handled! Skipping...'.format(pokemon['pokemon_name']))
             else:
                 # Backup position before anything
-                last_position = self.bot.position[0:2]
+                if org_position is None:
+                    last_position = self.bot.position[0:2]
+                else:
+                    last_position = org_position
 
                 # Teleport, so that we can see nearby stuff
                 self.bot.hb_locked = True
@@ -441,7 +451,8 @@ class Sniper(BaseTask):
 
                 else:
                     self._error('Damn! Its not here. Reasons: too far, caught, expired or fake data. Skipping...')
-                    self._teleport_back(last_position)
+                    if not have_more_targets:
+                        self._teleport_back(last_position)
 
                 #Set always to false to re-enable sniper to check for telegram data
                 TelegramSnipe.ENABLED = False
@@ -508,12 +519,12 @@ class Sniper(BaseTask):
 
                 self._trace('+----+------+----------------+-------+----------+---------+---------+----------+')
                 shots = 0
-
+                org_position = self.bot.position[0:2]
                 # For as long as there are targets available, try to snipe untill we run out of bullets
                 for index, target in enumerate(targets):
                     sniped = True
                     if shots < self.bullets:
-                        success = self.snipe(target)
+                        success = self.snipe(target, index < len(targets), org_position)
                         shots += 1
 
                         # Homing shots are supposed to hit the target (capture). Rollback
