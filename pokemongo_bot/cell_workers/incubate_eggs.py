@@ -32,6 +32,8 @@ class IncubateEggs(BaseTask):
         self.infinite_longer_eggs_first = self.config.get("infinite_longer_eggs_first", False)
         self.infinite_random_eggs = self.config.get("infinite_random_eggs", False)
         self.breakable_longer_eggs_first = self.config.get("breakable_longer_eggs_first", True)
+        self.finish_eggs = self.config.get("finish_eggs", False)
+        self.finish_meters = self.config.get("finish_meters", 150)
         self.min_interval = self.config.get('min_interval', 120)
         self.breakable_incubator = self.config.get("breakable", [2,5,10])
         self.infinite_incubator = self.config.get("infinite", [2,5,10])
@@ -51,9 +53,8 @@ class IncubateEggs(BaseTask):
                 self.bot.metrics.next_hatching_km(km_left)
 
             # Disabled catching if needed
-            if not self.bot.catch_disabled:
+            if not self.bot.catch_disabled and self.finish_eggs:
                 self._finish_eggs()
-            # km_left = self.used_incubators[0]['km']-self.km_walked
 
         if self._should_print():
             self._print_eggs()
@@ -298,8 +299,8 @@ class IncubateEggs(BaseTask):
         if len(self.used_incubators) == 0:
             return True
         km_left = self.used_incubators[0]['km'] - self.km_walked
-        # if less then 150 meters left, disable catching.
-        if km_left < 0.15:
+        # if less then X meters left, disable catching.
+        if km_left < (float(self.finish_meters) / 100.0):
             # Disable all catching untill eggs are hatched!
             self.logger.info("Egg hatches in {:.2f} km! Disabling catching untill hatched!".format(km_left))
             self.bot.catch_disabled = True
