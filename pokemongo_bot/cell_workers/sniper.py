@@ -524,7 +524,14 @@ class Sniper(BaseTask):
                 for index, target in enumerate(targets):
                     sniped = True
                     if shots < self.bullets:
-                        success = self.snipe(target, index < len(targets), org_position)
+                        # Last shot or last target? Always teleport back!!
+                        if shots == (self.bullets - 1) or index < len(targets):
+                            port_back = True
+                        else:
+                            # No need to port back if not found
+                            port_back = False
+
+                        success = self.snipe(target, port_back, org_position)
                         shots += 1
 
                         # Homing shots are supposed to hit the target (capture). Rollback
