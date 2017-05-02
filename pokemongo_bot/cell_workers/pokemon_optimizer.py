@@ -40,6 +40,7 @@ class PokemonOptimizer(BaseTask):
         self.lock_buddy = True
         self.no_log_until = 0
         self.ignore_favorite = []
+        self.used_lucky_egg = None
 
         pokemon_upgrade_cost_file = os.path.join(_base_dir, "data", "pokemon_upgrade_cost.json")
 
@@ -69,6 +70,7 @@ class PokemonOptimizer(BaseTask):
         self.config_evolve_to_final = self.config.get("evolve_to_final", True)
         self.config_evolve_time = self.config.get("evolve_time", 25)
         self.config_evolve_for_xp = self.config.get("evolve_for_xp", True)
+        self.config_transfer_after_xp_evolve = self.config.get("transfer_after_xp_evolve", True)
         self.config_evolve_only_with_lucky_egg = self.config.get("evolve_only_with_lucky_egg", False)
         self.config_evolve_count_for_lucky_egg = self.config.get("evolve_count_for_lucky_egg", 80)
         self.config_may_use_lucky_egg = self.config.get("may_use_lucky_egg", False)
@@ -115,6 +117,15 @@ class PokemonOptimizer(BaseTask):
         self.log_file.write("[%s] %s\n" % (datetime.datetime.now().isoformat(str(" ")), txt))
         self.log_file.flush()
 
+    def active_lucky_egg(self):
+        if self.used_lucky_egg is None:
+            return False
+        # If last used is bigger then 30 minutes ago
+        if self.used_lucky_egg > datetime.datetime.now()-datetime.timedelta(minutes=30):
+            return True
+        else:
+            return False
+
     def get_pokemon_slot_left(self):
         pokemon_count = inventory.Pokemons.get_space_used()
 
@@ -130,7 +141,9 @@ class PokemonOptimizer(BaseTask):
             return WorkerResult.SUCCESS
 
         # Repeat the optimizer 2 times, to get rid of the trash evolved.
+        run_number = 0
         for _ in itertools.repeat(None, 2):
+            run_number += 1
             self.check_buddy()
             self.open_inventory()
 
@@ -258,7 +271,8 @@ class PokemonOptimizer(BaseTask):
                 if (not self.buddy) or (self.buddy["id"] != new_buddy.unique_id):
                     self.set_buddy_pokemon(new_buddy)
 
-            if self.get_pokemon_slot_left() > self.config_min_slots_left:
+            # Only check bag on the first run, second run ignores if the bag is empty enough
+            if run_number == 1 and self.get_pokemon_slot_left() > self.config_min_slots_left:
                 return WorkerResult.SUCCESS
 
             transfer_all = []
@@ -704,6 +718,13 @@ class PokemonOptimizer(BaseTask):
 
                 self.transfer_pokemon(transfer)
 
+        if self.config_upgrade or self.bot.config.test:
+            if upgrade_count > 0:
+                self.logger.info("Upgrading %s Pokemon [%s stardust]", upgrade_count, self.bot.stardust)
+
+                for pokemon in upgrade:
+                    self.upgrade_pokemon(pokemon)
+
         if self.config_evolve or self.bot.config.test:
             evolve_xp_count = evolve_count + xp_count
 
@@ -743,16 +764,9 @@ class PokemonOptimizer(BaseTask):
                         self.logger.info("Evolving %s Pokemon (for xp)", xp_count)
 
                         for pokemon in xp:
-                            self.evolve_pokemon(pokemon)
+                            self.evolve_pokemon(pokemon, self.config_transfer_after_xp_evolve)
 
-        if self.config_upgrade or self.bot.config.test:
-            if upgrade_count > 0:
-                self.logger.info("Upgrading %s Pokemon [%s stardust]", upgrade_count, self.bot.stardust)
-
-                for pokemon in upgrade:
-                    self.upgrade_pokemon(pokemon)
-
-    def transfer_pokemon(self, pokemons):
+    def transfer_pokemon(self, pokemons, skip_delay=False):
         error_codes = {
             0: 'UNSET',
             1: 'SUCCESS',
@@ -841,8 +855,8 @@ class PokemonOptimizer(BaseTask):
 
                         if db_result[0] == 1:
                             db.execute("INSERT INTO transfer_log (pokemon, iv, cp) VALUES (?, ?, ?)", (pokemon.name, pokemon.iv, pokemon.cp))
-
-                    action_delay(self.config_action_wait_min, self.config_action_wait_max)
+                    if not skip_delay:
+                        action_delay(self.config_action_wait_min, self.config_action_wait_max)
 
         return True
 
@@ -868,6 +882,7 @@ class PokemonOptimizer(BaseTask):
             self.emit_event("used_lucky_egg",
                             formatted="Used lucky egg ({amount_left} left).",
                             data={"amount_left": lucky_egg.count})
+            self.used_lucky_egg = datetime.datetime.now()
             return True
         elif result == ERROR_XP_BOOST_ALREADY_ACTIVE:
             self.emit_event("used_lucky_egg",
@@ -880,7 +895,7 @@ class PokemonOptimizer(BaseTask):
                             formatted="Failed to use lucky egg!")
             return False
 
-    def evolve_pokemon(self, pokemon):
+    def evolve_pokemon(self, pokemon, transfer=False):
         while pokemon.unique_id in self.evolution_map:
             pokemon = self.evolution_map[pokemon.unique_id]
 
@@ -916,12 +931,14 @@ class PokemonOptimizer(BaseTask):
         if self.config_evolve and (not self.bot.config.test):
             candy.consume(pokemon.evolution_cost - candy_awarded)
             inventory.player().exp += xp
-
+        new_pokemon = inventory.Pokemon(evolution)
         self.emit_event("pokemon_evolved",
-                        formatted="Evolved {pokemon} [IV {iv}] [CP {cp}] [{candy} candies] [+{xp} xp]",
+                        formatted="Evolved {pokemon} [CP {old_cp}] into {new} [IV {iv}] [CP {cp}] [{candy} candies] [+{xp} xp]",
                         data={"pokemon": pokemon.name,
+                              "new": new_pokemon.name,
                               "iv": pokemon.iv,
-                              "cp": pokemon.cp,
+                              "old_cp": pokemon.cp,
+                              "cp": new_pokemon.cp,
                               "candy": candy.quantity,
                               "xp": xp})
 
@@ -943,6 +960,9 @@ class PokemonOptimizer(BaseTask):
                     db.execute("INSERT INTO evolve_log (pokemon, iv, cp) VALUES (?, ?, ?)", (pokemon.name, pokemon.iv, pokemon.cp))
 
             sleep(self.config_evolve_time, 0.1)
+        if transfer and not self.used_lucky_egg:
+            # Transfer the new Pokemon imediately!
+            self.transfer_pokemon([new_pokemon], True)
 
         return True
 
@@ -974,11 +994,13 @@ class PokemonOptimizer(BaseTask):
                 candy.consume(upgrade_candy_cost)
                 self.bot.stardust -= upgrade_stardust_cost
 
+            new_pokemon = inventory.Pokemon(upgrade)
             self.emit_event("pokemon_upgraded",
-                            formatted="Upgraded {pokemon} [IV {iv}] [CP {cp}] [{candy} candies] [{stardust} stardust]",
+                            formatted="Upgraded {pokemon} [IV {iv}] [CP {cp} -> {new_cp}] [{candy} candies] [{stardust} stardust]",
                             data={"pokemon": pokemon.name,
                                   "iv": pokemon.iv,
                                   "cp": pokemon.cp,
+                                  "new_cp": new_pokemon.cp,
                                   "candy": candy.quantity,
                                   "stardust": self.bot.stardust})
 
@@ -987,6 +1009,7 @@ class PokemonOptimizer(BaseTask):
 
                 new_pokemon = inventory.Pokemon(upgrade)
                 inventory.pokemons().add(new_pokemon)
+                pokemon = new_pokemon
 
                 action_delay(self.config_action_wait_min, self.config_action_wait_max)
 
