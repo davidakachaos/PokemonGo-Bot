@@ -548,7 +548,7 @@ class Sniper(BaseTask):
                 # Always set telegram back to false
         TelegramSnipe.ENABLED = False
         # Check if we need to teleport back to the original spot.
-        if org_position != self.bot.position[0:2]:
+        if sniped and org_position != self.bot.position[0:2]:
             self._teleport_back(org_position)
 
         if sniped:
