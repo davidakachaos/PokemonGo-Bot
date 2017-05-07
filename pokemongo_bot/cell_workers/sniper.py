@@ -477,6 +477,15 @@ class Sniper(BaseTask):
             # Resume sniping
             self.no_snipe_until = None
 
+        if self.bot.softban:
+            if not hasattr(self.bot, "sniper_softban_global_warning") or \
+                        (hasattr(self.bot, "sniper_softban_global_warning") and not self.bot.sniper_softban_global_warning):
+                self.logger.info("Possible softban! Not sniping any targets.")
+            self.bot.sniper_softban_global_warning = True
+            return WorkerResult.SUCCESS
+        else:
+            self.bot.softban_global_warning = False
+
         sniped = False
         # Do nothing if this task was invalidated
         if self.disabled:
