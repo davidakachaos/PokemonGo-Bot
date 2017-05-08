@@ -39,8 +39,8 @@ class CatchLimiter(BaseTask):
                 )
                 self.bot.catch_disabled = False
 
-        # If balls_on_hand is more than resume_balls, resume catch tasks
-        if self.bot.catch_disabled and balls_on_hand >= self.resume_balls:
+        # If balls_on_hand is more than resume_balls, resume catch tasks, if not softbanned
+        if self.bot.softban is False and self.bot.catch_disabled and balls_on_hand >= self.resume_balls:
             self.emit_event(
                 'catch_limit_off',
                 formatted="Balls on hand ({}) exceeds threshold {}. Re-enabling catch tasks.".
