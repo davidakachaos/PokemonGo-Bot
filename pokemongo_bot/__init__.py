@@ -212,7 +212,7 @@ class PokemonGoBot(object):
         self.event_manager.register_event('login_started')
         self.event_manager.register_event('login_failed')
         self.event_manager.register_event('login_successful')
-        
+
         self.event_manager.register_event('niantic_warning')
 
         self.event_manager.register_event('set_start_location')
@@ -253,6 +253,9 @@ class PokemonGoBot(object):
                 'name'
             )
         )
+        self.event_manager.register_event('gym_full')
+        self.event_manager.register_event('deployed_pokemon')
+
         self.event_manager.register_event(
             'position_update',
             parameters=(
@@ -1286,7 +1289,7 @@ class PokemonGoBot(object):
             ' | Metal Coat: ' + str(items_inventory.get(1103).count) +
             ' | Dragon Scale: ' + str(items_inventory.get(1104).count) +
             ' | Upgrade: ' + str(items_inventory.get(1105).count))
-            
+
         if warn:
             self.logger.info('')
             self.event_manager.emit(
@@ -1623,6 +1626,21 @@ class PokemonGoBot(object):
         forts = [fort
                  for fort in self.cell['forts']
                  if 'latitude' in fort and 'type' in fort]
+
+        if order_by_distance:
+            forts.sort(key=lambda x: distance(
+                self.position[0],
+                self.position[1],
+                x['latitude'],
+                x['longitude']
+            ))
+
+        return forts
+
+    def get_gyms(self, order_by_distance=False):
+        forts = [fort
+                 for fort in self.cell['forts']
+                 if 'latitude' in fort and 'gym_points' in fort]
 
         if order_by_distance:
             forts.sort(key=lambda x: distance(
