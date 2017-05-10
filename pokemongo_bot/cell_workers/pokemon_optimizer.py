@@ -649,7 +649,9 @@ class PokemonOptimizer(BaseTask):
 
         upgrade = []
         upgrade_level = min(self.config_upgrade_level, inventory.player().level + 1.5, 40)
-
+        # Highest CP on top.
+        if len(try_upgrade) > 0:
+            try_upgrade.sort(key=lambda p: (p.cp), reverse=True)
         for pokemon in try_upgrade:
             # self.log("Considering %s for upgrade" % pokemon.name)
             if pokemon.level >= upgrade_level:
