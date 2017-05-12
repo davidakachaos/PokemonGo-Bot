@@ -51,6 +51,8 @@ class PokemonHunter(BaseTask):
         self.config_disabled_while_camping = self.config.get("disabled_while_camping", True)
         # Hunt unseens as VIP?
         self.config_treat_unseen_as_vip = self.config.get("treat_unseen_as_vip", True)
+        self.config_target_family_of_vip = self.config.get("target_family_of_vip", True)
+        self.config_treat_family_of_vip_as_vip = self.config.get("treat_family_of_vip_as_vip", False)
         self.bot.hunter_locked_target = None
 
     def work(self):
@@ -265,6 +267,17 @@ class PokemonHunter(BaseTask):
         # Not seen pokemons also will become vip if it's not disabled in config
         if self.bot.config.vips.get(pokemon["name"]) == {} or (self.config_treat_unseen_as_vip and not inventory.pokedex().seen(pokemon["pokemon_id"])):
             return True
+        # If we must treat the family of the Pokemon as a VIP, also return true!
+        if self.config_treat_family_of_vip_as_vip and self._is_family_of_vip(pokemon):
+            return True
+
+    def _is_family_of_vip(self, pokemon):
+        for fid in self.get_family_ids(pokemon):
+            name = inventory.pokemons().name_for(fid)
+            if self.bot.config.vips.get(name) == {}:
+                return True
+        # No, not a family member of the VIP
+        return False
 
     def _is_needed_pokedex(self, pokemon):
         candies = inventory.candies().get(pokemon["pokemon_id"]).quantity
@@ -297,6 +310,9 @@ class PokemonHunter(BaseTask):
 
             if self.config_hunt_vip:
                 worth_pokemons += [p for p in pokemons if p["name"] in self.bot.config.vips]
+
+            if self.config_target_family_of_vip or self.config_treat_family_of_vip_as_vip:
+                worth_pokemons += [p for p in pokemons if (p not in worth_pokemons) and self._is_family_of_vip(p)]
 
             if self.config_hunt_pokedex:
                 worth_pokemons += [p for p in pokemons if (p not in worth_pokemons) and self._is_needed_pokedex(p)]
