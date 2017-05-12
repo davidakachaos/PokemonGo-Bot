@@ -75,7 +75,7 @@ class GymPokemon(BaseTask):
         details = fort_details(self.bot, gym['id'], lat, lng)
         fort_name = details.get('name', 'Unknown')
 
-        self.logger.info("Checking Gym: %s", fort_name)
+        self.logger.info("Checking Gym: %s (%s pts)", (fort_name, gym['gym_points']))
 
         response_dict = self.bot.api.get_gym_details(
             gym_id=gym['id'],
@@ -95,6 +95,11 @@ class GymPokemon(BaseTask):
                 # Figure out if there is room
                 state = gym_details.get('gym_state')
                 memberships = state.get('memberships')
+                count = 1
+                for member in memberships:
+                    poke = inventory.Pokemon(member.get('pokemon_data'))
+                    self.logger.info("%s: %s (%s CP)".format(count, poke.name, poke.cp))
+                    count += 1
                 # memberships are the pokemon in the gym presently
                 # if len(memberships) == 10:
                 #     # Maxed out
@@ -197,7 +202,7 @@ class GymPokemon(BaseTask):
     def get_gyms_in_range(self):
         gyms = self.bot.get_gyms(order_by_distance=True)
         gyms = filter(lambda gym: gym["id"] not in self.bot.recent_forts, gyms)
-        
+
         if self.bot.config.replicate_gps_xy_noise:
             gyms = filter(lambda fort: distance(
                 self.bot.noised_position[0],

@@ -181,19 +181,24 @@ def main():
         logger.info('Configuration initialized')
         health_record = BotEvent(config)
         health_record.login_success()
+        logger.info('Health done')
 
         setup_logging(config)
 
         finished = False
-
+        logger.info('entering loop')
         while not finished:
             min_wait_time = int(config.reconnecting_timeout * 0.8 * 60)
             max_wait_time = int(config.reconnecting_timeout *  1.2 * 60)
             wait_time = randint(min_wait_time, max_wait_time)
+            logger.info('Going try')
             try:
                 bot = initialize(config)
+                logger.info('Bot initialized')
                 bot = start_bot(bot, config)
+                logger.info('Bot started')
                 config_changed = check_mod(config_file)
+
 
                 bot.event_manager.emit(
                     'bot_start',
@@ -276,6 +281,7 @@ def main():
                 formatted='Bot caught SIGINT. Shutting down.'
             )
             report_summary(bot)
+        finished = True
 
     except Exception as e:
         # always report session summary and then raise exception

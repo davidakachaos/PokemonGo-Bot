@@ -146,7 +146,8 @@ class CampFort(BaseTask):
             if self.cluster["lured"] == 0:
                 self.bot.camping_forts = False # Allow hunter to move
                 self.stay_until -= NO_LURED_TIME_MALUS
-                self.logger.info("Lures gone, waiting for forts to be lured again until %s".format(self.stay_until.strftime("%H:%M")))
+                until = datetime.datetime.fromtimestamp(self.stay_until)
+                self.logger.info("Lures gone, waiting for forts to be lured again until %s".format(until.strftime("%H:%M")))
 
             self.walker.step(speed=0)
         elif self.walker.step():
