@@ -16,6 +16,7 @@ from pokemongo_bot.worker_result import WorkerResult
 from pokemongo_bot.base_task import BaseTask
 from pokemongo_bot import inventory
 from .utils import distance, format_time, fort_details
+from pokemongo_bot.tree_config_builder import ConfigException
 
 GYM_DETAIL_RESULT_SUCCESS = 1
 GYM_DETAIL_RESULT_OUT_OF_RANGE = 2
@@ -32,6 +33,7 @@ class GymPokemon(BaseTask):
         # 10 seconds from current time
         self.next_update = datetime.now() + timedelta(0, 10)
         self.order_by = self.config.get('order_by', 'cp')
+        self.min_interval = self.config.get('min_interval', 60)
         self.recent_gyms = []
         self.pokemons = []
 
@@ -55,6 +57,17 @@ class GymPokemon(BaseTask):
         # Ignore after done for 5 mins
         self.bot.fort_timeouts[gym["id"]] = (time.time() + 300) * 1000
         self.bot.recent_forts = self.bot.recent_forts[1:] + [gym['id']]
+
+        team = self.bot.player_data['team']
+        if 'owned_by_team' not in gym:
+            self.logger.info("Empty gym found!!")
+            self.drop_pokemon_in_gym(gym)
+        elif not gym["owned_by_team"] == team:
+            self.logger.info("Not owned by own team")
+            if len(gyms) > 1:
+                return WorkerResult.RUNNING
+            else:
+                return WorkerResult.SUCCESS
 
         lat = gym['latitude']
         lng = gym['longitude']
@@ -83,9 +96,9 @@ class GymPokemon(BaseTask):
                 state = gym_details.get('gym_state')
                 memberships = state.get('memberships')
                 # memberships are the pokemon in the gym presently
-                if len(memberships) == 10:
-                    # Maxed out
-                    return WorkerResult.SUCCESS
+                # if len(memberships) == 10:
+                #     # Maxed out
+                #     return WorkerResult.SUCCESS
                 max_mons = 1
                 # Case statment on points to see if there is room.
                 if points >= 50000:
@@ -183,10 +196,8 @@ class GymPokemon(BaseTask):
 
     def get_gyms_in_range(self):
         gyms = self.bot.get_gyms(order_by_distance=True)
-        team = self.bot.player_data['team']
-        gyms = filter(lambda fort: fort["owned_by_team"] == team, gyms)
-        gyms = filter(lambda fort: fort["id"] not in self.bot.recent_forts, gyms)
-
+        gyms = filter(lambda gym: gym["id"] not in self.bot.recent_forts, gyms)
+        
         if self.bot.config.replicate_gps_xy_noise:
             gyms = filter(lambda fort: distance(
                 self.bot.noised_position[0],
