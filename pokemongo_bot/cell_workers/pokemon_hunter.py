@@ -14,6 +14,7 @@ from pokemongo_bot.item_list import Item
 from pokemongo_bot.walkers.polyline_walker import PolylineWalker
 from pokemongo_bot.walkers.step_walker import StepWalker
 from pokemongo_bot.worker_result import WorkerResult
+from .utils import fort_details
 
 import random
 from random import uniform
@@ -43,6 +44,8 @@ class PokemonHunter(BaseTask):
         self.config_hunt_vip = self.config.get("hunt_vip", True)
         self.config_hunt_pokedex = self.config.get("hunt_pokedex", True)
         self.config_enable_cooldown = self.config.get("enable_cooldown", True)
+        # closest first?
+        self.config_hunt_closest_first = self.config.get("hunt_closest_first", False)
         # Lock on Target; ignore all other Pokémon until we found our target.
         self.config_lock_on_target = self.config.get("lock_on_target", False)
         # Lock only VIP Pokemon (unseen / VIP)
@@ -59,6 +62,34 @@ class PokemonHunter(BaseTask):
         if not self.enabled:
             return WorkerResult.SUCCESS
 
+        if self.bot.catch_disabled:
+            # When catching is disabled, drop the target.
+            if self.destination is not None:
+                self.destination = None
+                self.last_cell_id = None
+
+            if not hasattr(self.bot, "hunter_disabled_global_warning") or \
+                        (hasattr(self.bot, "hunter_disabled_global_warning") and not self.bot.hunter_disabled_global_warning):
+                self.logger.info("All catching tasks are currently disabled until {}. Pokemon Hunter will resume when catching tasks are re-enabled".format(self.bot.catch_resume_at.strftime("%H:%M:%S")))
+            self.bot.hunter_disabled_global_warning = True
+            return WorkerResult.SUCCESS
+        else:
+            self.bot.hunter_disabled_global_warning = False
+
+        if self.bot.softban:
+            # At softban, drop target
+            if self.destination is not None:
+                self.destination = None
+                self.last_cell_id = None
+
+            if not hasattr(self.bot, "softban_global_warning") or \
+                        (hasattr(self.bot, "softban_global_warning") and not self.bot.softban_global_warning):
+                self.logger.info("Possible softban! Not trying to catch Pokemon.")
+            self.bot.softban_global_warning = True
+            return WorkerResult.SUCCESS
+        else:
+            self.bot.softban_global_warning = False
+
         if self.config_disabled_while_camping and hasattr(self.bot, 'camping_forts') and self.bot.camping_forts:
             return WorkerResult.SUCCESS
 
@@ -71,24 +102,6 @@ class PokemonHunter(BaseTask):
         else:
             # Resume hunting
             self.no_hunt_until = None
-
-        if self.bot.catch_disabled:
-            if not hasattr(self.bot, "hunter_disabled_global_warning") or \
-                        (hasattr(self.bot, "hunter_disabled_global_warning") and not self.bot.hunter_disabled_global_warning):
-                self.logger.info("All catching tasks are currently disabled until {}. Pokemon Hunter will resume when catching tasks are re-enabled".format(self.bot.catch_resume_at.strftime("%H:%M:%S")))
-            self.bot.hunter_disabled_global_warning = True
-            return WorkerResult.SUCCESS
-        else:
-            self.bot.hunter_disabled_global_warning = False
-
-        if self.bot.softban:
-            if not hasattr(self.bot, "softban_global_warning") or \
-                        (hasattr(self.bot, "softban_global_warning") and not self.bot.softban_global_warning):
-                self.logger.info("Possible softban! Not trying to catch Pokemon.")
-            self.bot.softban_global_warning = True
-            return WorkerResult.SUCCESS
-        else:
-            self.bot.softban_global_warning = False
 
         if self.get_pokeball_count() <= 0:
             self.destination = None
@@ -110,7 +123,7 @@ class PokemonHunter(BaseTask):
         pokemons = filter(lambda x: x["pokemon_id"] not in self.recent_tries, pokemons)
 
         if self.destination is None:
-            worth_pokemons = self.get_worth_pokemons(pokemons)
+            worth_pokemons = self.get_worth_pokemons(pokemons, self.config_hunt_closest_first)
 
             if len(worth_pokemons) > 0:
                 # Pick a random target from the list
@@ -141,6 +154,20 @@ class PokemonHunter(BaseTask):
                     self.walker = PolylineWalker(self.bot, self.search_points[0][0], self.search_points[0][1])
                     self.search_cell_id = self.destination["s2_cell_id"]
                     self.search_points = self.search_points[1:] + self.search_points[:1]
+
+                if "fort_id" in self.destination:
+                    # The Pokemon is hding at a POkestop, so move to that Pokestop!
+                    # Get forts
+                    forts = self.bot.get_forts(order_by_distance=True)
+                    for fort in forts:
+                        if fort['id'] == self.destination['fort_id']:
+                            # Found our fort!
+                            lat = fort['latitude']
+                            lng = fort['longitude']
+                            details = fort_details(self.bot, fort['id'], lat, lng)
+                            fort_name = details.get('name', 'Unknown')
+                            self.logger.info("Pokemon is hiding at %s, going there first!" % fort_name)
+                            self.walker = PolylineWalker(self.bot, lat, lng)
                 # We have a target
                 return WorkerResult.SUCCESS
             else:
@@ -152,9 +179,10 @@ class PokemonHunter(BaseTask):
                     self.logger.info("There is no nearby pokemon worth hunting down [%s]", ", ".join('{}({})'.format(key, val) for key, val in names.items()))
                     self.no_log_until = now + 120
                     self.destination = None
-                    wait = uniform(120, 360)
-                    self.no_hunt_until = now + wait
-                    self.logger.info("Will look again around {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
+                    if self.config_enable_cooldown:
+                        wait = uniform(120, 360)
+                        self.no_hunt_until = now + wait
+                        self.logger.info("Will look again around {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
 
                 self.last_cell_id = None
 
@@ -256,9 +284,11 @@ class PokemonHunter(BaseTask):
         pokemons = [p for p in self.bot.cell["nearby_pokemons"] if self.get_distance(self.bot.start_position, p) <= radius]
 
         for pokemon in pokemons:
-            pokemon["distance"] = self.get_distance(self.bot.position, p)
+            pokemon["distance"] = self.get_distance(self.bot.position, pokemon)
             pokemon["name"] = inventory.pokemons().name_for(pokemon["pokemon_id"])
             pokemon["candies"] = inventory.candies().get(pokemon["pokemon_id"]).quantity
+            # Pokemon also has a fort_id of the PokeStop the Pokemon is hiding at.
+            # We should set our first destination at that Pokestop.
 
         pokemons.sort(key=lambda p: p["distance"])
 
@@ -304,7 +334,7 @@ class PokemonHunter(BaseTask):
         if any(not inventory.pokedex().seen(fid) for fid in ids):
             return True
 
-    def get_worth_pokemons(self, pokemons):
+    def get_worth_pokemons(self, pokemons, closest_first=False):
         if self.config_hunt_all:
             worth_pokemons = pokemons
         else:
@@ -319,7 +349,10 @@ class PokemonHunter(BaseTask):
             if self.config_hunt_pokedex:
                 worth_pokemons += [p for p in pokemons if (p not in worth_pokemons) and self._is_needed_pokedex(p)]
 
-        worth_pokemons.sort(key=lambda p: inventory.candies().get(p["pokemon_id"]).quantity)
+        if closest_first:
+            worth_pokemons.sort(key=lambda p: p["distance"])
+        else:
+            worth_pokemons.sort(key=lambda p: inventory.candies().get(p["pokemon_id"]).quantity)
 
         return worth_pokemons
 
