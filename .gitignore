@@ -152,3 +152,4 @@ data/mqtt_client_id
 encrypt.so
 encrypt.dll
 encrypt_64.dll
+backup
