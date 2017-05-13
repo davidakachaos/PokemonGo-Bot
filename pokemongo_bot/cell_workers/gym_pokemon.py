@@ -75,7 +75,7 @@ class GymPokemon(BaseTask):
         details = fort_details(self.bot, gym['id'], lat, lng)
         fort_name = details.get('name', 'Unknown')
 
-        self.logger.info("Checking Gym: %s (%s pts)", (fort_name, gym['gym_points']))
+        self.logger.info("Checking Gym: %s (%s pts)" % (fort_name, gym['gym_points']))
 
         response_dict = self.bot.api.get_gym_details(
             gym_id=gym['id'],
