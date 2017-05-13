@@ -101,14 +101,23 @@ def main():
         bot.workers = tree
 
     def initialize(config):
-        from pokemongo_bot.datastore import Datastore
+        bot = None
+        for i in range(0, 100):
+            while True:
+                try:
+                    from pokemongo_bot.datastore import Datastore
 
-        ds = Datastore(conn_str='/data/{}.db'.format(config.username))
-        for directory in ['pokemongo_bot', 'pokemongo_bot/cell_workers']:
-            ds.migrate(directory + '/migrations')
+                    ds = Datastore(conn_str='/data/{}.db'.format(config.username))
+                    for directory in ['pokemongo_bot', 'pokemongo_bot/cell_workers']:
+                        ds.migrate(directory + '/migrations')
 
-        bot = PokemonGoBot(ds.get_connection(), config)
-
+                    bot = PokemonGoBot(ds.get_connection(), config)
+                    break
+                except:
+                    time.sleep(0.3)
+                    continue
+        if bot is None:
+            raise Exception("Can't acces the database for the Bot!")
         return bot
 
     def setup_logging(config):
