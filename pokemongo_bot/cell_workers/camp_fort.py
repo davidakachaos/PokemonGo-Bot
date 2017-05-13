@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import math
 import time
+import datetime
 from geopy.distance import great_circle
 
 from pokemongo_bot.base_task import BaseTask
@@ -146,8 +147,8 @@ class CampFort(BaseTask):
             if self.cluster["lured"] == 0:
                 self.bot.camping_forts = False # Allow hunter to move
                 self.stay_until -= NO_LURED_TIME_MALUS
-                until = datetime.datetime.fromtimestamp(self.stay_until)
-                self.logger.info("Lures gone, waiting for forts to be lured again until %s".format(until.strftime("%H:%M")))
+                until = datetime.fromtimestamp(self.stay_until)
+                self.logger.info("Lures gone, waiting for forts to be lured again until %s" % until.strftime("%H:%M"))
 
             self.walker.step(speed=0)
         elif self.walker.step():

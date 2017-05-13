@@ -114,7 +114,9 @@ class PokemonHunter(BaseTask):
 
             if len(worth_pokemons) > 0:
                 # Pick a random target from the list
-                random.shuffle(worth_pokemons)
+                # random.shuffle(worth_pokemons)
+                # Priotize closer pokemon
+                worth_pokemons.sort(key=lambda p: p["distance"])
                 # Prevents the bot from looping the same Pokemon
                 self.destination = worth_pokemons[0]
                 self.lost_counter = 0

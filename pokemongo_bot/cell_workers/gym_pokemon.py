@@ -98,7 +98,7 @@ class GymPokemon(BaseTask):
                 count = 1
                 for member in memberships:
                     poke = inventory.Pokemon(member.get('pokemon_data'))
-                    self.logger.info("%s: %s (%s CP)".format(count, poke.name, poke.cp))
+                    self.logger.info("%s: %s (%s CP)" % (count, poke.name, poke.cp))
                     count += 1
                 # memberships are the pokemon in the gym presently
                 # if len(memberships) == 10:
