@@ -13,7 +13,6 @@ from pgoapi.exceptions import (ServerSideRequestThrottlingException,
 from pgoapi.pgoapi import PGoApi
 from pgoapi.pgoapi import PGoApiRequest
 from pgoapi.pgoapi import RpcApi
-from pgoapi.hash_server import HashServer
 from pgoapi.protos.pogoprotos.networking.requests.request_type_pb2 import RequestType
 from pgoapi.utilities import get_time
 from .human_behaviour import sleep, gps_noise_rng
