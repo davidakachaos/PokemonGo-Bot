@@ -108,7 +108,8 @@ class ApiWrapper(PGoApi, object):
         try:
             response = PGoApi.app_simulation_login(self)
         except BadHashRequestException:
-            self.logger.warning("You hashkey seems to have expired!")
+            self.logger.warning("You hashkey seems to have expired or is not accepted!")
+            self.logger.warning("Please set a valid hash key in your auth JSON file!")
             exit(-3)
             raise
         except:
