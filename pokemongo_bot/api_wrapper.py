@@ -9,10 +9,11 @@ import sys
 from pgoapi.exceptions import (ServerSideRequestThrottlingException,
                                NotLoggedInException, ServerBusyOrOfflineException,
                                NoPlayerPositionSetException, HashingOfflineException,
-                               UnexpectedResponseException)
+                               UnexpectedResponseException, BadHashRequestException)
 from pgoapi.pgoapi import PGoApi
 from pgoapi.pgoapi import PGoApiRequest
 from pgoapi.pgoapi import RpcApi
+from pgoapi.hash_server import HashServer
 from pgoapi.protos.pogoprotos.networking.requests.request_type_pb2 import RequestType
 from pgoapi.utilities import get_time
 from .human_behaviour import sleep, gps_noise_rng
@@ -29,6 +30,7 @@ class ApiWrapper(PGoApi, object):
     def __init__(self, config=None):
         self.config = config
         self.gen_device_id()
+        self.logger = logging.getLogger(__name__)
 
         device_info = {
             "device_id": ApiWrapper.DEVICE_ID,
@@ -97,15 +99,21 @@ class ApiWrapper(PGoApi, object):
 
         try:
             PGoApi.set_authentication(
-                    self,
-                    provider,
-                    username=username,
-                    password=password
-                    )
+                self,
+                provider,
+                username=username,
+                password=password
+            )
         except:
             raise
-
-        response = PGoApi.app_simulation_login(self)
+        try:
+            response = PGoApi.app_simulation_login(self)
+        except BadHashRequestException:
+            self.logger.warning("You hashkey seems to have expired!")
+            exit(-3)
+            raise
+        except:
+            raise
         # cleanup code
         self.useVanillaRequest = False
         return response
