@@ -1562,6 +1562,7 @@ class PokemonGoBot(object):
             request = self.api.create_request()
             request.get_player()
             request.check_awarded_badges()
+            responses = None
             try:
                 responses = request.call()
             except NotLoggedInException:
@@ -1569,7 +1570,7 @@ class PokemonGoBot(object):
             except:
                 self.logger.warning('Error occured in heatbeat, retying')
 
-            if responses['responses']['GET_PLAYER']['success'] == True:
+            if responses is not None and responses['responses']['GET_PLAYER']['success'] == True:
                 # we get the player_data anyway, might as well store it
                 self._player = responses['responses']['GET_PLAYER']['player_data']
                 self.event_manager.emit(
@@ -1579,7 +1580,7 @@ class PokemonGoBot(object):
                     formatted='player_data: {player_data}',
                     data={'player_data': self._player}
                 )
-            if responses['responses']['CHECK_AWARDED_BADGES']['success'] == True:
+            if responses is not None and responses['responses']['CHECK_AWARDED_BADGES']['success'] == True:
                 # store awarded_badges reponse to be used in a task or part of heartbeat
                 self._awarded_badges = responses['responses']['CHECK_AWARDED_BADGES']
 

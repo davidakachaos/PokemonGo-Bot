@@ -128,10 +128,20 @@ class CampFort(BaseTask):
             available_clusters = self.get_available_clusters(forts)
             if len(available_clusters) > 0:
                 if self.cluster is not available_clusters[0]:
-                    self.cluster = available_clusters[0]
-                    self.stay_until = 0
-                    self.emit_event("new_destination",
-                                    formatted='Better destination found at {distance:.2f} meters: {size} forts, {lured} lured'.format(**self.cluster))
+                    # First update the distance to the current cluster
+                    self.update_cluster_distance(self.cluster)
+                    self.update_cluster_distance(available_clusters[0])
+                    if int(self.cluster["distance"]) == int(available_clusters[0]["distance"]):
+                        # its the same cluster!!
+                        pass
+                    elif available_clusters[0]["distance"] < 1.0:
+                        # Less then a meter away?? Yeah, right...
+                        pass
+                    else:
+                        self.cluster = available_clusters[0]
+                        self.stay_until = 0
+                        self.emit_event("new_destination",
+                                        formatted='Better destination found at {distance:.2f} meters: {size} forts, {lured} lured'.format(**self.cluster))
             self.no_recheck_cluster_until = now + NO_BALLS_MOVING_TIME
 
         self.update_cluster_distance(self.cluster)
@@ -147,8 +157,9 @@ class CampFort(BaseTask):
             if self.cluster["lured"] == 0:
                 self.bot.camping_forts = False # Allow hunter to move
                 self.stay_until -= NO_LURED_TIME_MALUS
-                until = datetime.fromtimestamp(self.stay_until)
-                self.logger.info("Lures gone, waiting for forts to be lured again until %s" % until.strftime("%H:%M"))
+                if self.no_log_until < now:
+                    until = datetime.datetime.fromtimestamp(self.stay_until)
+                    self.logger.info("Lures gone, waiting for forts to be lured again until %s" % until.strftime("%H:%M"))
 
             self.walker.step(speed=0)
         elif self.walker.step():

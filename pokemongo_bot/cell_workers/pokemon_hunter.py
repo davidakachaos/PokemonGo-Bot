@@ -110,13 +110,28 @@ class PokemonHunter(BaseTask):
 
         if self.destination is not None:
             if self.destination_caught():
-                self.logger.info("We found a %(name)s while hunting. Aborting the current search.", self.destination)
+                self.logger.info("We found a %(name)s while hunting.", self.destination)
+                self.recent_tries.append(self.destination['pokemon_id'])
                 self.destination = None
                 if self.config_enable_cooldown:
                     wait = uniform(120, 600)
                     self.no_hunt_until = time.time() + wait
                     self.logger.info("Hunting on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
-                return WorkerResult.SUCCESS
+                    return WorkerResult.SUCCESS
+                else:
+                    self.logger.info("Electing new target....")
+
+            if self.destination_vanished():
+                self.logger.info("Darn, target got away!")
+                self.recent_tries.append(self.destination['pokemon_id'])
+                self.destination = None
+                if self.config_enable_cooldown:
+                    wait = uniform(120, 600)
+                    self.no_hunt_until = time.time() + wait
+                    self.logger.info("Hunting on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
+                    return WorkerResult.SUCCESS
+                else:
+                    self.logger.info("Electing new target....")
 
         now = time.time()
         pokemons = self.get_nearby_pokemons()
@@ -389,7 +404,8 @@ class PokemonHunter(BaseTask):
         return points[index:] + points[:index]
 
     def destination_caught(self):
-        # self.logger.info("Searching for a {} since {}".format(self.destination["name"], self.hunt_started_at.strftime("%Y-%m-%d %H:%M:%S")))
+        if self.destination is None:
+            return False
 
         with self.bot.database as conn:
             c = conn.cursor()
@@ -402,3 +418,19 @@ class PokemonHunter(BaseTask):
             self.logger.info("We caught {} {}(s) since {}".format(amount, self.destination["name"], self.hunt_started_at.strftime("%Y-%m-%d %H:%M:%S")))
 
         return caught
+
+    def destination_vanished(self):
+        if self.destination is None:
+            return False
+
+        with self.bot.database as conn:
+            c = conn.cursor()
+            c.execute(
+                "SELECT COUNT(pokemon) FROM vanish_log where pokemon = '{}' and  datetime(dated, 'localtime') > Datetime('{}')".format(self.destination["name"], self.hunt_started_at.strftime("%Y-%m-%d %H:%M:%S")))
+        # Now check if there is 1 or more caught
+        amount = c.fetchone()[0]
+        vanished = amount > 0
+        if vanished:
+            self.logger.info("We lost {} {}(s) since {}".format(amount, self.destination["name"], self.hunt_started_at.strftime("%Y-%m-%d %H:%M:%S")))
+
+        return vanished

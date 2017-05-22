@@ -36,19 +36,39 @@ class GymPokemon(BaseTask):
         self.min_interval = self.config.get('min_interval', 60)
         self.recent_gyms = []
         self.pokemons = []
+        self.fort_pokemons = []
 
     def should_run(self):
         # Check if we have any Pokemons and are level > 5
         return player()._level >= 5 and len(self.pokemons) > 0
 
+    def display_fort_pokemon(self):
+        if len(self.fort_pokemons) == 0:
+            return
+        self.logger.info("We currently have %s Pokemon in Gym(s)" % len(self.fort_pokemons) )
+        for pokemon in self.fort_pokemons:
+            lat = self.bot.position[0:2][0]
+            lng = self.bot.position[0:2][1]
+            details = fort_details(self.bot, pokemon.fort_id, lat, lng)
+            fort_name = details.get('name', 'Unknown')
+            self.logger.info("%s: %s (%s CP)" % (fort_name, pokemon.name, pokemon.cp))
+
     def work(self):
+        if not self.enabled:
+            return WorkerResult.SUCCESS
+
         self.pokemons = inventory.pokemons().all()
+        self.fort_pokemons = [p for p in self.pokemons if p.in_fort]
         self.pokemons = [p for p in self.pokemons if not p.in_fort]
         # self.pokemons = [pokemon
         #                  for pokemon in self.pokemons
         #                  if pokemon['deployed_fort_id'] == None]
         #deployed_fort_id
         gyms = self.get_gyms_in_range()
+
+        if self._should_print():
+            self.display_fort_pokemon()
+            self._compute_next_update()
 
         if not self.should_run() or len(gyms) == 0:
             return WorkerResult.SUCCESS
@@ -223,6 +243,9 @@ class GymPokemon(BaseTask):
 
         return gyms
 
+    def _should_print(self):
+        return self.next_update is None or datetime.now() >= self.next_update
+
     def _compute_next_update(self):
         """
         Computes the next update datetime based on the minimum update interval.
@@ -247,4 +270,4 @@ class GymPokemon(BaseTask):
             return poke_info[info]
 
         pokemons_ordered = sorted(self.pokemons, key=lambda x: get_poke_info(self.order_by, x), reverse=True)
-        return pokemons_ordered[0]['id']
+        return pokemons_ordered[0].unique_id

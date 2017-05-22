@@ -1025,6 +1025,8 @@ class Pokemon(object):
         self.nickname = self.nickname_raw or self.name
 
         self.in_fort = 'deployed_fort_id' in data
+        if 'deployed_fort_id' in data:
+            self.fort_id = data['deployed_fort_id']
         self.is_favorite = data.get('favorite', 0) is 1
         self.buddy_candy = data.get('buddy_candy_awarded', 0)
         self.buddy_distance_needed = self.static.buddy_distance_needed

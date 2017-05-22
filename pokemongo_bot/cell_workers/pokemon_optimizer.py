@@ -298,6 +298,8 @@ class PokemonOptimizer(BaseTask):
             if not self.config_may_upgrade_favorites:
                 self.logger.info("Removing favorites from upgrade list.")
                 upgrade_all = [p for p in upgrade_all if not p.is_favorite]
+            # Remove all shiny Pokemon from transfer! Always!
+            transfer_all = [p for p in transfer_all if not p.shiny]
 
             self.apply_optimization(transfer_all, evolve_all, upgrade_all, xp_all)
 
