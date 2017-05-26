@@ -19,12 +19,14 @@ class SocketIoHandler(EventHandler):
     def handle_event(self, event, sender, level, msg, data):
         if msg:
             data['msg'] = msg
-
-        self.sio.emit(
-            'bot:broadcast',
-            {
-                'event': event,
-                'account': self.bot.config.username,
-                'data': data
-            }
-        )
+        try:
+            self.sio.emit(
+                'bot:broadcast',
+                {
+                    'event': event,
+                    'account': self.bot.config.username,
+                    'data': data
+                }
+            )
+        except:
+            pass
