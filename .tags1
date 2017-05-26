@@ -4,27 +4,57 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
-Counter	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^from collections import Counter$/;"	namespace	line:1
-datetime	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^from datetime import datetime, timedelta$/;"	namespace	line:2
-timedelta	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^from datetime import datetime, timedelta$/;"	namespace	line:2
-random	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^import random$/;"	namespace	line:3
-inventory	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^from pokemongo_bot import inventory$/;"	namespace	line:5
-sleep	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^from pokemongo_bot.human_behaviour import sleep$/;"	namespace	line:6
-BaseTask	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^from pokemongo_bot.base_task import BaseTask$/;"	namespace	line:7
-WorkerResult	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^from pokemongo_bot.worker_result import WorkerResult$/;"	namespace	line:8
-reduce	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^from functools import reduce$/;"	namespace	line:9
-IncubateEggs	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^class IncubateEggs(BaseTask):$/;"	class	line:12
-SUPPORTED_TASK_API_VERSION	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    SUPPORTED_TASK_API_VERSION = 1$/;"	variable	line:13	class:IncubateEggs
-last_km_walked	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    last_km_walked = 0$/;"	variable	line:15	class:IncubateEggs
-__init__	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def __init__(self, bot, config):$/;"	member	line:17	class:IncubateEggs
-initialize	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def initialize(self):$/;"	member	line:20	class:IncubateEggs
-_process_config	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def _process_config(self):$/;"	member	line:31	class:IncubateEggs
-work	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def work(self):$/;"	member	line:39	class:IncubateEggs
-_filter_sort_eggs	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def _filter_sort_eggs(self, allowed, sorting):$/;"	member	line:81	class:IncubateEggs
-_apply_incubators	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def _apply_incubators(self, available_eggs, available_incubators):$/;"	member	line:88	class:IncubateEggs
-_check_inventory	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def _check_inventory(self, lookup_ids=[]):$/;"	member	line:136	class:IncubateEggs
-_hatch_eggs	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def _hatch_eggs(self):$/;"	member	line:192	class:IncubateEggs
-_print_eggs	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def _print_eggs(self):$/;"	member	line:264	class:IncubateEggs
-_should_print	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def _should_print(self):$/;"	member	line:281	class:IncubateEggs
-_compute_next_update	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def _compute_next_update(self):$/;"	member	line:289	class:IncubateEggs
-_finish_eggs	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/incubate_eggs.py	/^    def _finish_eggs(self):$/;"	member	line:297	class:IncubateEggs
+unicode_literals	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^from __future__ import unicode_literals$/;"	namespace	line:1
+difflib	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^import difflib$/;"	namespace	line:4
+itertools	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^import itertools$/;"	namespace	line:5
+json	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^import json$/;"	namespace	line:6
+math	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^import math$/;"	namespace	line:7
+os	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^import os$/;"	namespace	line:8
+time	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^import time$/;"	namespace	line:9
+datetime	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^import datetime$/;"	namespace	line:10
+inventory	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^from pokemongo_bot import inventory$/;"	namespace	line:12
+_base_dir	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^from pokemongo_bot.base_dir import _base_dir$/;"	namespace	line:13
+BaseTask	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^from pokemongo_bot.base_task import BaseTask$/;"	namespace	line:14
+sleep	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^from pokemongo_bot.human_behaviour import sleep, action_delay$/;"	namespace	line:15
+action_delay	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^from pokemongo_bot.human_behaviour import sleep, action_delay$/;"	namespace	line:15
+Item	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^from pokemongo_bot.item_list import Item$/;"	namespace	line:16
+ConfigException	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^from pokemongo_bot.tree_config_builder import ConfigException$/;"	namespace	line:17
+WorkerResult	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^from pokemongo_bot.worker_result import WorkerResult$/;"	namespace	line:18
+SUCCESS	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^SUCCESS = 1$/;"	variable	line:20
+ERROR_XP_BOOST_ALREADY_ACTIVE	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^ERROR_XP_BOOST_ALREADY_ACTIVE = 3$/;"	variable	line:21
+LOG_TIME_INTERVAL	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^LOG_TIME_INTERVAL = 120$/;"	variable	line:22
+PokemonOptimizer	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^class PokemonOptimizer(BaseTask):$/;"	class	line:25
+SUPPORTED_TASK_API_VERSION	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    SUPPORTED_TASK_API_VERSION = 1$/;"	variable	line:26	class:PokemonOptimizer
+__init__	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def __init__(self, bot, config):$/;"	member	line:28	class:PokemonOptimizer
+initialize	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def initialize(self):$/;"	member	line:31	class:PokemonOptimizer
+log	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def log(self, txt):$/;"	member	line:113	class:PokemonOptimizer
+active_lucky_egg	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def active_lucky_egg(self):$/;"	member	line:120	class:PokemonOptimizer
+get_pokemon_slot_left	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def get_pokemon_slot_left(self):$/;"	member	line:129	class:PokemonOptimizer
+work	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def work(self):$/;"	member	line:139	class:PokemonOptimizer
+check_buddy	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def check_buddy(self):$/;"	member	line:308	class:PokemonOptimizer
+open_inventory	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def open_inventory(self):$/;"	member	line:344	class:PokemonOptimizer
+get_colorlist	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def get_colorlist(self, names):$/;"	member	line:363	class:PokemonOptimizer
+get_family_names	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def get_family_names(self, family_id):$/;"	member	line:397	class:PokemonOptimizer
+get_closest_name	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def get_closest_name(self, name):$/;"	member	line:402	class:PokemonOptimizer
+group_by_pokemon_id	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def group_by_pokemon_id(self, pokemon_list):$/;"	member	line:417	class:PokemonOptimizer
+group_by_family_id	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def group_by_family_id(self, pokemon_list):$/;"	member	line:421	class:PokemonOptimizer
+get_pokemon_id	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def get_pokemon_id(self, pokemon):$/;"	member	line:425	class:PokemonOptimizer
+get_family_id	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def get_family_id(self, pokemon):$/;"	member	line:428	class:PokemonOptimizer
+score_and_sort	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def score_and_sort(self, pokemon_list, rule):$/;"	member	line:431	class:PokemonOptimizer
+get_score	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def get_score(self, pokemon, rule):$/;"	member	line:446	class:PokemonOptimizer
+satisfy_requirements	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def satisfy_requirements(self, pokemon, req):$/;"	member	line:485	class:PokemonOptimizer
+get_best_pokemon_for_rule	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def get_best_pokemon_for_rule(self, pokemon_list, rule):$/;"	member	line:514	class:PokemonOptimizer
+get_multi_best_pokemon_for_rule	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def get_multi_best_pokemon_for_rule(self, family_list, rule, nb_branch):$/;"	member	line:538	class:PokemonOptimizer
+get_better_pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def get_better_pokemon(self, pokemon_list, worst, limit=1000):$/;"	member	line:591	class:PokemonOptimizer
+get_evolution_plan	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def get_evolution_plan(self, family_id, family_list, keep, try_evolve, try_upgrade):$/;"	member	line:600	class:PokemonOptimizer
+unique_pokemon_list	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def unique_pokemon_list(self, pokemon_list):$/;"	member	line:709	class:PokemonOptimizer
+apply_optimization	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def apply_optimization(self, transfer, evolve, upgrade, xp):$/;"	member	line:713	class:PokemonOptimizer
+transfer_pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def transfer_pokemon(self, pokemons, skip_delay=False):$/;"	member	line:773	class:PokemonOptimizer
+use_lucky_egg	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def use_lucky_egg(self):$/;"	member	line:867	class:PokemonOptimizer
+evolve_pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def evolve_pokemon(self, pokemon, transfer=False):$/;"	member	line:902	class:PokemonOptimizer
+upgrade_pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def upgrade_pokemon(self, pokemon):$/;"	member	line:973	class:PokemonOptimizer
+set_buddy_pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def set_buddy_pokemon(self, pokemon):$/;"	member	line:1022	class:PokemonOptimizer
+get_buddy_walked	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def get_buddy_walked(self, pokemon):$/;"	member	line:1053	class:PokemonOptimizer
+_get_buddyid	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def _get_buddyid(self):$/;"	member	line:1090	class:PokemonOptimizer
+favor_pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def favor_pokemon(self, pokemon):$/;"	member	line:1095	class:PokemonOptimizer
+unfavor_pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/pokemon_optimizer.py	/^    def unfavor_pokemon(self, pokemon):$/;"	member	line:1115	class:PokemonOptimizer
