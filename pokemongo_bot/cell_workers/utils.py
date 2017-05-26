@@ -37,6 +37,7 @@ def fort_details(bot, fort_id, latitude, longitude):
             response_dict = request.call()
             FORT_CACHE[fort_id] = response_dict['responses']['FORT_DETAILS']
         except Exception:
+            FORT_CACHE[fort_id] = dict()
             pass
 
     # Just to avoid KeyErrors
@@ -133,14 +134,14 @@ def getSeconds(strTime):
     try:
         x = dt.strptime(strTime, '%H:%M:%S')
         seconds = int(timedelta(hours=x.hour,minutes=x.minute,seconds=x.second).total_seconds())
-    except ValueError: 
+    except ValueError:
         seconds = 0;
-        
+
     if seconds < 0:
         seconds = 0;
-          
+
     return seconds
-    
+
 def format_time(seconds):
     # Return a string displaying the time given as seconds or minutes
     num, duration = 0, long(round(seconds))
