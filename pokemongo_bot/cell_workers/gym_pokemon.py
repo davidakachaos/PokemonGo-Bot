@@ -11,7 +11,7 @@ from pokemongo_bot import inventory
 from pokemongo_bot.inventory import player
 
 from pokemongo_bot.constants import Constants
-from pokemongo_bot.human_behaviour import action_delay
+from pokemongo_bot.human_behaviour import action_delay, sleep
 from pokemongo_bot.worker_result import WorkerResult
 from pokemongo_bot.base_task import BaseTask
 from pokemongo_bot import inventory
@@ -82,6 +82,10 @@ class GymPokemon(BaseTask):
         if 'owned_by_team' not in gym:
             self.logger.info("Empty gym found!!")
             self.drop_pokemon_in_gym(gym)
+            if len(gyms) > 1:
+                return WorkerResult.RUNNING
+            else:
+                rreturn WorkerResult.SUCCESS
         elif not gym["owned_by_team"] == team:
             self.logger.info("Not owned by own team")
             if len(gyms) > 1:
@@ -89,6 +93,71 @@ class GymPokemon(BaseTask):
             else:
                 return WorkerResult.SUCCESS
 
+        gym_details = self.get_gym_details(gym)
+
+        if gym_details:
+            points = gym['gym_points']
+            # We got the data
+            self.logger.info("Deploy lockout: %s" % gym_details['deploy_lockout'])
+            count = 1
+            for member in gym_details['memberships']:
+                poke = inventory.Pokemon(member.get('pokemon_data'))
+                self.logger.info("%s: %s (%s CP)" % (count, poke.name, poke.cp))
+                count += 1
+            max_mons = 1
+            # Case statment on points to see if there is room.
+            if points >= 50000:
+                max_mons = 10
+            elif points >= 40000:
+                # Max 9
+                max_mons = 9
+            elif points >= 30000:
+                max_mons = 8
+            elif points >= 20000:
+                max_mons = 7
+            elif points >= 16000:
+                max_mons = 6
+            elif points >= 12000:
+                max_mons = 5
+            elif points >= 8000:
+                max_mons = 4
+            elif points >= 4000:
+                max_mons = 3
+            elif points >= 2000:
+                max_mons = 2
+            # Is there room?
+            if len(memberships) < max_mons:
+                # there is room!
+                # make sure we don't drop a Pokemon too soon (Saskia will kill me!)
+                if max_mons == 10:
+                    self.logger.info("Full gym, not adding Pokemon")
+                    if len(gyms) > 1:
+                        return WorkerResult.RUNNING
+                    else:
+                        return WorkerResult.SUCCESS
+                elif max_mons > 5:
+                    # Wait at least 15 seconds
+                    self.logger.info("Wating to make sure we don't grab a spot from hard working team mates!!")
+                    sleep(15)
+                elif max_mons > 3:
+                    self.logger.info("Waiting a bit")
+                    action_delay(10, 15)
+
+                self.drop_pokemon_in_gym(gym)
+            else:
+                self.logger.info("Gym full. %s of %s pokemons!", len(memberships), max_mons)
+                self.emit_event(
+                    'gym_full',
+                    formatted=("Gym is full. Can not add Pokemon!" )
+                )
+            #
+
+        if len(gyms) > 1:
+            return WorkerResult.RUNNING
+
+        return WorkerResult.SUCCESS
+
+    def get_gym_details(self, gym):
         lat = gym['latitude']
         lng = gym['longitude']
 
@@ -103,64 +172,25 @@ class GymPokemon(BaseTask):
             gym_longitude=lng,
             player_latitude=f2i(self.bot.position[0]),
             player_longitude=f2i(self.bot.position[1]),
-            client_version='0.55'
+            client_version='0.63.1'
         )
 
         if ('responses' in response_dict) and ('GET_GYM_DETAILS' in response_dict['responses']):
             gym_details = response_dict['responses']['GET_GYM_DETAILS']
             detail_result = gym_details.get('result', -1)
             if detail_result == GYM_DETAIL_RESULT_SUCCESS:
-                points = gym['gym_points']
+                details = dict()
+                details['points'] = gym['gym_points']
                 # We got the data
-                # Figure out if there is room
-                state = gym_details.get('gym_state')
-                memberships = state.get('memberships')
-                count = 1
-                for member in memberships:
-                    poke = inventory.Pokemon(member.get('pokemon_data'))
-                    self.logger.info("%s: %s (%s CP)" % (count, poke.name, poke.cp))
-                    count += 1
-                # memberships are the pokemon in the gym presently
-                # if len(memberships) == 10:
-                #     # Maxed out
-                #     return WorkerResult.SUCCESS
-                max_mons = 1
-                # Case statment on points to see if there is room.
-                if points >= 50000:
-                    max_mons = 10
-                elif points >= 40000:
-                    # Max 9
-                    max_mons = 9
-                elif points >= 30000:
-                    max_mons = 8
-                elif points >= 20000:
-                    max_mons = 7
-                elif points >= 16000:
-                    max_mons = 6
-                elif points >= 12000:
-                    max_mons = 5
-                elif points >= 8000:
-                    max_mons = 4
-                elif points >= 4000:
-                    max_mons = 3
-                elif points >= 2000:
-                    max_mons = 2
-                # Is there room?
-                if len(memberships) < max_mons:
-                    # there is room!
-                    self.drop_pokemon_in_gym(gym)
-                else:
-                    self.logger.info("Gym full. %s of %s pokemons!", len(memberships), max_mons)
-                    self.emit_event(
-                        'gym_full',
-                        formatted=("Gym is full. Can not add Pokemon!" )
-                    )
-            #
+                details['state'] = gym_details.get('gym_state')
+                details['memberships'] = state.get('memberships')
+                details['deploy_lockout'] = gym_details.get('deploy_lockout')
 
-        if len(gyms) > 1:
-            return WorkerResult.RUNNING
-
-        return WorkerResult.SUCCESS
+                return details
+            else:
+                return False
+        else:
+            return False
 
     def drop_pokemon_in_gym(self, gym):
         #FortDeployPokemon
