@@ -15,6 +15,7 @@ class SocketIoHandler(EventHandler):
         self.host, port_str = url.split(':')
         self.port = int(port_str)
         self.sio = SocketIO(self.host, self.port)
+        self.errors = 0
 
     def handle_event(self, event, sender, level, msg, data):
         if msg:
@@ -29,4 +30,8 @@ class SocketIoHandler(EventHandler):
                 }
             )
         except:
-            pass
+            self.errors += 1
+            if self.errors < 4:
+                pass
+            else:
+                raise
