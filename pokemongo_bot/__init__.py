@@ -136,6 +136,9 @@ class PokemonGoBot(object):
 
         self.capture_locked = False  # lock catching while moving to VIP pokemon
 
+        # Inform bot if there's a response
+        self.empty_response = False
+
         client_id_file_path = os.path.join(_base_dir, 'data', 'mqtt_client_id')
         saved_info = shelve.open(client_id_file_path)
         key = 'client_id'.encode('utf-8')
@@ -448,6 +451,10 @@ class PokemonGoBot(object):
         )
         self.event_manager.register_event('no_pokeballs')
         self.event_manager.register_event('enough_ultraballs')
+        self.event_manager.register_event('lure_success')
+        self.event_manager.register_event('lure_failed')
+        self.event_manager.register_event('lure_not_enough')
+        self.event_manager.register_event('lure_info')
         self.event_manager.register_event(
             'pokemon_catch_rate',
             parameters=(
@@ -976,6 +983,9 @@ class PokemonGoBot(object):
 
     def login(self):
         status = {}
+        retry = 0
+        quit_login = False
+
         self.event_manager.emit(
             'login_started',
             sender=self,
@@ -985,20 +995,35 @@ class PokemonGoBot(object):
         lat, lng = self.position[0:2]
         self.api.set_position(lat, lng, self.alt)  # or should the alt kept to zero?
 
-        try:
-            self.api.login(
-                    self.config.auth_service,
-                    str(self.config.username),
-                    str(self.config.password))
-        except AuthException as e:
-            self.event_manager.emit(
-                    'login_failed',
-                    sender=self,
-                    level='info',
-                    formatted='Login process failed: {}'.format(e)
-                    )
+        while not quit_login:
+            try:
+                self.api.login(
+                        self.config.auth_service,
+                        str(self.config.username),
+                        str(self.config.password))
+                # No exception, set quit_login = true
+                quit_login = True
+            except AuthException as e:
+                self.event_manager.emit(
+                        'login_failed',
+                        sender=self,
+                        level='info',
+                        formatted='Login process failed: {}'.format(e)
+                        )
+                # Exception encountered. Retry 3 times, everytime increase wait time 5 secs
+                retry += 1
+                sleeptime = retry*5
 
-            sys.exit()
+                self.event_manager.emit(
+                        'login_failed',
+                        sender=self,
+                        level='info',
+                        formatted="Retry {} time(s) for {} secs".format(retry,sleeptime)
+                        )
+                sleep(retry*5)
+                # Quit after 3rd tries
+                if retry == 3:
+                    sys.exit()
 
         with self.database as conn:
             c = conn.cursor()
@@ -1567,6 +1592,7 @@ class PokemonGoBot(object):
                 responses = request.call()
             except NotLoggedInException:
                 self.logger.warning('Unable to login, retying')
+                self.empty_response = True
             except:
                 self.logger.warning('Error occured in heatbeat, retying')
 
@@ -1590,15 +1616,33 @@ class PokemonGoBot(object):
                     badgelevel = self._awarded_badges['awarded_badge_levels'][i]
                     badgename = badge_type_pb2._BADGETYPE.values_by_number[badge].name
                     i += 1
+
                     self.event_manager.emit(
-                        'badges',
+                        'player_data',
                         sender=self,
-                        level='info',
-                        formatted='awarded badge: {badge}, lvl {level}',
-                        data={'badge': badgename,
-                              'level': badgelevel}
+                        level='debug',
+                        formatted='player_data: {player_data}',
+                        data={'player_data': self._player}
                     )
-                    human_behaviour.action_delay(3, 10)
+                if responses['responses']['CHECK_AWARDED_BADGES']['success'] == True:
+                    # store awarded_badges reponse to be used in a task or part of heartbeat
+                    self._awarded_badges = responses['responses']['CHECK_AWARDED_BADGES']
+
+                if 'awarded_badges' in self._awarded_badges:
+                    i = 0
+                    for badge in self._awarded_badges['awarded_badges']:
+                        badgelevel = self._awarded_badges['awarded_badge_levels'][i]
+                        badgename = badge_type_pb2._BADGETYPE.values_by_number[badge].name
+                        i += 1
+                        self.event_manager.emit(
+                            'badges',
+                            sender=self,
+                            level='info',
+                            formatted='awarded badge: {badge}, lvl {level}',
+                            data={'badge': badgename,
+                                  'level': badgelevel}
+                        )
+                        human_behaviour.action_delay(3, 10)
 
         try:
             self.web_update_queue.put_nowait(True)  # do this outside of thread every tick
@@ -1610,7 +1654,9 @@ class PokemonGoBot(object):
     def update_web_location_worker(self):
         while True:
             self.web_update_queue.get()
-            self.update_web_location()
+            #skip undate if no response
+            if not self.empty_response:
+                self.update_web_location()
 
     def display_player_info(self):
             player_stats = player()
