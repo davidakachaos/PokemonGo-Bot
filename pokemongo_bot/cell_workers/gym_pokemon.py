@@ -85,7 +85,7 @@ class GymPokemon(BaseTask):
             if len(gyms) > 1:
                 return WorkerResult.RUNNING
             else:
-                rreturn WorkerResult.SUCCESS
+                return WorkerResult.SUCCESS
         elif not gym["owned_by_team"] == team:
             self.logger.info("Not owned by own team")
             if len(gyms) > 1:
@@ -126,7 +126,7 @@ class GymPokemon(BaseTask):
             elif points >= 2000:
                 max_mons = 2
             # Is there room?
-            if len(memberships) < max_mons:
+            if len(gym_details['memberships']) < max_mons:
                 # there is room!
                 # make sure we don't drop a Pokemon too soon (Saskia will kill me!)
                 if max_mons == 10:
@@ -142,10 +142,14 @@ class GymPokemon(BaseTask):
                 elif max_mons > 3:
                     self.logger.info("Waiting a bit")
                     action_delay(10, 15)
-
-                self.drop_pokemon_in_gym(gym)
+                gym_details = self.get_gym_details(gym)
+                if len(gym_details['memberships']) < max_mons:
+                    # Still room enough!
+                    self.drop_pokemon_in_gym(gym)
+                else:
+                    self.logger.info("Team member entered gym before us, nice!")
             else:
-                self.logger.info("Gym full. %s of %s pokemons!", len(memberships), max_mons)
+                self.logger.info("Gym full.")
                 self.emit_event(
                     'gym_full',
                     formatted=("Gym is full. Can not add Pokemon!" )
@@ -183,7 +187,7 @@ class GymPokemon(BaseTask):
                 details['points'] = gym['gym_points']
                 # We got the data
                 details['state'] = gym_details.get('gym_state')
-                details['memberships'] = state.get('memberships')
+                details['memberships'] = details['state'].get('memberships')
                 details['deploy_lockout'] = gym_details.get('deploy_lockout')
 
                 return details
