@@ -6863,6 +6863,60 @@ EventHandler	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/event_ha
 SocketIoHandler	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/event_handlers/socketio_handler.py	/^class SocketIoHandler(EventHandler):$/;"	class	line:10
 __init__	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/event_handlers/socketio_handler.py	/^    def __init__(self, bot, url):$/;"	member	line:13	class:SocketIoHandler
 handle_event	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/event_handlers/socketio_handler.py	/^    def handle_event(self, event, sender, level, msg, data):$/;"	member	line:20	class:SocketIoHandler
+unicode_literals	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^from __future__ import unicode_literals$/;"	namespace	line:2
+absolute_import	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^from __future__ import absolute_import$/;"	namespace	line:3
+datetime	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^from datetime import datetime, timedelta$/;"	namespace	line:5
+timedelta	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^from datetime import datetime, timedelta$/;"	namespace	line:5
+BaseTask	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^from pokemongo_bot.base_task import BaseTask$/;"	namespace	line:6
+WorkerResult	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^from pokemongo_bot.worker_result import WorkerResult$/;"	namespace	line:7
+inventory	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^from pokemongo_bot import inventory$/;"	namespace	line:8
+Item	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^from pokemongo_bot.item_list import Item$/;"	namespace	line:9
+sleep	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^from pokemongo_bot.human_behaviour import sleep, action_delay$/;"	namespace	line:10
+action_delay	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^from pokemongo_bot.human_behaviour import sleep, action_delay$/;"	namespace	line:10
+HealPokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^class HealPokemon(BaseTask):$/;"	class	line:12
+SUPPORTED_TASK_API_VERSION	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^    SUPPORTED_TASK_API_VERSION = 1$/;"	variable	line:13	class:HealPokemon
+__init__	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^    def __init__(self, bot, config):$/;"	member	line:15	class:HealPokemon
+work	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^    def work(self):$/;"	member	line:25	class:HealPokemon
+_revive_pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^    def _revive_pokemon(self, pokemon):$/;"	member	line:77	class:HealPokemon
+_heal_pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^    def _heal_pokemon(self, pokemon):$/;"	member	line:116	class:HealPokemon
+_use_potion	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^    def _use_potion(self, potion_id, pokemon):$/;"	member	line:185	class:HealPokemon
+_should_print	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^    def _should_print(self):$/;"	member	line:231	class:HealPokemon
+unicode_literals	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from __future__ import unicode_literals$/;"	namespace	line:2
+absolute_import	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from __future__ import absolute_import$/;"	namespace	line:3
+datetime	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from datetime import datetime, timedelta$/;"	namespace	line:5
+timedelta	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from datetime import datetime, timedelta$/;"	namespace	line:5
+sys	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^import sys$/;"	namespace	line:6
+time	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^import time$/;"	namespace	line:7
+f2i	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from pgoapi.utilities import f2i$/;"	namespace	line:9
+inventory	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from pokemongo_bot import inventory$/;"	namespace	line:10
+player	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from pokemongo_bot.inventory import player$/;"	namespace	line:11
+Constants	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from pokemongo_bot.constants import Constants$/;"	namespace	line:13
+action_delay	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from pokemongo_bot.human_behaviour import action_delay, sleep$/;"	namespace	line:14
+sleep	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from pokemongo_bot.human_behaviour import action_delay, sleep$/;"	namespace	line:14
+WorkerResult	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from pokemongo_bot.worker_result import WorkerResult$/;"	namespace	line:15
+BaseTask	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from pokemongo_bot.base_task import BaseTask$/;"	namespace	line:16
+inventory	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from pokemongo_bot import inventory$/;"	namespace	line:17
+distance	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from .utils import distance, format_time, fort_details$/;"	namespace	line:18
+format_time	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from .utils import distance, format_time, fort_details$/;"	namespace	line:18
+fort_details	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from .utils import distance, format_time, fort_details$/;"	namespace	line:18
+ConfigException	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from pokemongo_bot.tree_config_builder import ConfigException$/;"	namespace	line:19
+GYM_DETAIL_RESULT_SUCCESS	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^GYM_DETAIL_RESULT_SUCCESS = 1$/;"	variable	line:21
+GYM_DETAIL_RESULT_OUT_OF_RANGE	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^GYM_DETAIL_RESULT_OUT_OF_RANGE = 2$/;"	variable	line:22
+GYM_DETAIL_RESULT_UNSET	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^GYM_DETAIL_RESULT_UNSET = 0$/;"	variable	line:23
+GymPokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^class GymPokemon(BaseTask):$/;"	class	line:26
+SUPPORTED_TASK_API_VERSION	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    SUPPORTED_TASK_API_VERSION = 1$/;"	variable	line:27	class:GymPokemon
+__init__	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def __init__(self, bot, config):$/;"	member	line:29	class:GymPokemon
+initialize	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def initialize(self):$/;"	member	line:32	class:GymPokemon
+should_run	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def should_run(self):$/;"	member	line:41	class:GymPokemon
+display_fort_pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def display_fort_pokemon(self):$/;"	member	line:45	class:GymPokemon
+work	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def work(self):$/;"	member	line:56	class:GymPokemon
+get_gym_details	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def get_gym_details(self, gym):$/;"	member	line:164	class:GymPokemon
+drop_pokemon_in_gym	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def drop_pokemon_in_gym(self, gym):$/;"	member	line:199	class:GymPokemon
+get_gyms_in_range	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def get_gyms_in_range(self):$/;"	member	line:256	class:GymPokemon
+_should_print	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def _should_print(self):$/;"	member	line:280	class:GymPokemon
+_compute_next_update	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def _compute_next_update(self):$/;"	member	line:283	class:GymPokemon
+_get_best_pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def _get_best_pokemon(self):$/;"	member	line:291	class:GymPokemon
+get_poke_info	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^        def get_poke_info(info, pokemon):$/;"	function	line:292	function:GymPokemon._get_best_pokemon
 unicode_literals	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^from __future__ import unicode_literals$/;"	namespace	line:2
 absolute_import	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^from __future__ import absolute_import$/;"	namespace	line:3
 datetime	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^import datetime$/;"	namespace	line:5
@@ -6924,85 +6978,31 @@ player_data	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.
 stardust	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def stardust(self):$/;"	member	line:76	class:PokemonGoBot
 stardust	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def stardust(self, value):$/;"	member	line:84	class:PokemonGoBot
 __init__	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def __init__(self, db, config):$/;"	member	line:89	class:PokemonGoBot
-start	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def start(self):$/;"	member	line:149	class:PokemonGoBot
-_setup_event_system	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def _setup_event_system(self):$/;"	member	line:165	class:PokemonGoBot
-_register_events	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def _register_events(self):$/;"	member	line:202	class:PokemonGoBot
-tick	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def tick(self):$/;"	member	line:794	class:PokemonGoBot
-get_meta_cell	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def get_meta_cell(self):$/;"	member	line:820	class:PokemonGoBot
-update_web_location	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def update_web_location(self, cells=[], lat=None, lng=None, alt=None):$/;"	member	line:863	class:PokemonGoBot
-emit_forts_event	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def emit_forts_event(self,response_dict):$/;"	member	line:911	class:PokemonGoBot
-find_close_cells	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def find_close_cells(self, lat, lng):$/;"	member	line:932	class:PokemonGoBot
-check_session	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def check_session(self, position):$/;"	member	line:954	class:PokemonGoBot
-login	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def login(self):$/;"	member	line:977	class:PokemonGoBot
-get_encryption_lib	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def get_encryption_lib(self):$/;"	member	line:1124	class:PokemonGoBot
-get_hash_lib	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def get_hash_lib(self):$/;"	member	line:1154	class:PokemonGoBot
-_setup_api	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def _setup_api(self):$/;"	member	line:1184	class:PokemonGoBot
-_print_character_info	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def _print_character_info(self):$/;"	member	line:1201	class:PokemonGoBot
-_print_list_pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def _print_list_pokemon(self):$/;"	member	line:1306	class:PokemonGoBot
-get_poke_info	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^        def get_poke_info(info, pokemon):$/;"	function	line:1317	function:PokemonGoBot._print_list_pokemon
-use_lucky_egg	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def use_lucky_egg(self):$/;"	member	line:1349	class:PokemonGoBot
-_set_starting_position	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def _set_starting_position(self):$/;"	member	line:1352	class:PokemonGoBot
-get_pos_by_name	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def get_pos_by_name(self, location_name):$/;"	member	line:1507	class:PokemonGoBot
-_get_pos_by_fav_location	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def _get_pos_by_fav_location(self, location_name):$/;"	member	line:1533	class:PokemonGoBot
-heartbeat	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def heartbeat(self):$/;"	member	line:1553	class:PokemonGoBot
-update_web_location_worker	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def update_web_location_worker(self):$/;"	member	line:1610	class:PokemonGoBot
-display_player_info	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def display_player_info(self):$/;"	member	line:1615	class:PokemonGoBot
-get_forts	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def get_forts(self, order_by_distance=False):$/;"	member	line:1632	class:PokemonGoBot
-get_gyms	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def get_gyms(self, order_by_distance=False):$/;"	member	line:1647	class:PokemonGoBot
-get_map_objects	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def get_map_objects(self, lat, lng, timestamp, cellid):$/;"	member	line:1662	class:PokemonGoBot
-_load_recent_forts	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def _load_recent_forts(self):$/;"	member	line:1679	class:PokemonGoBot
-_refresh_inventory	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def _refresh_inventory(self):$/;"	member	line:1723	class:PokemonGoBot
-unicode_literals	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^from __future__ import unicode_literals$/;"	namespace	line:2
-absolute_import	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^from __future__ import absolute_import$/;"	namespace	line:3
-datetime	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^from datetime import datetime, timedelta$/;"	namespace	line:5
-timedelta	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^from datetime import datetime, timedelta$/;"	namespace	line:5
-BaseTask	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^from pokemongo_bot.base_task import BaseTask$/;"	namespace	line:6
-WorkerResult	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^from pokemongo_bot.worker_result import WorkerResult$/;"	namespace	line:7
-inventory	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^from pokemongo_bot import inventory$/;"	namespace	line:8
-Item	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^from pokemongo_bot.item_list import Item$/;"	namespace	line:9
-sleep	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^from pokemongo_bot.human_behaviour import sleep, action_delay$/;"	namespace	line:10
-action_delay	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^from pokemongo_bot.human_behaviour import sleep, action_delay$/;"	namespace	line:10
-HealPokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^class HealPokemon(BaseTask):$/;"	class	line:12
-SUPPORTED_TASK_API_VERSION	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^    SUPPORTED_TASK_API_VERSION = 1$/;"	variable	line:13	class:HealPokemon
-__init__	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^    def __init__(self, bot, config):$/;"	member	line:15	class:HealPokemon
-work	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^    def work(self):$/;"	member	line:25	class:HealPokemon
-_revive_pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^    def _revive_pokemon(self, pokemon):$/;"	member	line:77	class:HealPokemon
-_heal_pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^    def _heal_pokemon(self, pokemon):$/;"	member	line:116	class:HealPokemon
-_use_potion	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^    def _use_potion(self, potion_id, pokemon):$/;"	member	line:185	class:HealPokemon
-_should_print	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/heal_pokemon.py	/^    def _should_print(self):$/;"	member	line:231	class:HealPokemon
-unicode_literals	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from __future__ import unicode_literals$/;"	namespace	line:2
-absolute_import	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from __future__ import absolute_import$/;"	namespace	line:3
-datetime	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from datetime import datetime, timedelta$/;"	namespace	line:5
-timedelta	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from datetime import datetime, timedelta$/;"	namespace	line:5
-sys	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^import sys$/;"	namespace	line:6
-time	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^import time$/;"	namespace	line:7
-f2i	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from pgoapi.utilities import f2i$/;"	namespace	line:9
-inventory	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from pokemongo_bot import inventory$/;"	namespace	line:10
-player	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from pokemongo_bot.inventory import player$/;"	namespace	line:11
-Constants	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from pokemongo_bot.constants import Constants$/;"	namespace	line:13
-action_delay	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from pokemongo_bot.human_behaviour import action_delay, sleep$/;"	namespace	line:14
-sleep	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from pokemongo_bot.human_behaviour import action_delay, sleep$/;"	namespace	line:14
-WorkerResult	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from pokemongo_bot.worker_result import WorkerResult$/;"	namespace	line:15
-BaseTask	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from pokemongo_bot.base_task import BaseTask$/;"	namespace	line:16
-inventory	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from pokemongo_bot import inventory$/;"	namespace	line:17
-distance	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from .utils import distance, format_time, fort_details$/;"	namespace	line:18
-format_time	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from .utils import distance, format_time, fort_details$/;"	namespace	line:18
-fort_details	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from .utils import distance, format_time, fort_details$/;"	namespace	line:18
-ConfigException	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^from pokemongo_bot.tree_config_builder import ConfigException$/;"	namespace	line:19
-GYM_DETAIL_RESULT_SUCCESS	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^GYM_DETAIL_RESULT_SUCCESS = 1$/;"	variable	line:21
-GYM_DETAIL_RESULT_OUT_OF_RANGE	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^GYM_DETAIL_RESULT_OUT_OF_RANGE = 2$/;"	variable	line:22
-GYM_DETAIL_RESULT_UNSET	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^GYM_DETAIL_RESULT_UNSET = 0$/;"	variable	line:23
-GymPokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^class GymPokemon(BaseTask):$/;"	class	line:26
-SUPPORTED_TASK_API_VERSION	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    SUPPORTED_TASK_API_VERSION = 1$/;"	variable	line:27	class:GymPokemon
-__init__	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def __init__(self, bot, config):$/;"	member	line:29	class:GymPokemon
-initialize	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def initialize(self):$/;"	member	line:32	class:GymPokemon
-should_run	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def should_run(self):$/;"	member	line:41	class:GymPokemon
-display_fort_pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def display_fort_pokemon(self):$/;"	member	line:45	class:GymPokemon
-work	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def work(self):$/;"	member	line:56	class:GymPokemon
-get_gym_details	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def get_gym_details(self, gym):$/;"	member	line:164	class:GymPokemon
-drop_pokemon_in_gym	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def drop_pokemon_in_gym(self, gym):$/;"	member	line:199	class:GymPokemon
-get_gyms_in_range	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def get_gyms_in_range(self):$/;"	member	line:256	class:GymPokemon
-_should_print	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def _should_print(self):$/;"	member	line:280	class:GymPokemon
-_compute_next_update	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def _compute_next_update(self):$/;"	member	line:283	class:GymPokemon
-_get_best_pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^    def _get_best_pokemon(self):$/;"	member	line:291	class:GymPokemon
-get_poke_info	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/cell_workers/gym_pokemon.py	/^        def get_poke_info(info, pokemon):$/;"	function	line:292	function:GymPokemon._get_best_pokemon
+start	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def start(self):$/;"	member	line:152	class:PokemonGoBot
+_setup_event_system	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def _setup_event_system(self):$/;"	member	line:168	class:PokemonGoBot
+_register_events	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def _register_events(self):$/;"	member	line:205	class:PokemonGoBot
+tick	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def tick(self):$/;"	member	line:801	class:PokemonGoBot
+get_meta_cell	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def get_meta_cell(self):$/;"	member	line:827	class:PokemonGoBot
+update_web_location	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def update_web_location(self, cells=[], lat=None, lng=None, alt=None):$/;"	member	line:870	class:PokemonGoBot
+emit_forts_event	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def emit_forts_event(self,response_dict):$/;"	member	line:918	class:PokemonGoBot
+find_close_cells	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def find_close_cells(self, lat, lng):$/;"	member	line:939	class:PokemonGoBot
+check_session	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def check_session(self, position):$/;"	member	line:961	class:PokemonGoBot
+login	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def login(self):$/;"	member	line:984	class:PokemonGoBot
+get_encryption_lib	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def get_encryption_lib(self):$/;"	member	line:1149	class:PokemonGoBot
+get_hash_lib	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def get_hash_lib(self):$/;"	member	line:1179	class:PokemonGoBot
+_setup_api	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def _setup_api(self):$/;"	member	line:1209	class:PokemonGoBot
+_print_character_info	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def _print_character_info(self):$/;"	member	line:1226	class:PokemonGoBot
+_print_list_pokemon	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def _print_list_pokemon(self):$/;"	member	line:1331	class:PokemonGoBot
+get_poke_info	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^        def get_poke_info(info, pokemon):$/;"	function	line:1342	function:PokemonGoBot._print_list_pokemon
+use_lucky_egg	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def use_lucky_egg(self):$/;"	member	line:1374	class:PokemonGoBot
+_set_starting_position	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def _set_starting_position(self):$/;"	member	line:1377	class:PokemonGoBot
+get_pos_by_name	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def get_pos_by_name(self, location_name):$/;"	member	line:1532	class:PokemonGoBot
+_get_pos_by_fav_location	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def _get_pos_by_fav_location(self, location_name):$/;"	member	line:1558	class:PokemonGoBot
+heartbeat	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def heartbeat(self):$/;"	member	line:1578	class:PokemonGoBot
+update_web_location_worker	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def update_web_location_worker(self):$/;"	member	line:1654	class:PokemonGoBot
+display_player_info	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def display_player_info(self):$/;"	member	line:1661	class:PokemonGoBot
+get_forts	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def get_forts(self, order_by_distance=False):$/;"	member	line:1678	class:PokemonGoBot
+get_gyms	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def get_gyms(self, order_by_distance=False):$/;"	member	line:1693	class:PokemonGoBot
+get_map_objects	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def get_map_objects(self, lat, lng, timestamp, cellid):$/;"	member	line:1708	class:PokemonGoBot
+_load_recent_forts	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def _load_recent_forts(self):$/;"	member	line:1725	class:PokemonGoBot
+_refresh_inventory	/Users/david/Broncode/personal/PokemonGo-Bot/pokemongo_bot/__init__.py	/^    def _refresh_inventory(self):$/;"	member	line:1769	class:PokemonGoBot
