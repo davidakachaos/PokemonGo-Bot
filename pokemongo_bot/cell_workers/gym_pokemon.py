@@ -100,8 +100,10 @@ class GymPokemon(BaseTask):
             # We got the data
             self.logger.info("Deploy lockout: %s" % gym_details['deploy_lockout'])
             count = 1
+            gym_current_pokemon = []
             for member in gym_details['memberships']:
                 poke = inventory.Pokemon(member.get('pokemon_data'))
+                gym_current_pokemon += [poke]
                 self.logger.info("%s: %s (%s CP)" % (count, poke.name, poke.cp))
                 count += 1
             max_mons = 1
@@ -129,30 +131,22 @@ class GymPokemon(BaseTask):
             if len(gym_details['memberships']) < max_mons:
                 # there is room!
                 # make sure we don't drop a Pokemon too soon (Saskia will kill me!)
-                if max_mons == 10:
-                    self.logger.info("Full gym, not adding Pokemon")
-                    if len(gyms) > 1:
-                        return WorkerResult.RUNNING
-                    else:
-                        return WorkerResult.SUCCESS
-                elif max_mons > 5:
-                    # Wait at least 15 seconds
-                    self.logger.info("Wating to make sure we don't grab a spot from hard working team mates!!")
-                    sleep(15)
-                elif max_mons > 3:
-                    self.logger.info("Waiting a bit")
-                    action_delay(10, 15)
-                gym_details = self.get_gym_details(gym)
+                # Check for a lockout
+                while gym_details['deploy_lockout'] is not None:
+                    self.logger.info("Deploy lockout active!! Wating to make sure we don't grab a spot from hard working team mates!!")
+                    action_delay(3, 10)
+                    # Grab the details again to see if there is still room
+                    gym_details = self.get_gym_details(gym)
+
                 if len(gym_details['memberships']) < max_mons:
                     # Still room enough!
-                    self.drop_pokemon_in_gym(gym)
+                    self.drop_pokemon_in_gym(gym, gym_current_pokemon)
                 else:
                     self.logger.info("Team member entered gym before us, nice!")
             else:
-                self.logger.info("Gym full.")
                 self.emit_event(
                     'gym_full',
-                    formatted=("Gym is full. Can not add Pokemon!" )
+                    formatted=("Gym is full (10/10). Can not add a Pokemon!" )
                 )
             #
 
@@ -196,9 +190,10 @@ class GymPokemon(BaseTask):
         else:
             return False
 
-    def drop_pokemon_in_gym(self, gym):
+    def drop_pokemon_in_gym(self, gym, current_pokemons):
         #FortDeployPokemon
-        pokemon_id = self._get_best_pokemon()
+        fort_pokemon = self._get_best_pokemon(current_pokemons)
+        pokemon_id = fort_pokemon.unique_id
         lat = gym['latitude']
         lng = gym['longitude']
         response_dict = self.bot.api.fort_deploy_pokemon(
@@ -214,6 +209,7 @@ class GymPokemon(BaseTask):
             result = deploy.get('result', -1)
             if result == 1:
                 # SUCCES
+                self.logger.info("We deployed %s (%s CP) in the gym!" % (fort_pokemon["name"], fort_pokemon["cp"]))
                 self.emit_event(
                     'deployed_pokemon',
                     formatted="We dropped a pokemon in a gym!!",
@@ -288,7 +284,7 @@ class GymPokemon(BaseTask):
         """
         self.next_update = datetime.now() + timedelta(seconds=self.min_interval)
 
-    def _get_best_pokemon(self):
+    def _get_best_pokemon(self, current_pokemons):
         def get_poke_info(info, pokemon):
             poke_info = {
                 'cp': pokemon.cp,
@@ -302,6 +298,7 @@ class GymPokemon(BaseTask):
             if info not in poke_info:
                 raise ConfigException("order by {}' isn't available".format(self.order_by))
             return poke_info[info]
-
-        pokemons_ordered = sorted(self.pokemons, key=lambda x: get_poke_info(self.order_by, x), reverse=True)
-        return pokemons_ordered[0].unique_id
+        # Don't place a Pokemon which is already in the gym (prevent ALL Blissey etc)
+        possible_pokemons = [p for p in self.pokemons if not p in current_pokemons]
+        pokemons_ordered = sorted(possible_pokemons, key=lambda x: get_poke_info(self.order_by, x), reverse=True)
+        return pokemons_ordered[0]
