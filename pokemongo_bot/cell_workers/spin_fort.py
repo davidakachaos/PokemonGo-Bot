@@ -78,21 +78,21 @@ class SpinFort(BaseTask):
         lng = fort['longitude']
 
         details = fort_details(self.bot, fort['id'], lat, lng)
-        fort_name = details.get('name', 'Unknown')     
+        fort_name = details.get('name', 'Unknown')
         check_fort_modifier = details.get('modifiers', {})
-        if check_fort_modifier:
+        if self.use_lure and check_fort_modifier:
             # check_fort_modifier_id = check_fort_modifier[0].get('item_id')
             self.emit_event('lure_info', formatted='A lure is already in fort, skip deploying lure')
-        
+
         if self.use_lure and not check_fort_modifier:
             # check lures availiblity
             lure_count = inventory.items().get(501).count
-            
+
             if lure_count > 1: # Only use lures when there's more than one
                 response_dict = self.bot.api.add_fort_modifier(
                     modifier_type=501,
-                    fort_id = fort['id'], 
-                    player_latitude = f2i(self.bot.position[0]), 
+                    fort_id = fort['id'],
+                    player_latitude = f2i(self.bot.position[0]),
                     player_longitude = f2i(self.bot.position[1])
                 )
 
