@@ -29,12 +29,18 @@ class HealPokemon(BaseTask):
 
         # Check for pokemon to heal or revive
         to_revive = []
+        self.to_heal = []
         pokemons = inventory.pokemons().all()
         pokemons.sort(key=lambda p: p.hp)
         for pokemon in pokemons:
-            if pokemon.hp < 1.0:
+            if pokemon.hp == pokemon.hp_max:
+                # Other are all fine!
+                break
+            elif pokemon.hp < 1.0:
+                self.logger.info("Dead: %s (%s CP| %s/%s )" % (pokemon.name, pokemon.cp, pokemon.hp, pokemon.hp_max))
                 to_revive += [pokemon]
-            if pokemon.hp < pokemon.hp_max:
+            elif pokemon.hp < pokemon.hp_max:
+                self.logger.info("Heal: %s (%s CP| %s/%s )" % (pokemon.name, pokemon.cp, pokemon.hp, pokemon.hp_max))
                 self.to_heal += [pokemon]
 
         if len(self.to_heal) == 0 and len(to_revive) == 0:
@@ -115,15 +121,18 @@ class HealPokemon(BaseTask):
 
     def _heal_pokemon(self, pokemon):
         if pokemon.hp == 0:
-            self.logger.info("Can't heal dead %s" % pokemon.name)
+            self.logger.info("Can't heal a dead %s" % pokemon.name)
             return False
         # normal = inventory.items().get(Item.ITEM_POTION.value).count
         # super_p = inventory.items().get(Item.ITEM_SUPER_POTION.value).count
         # hyper = inventory.items().get(Item.ITEM_HYPER_POTION.value).count
         max_p = inventory.items().get(Item.ITEM_MAX_POTION.value).count
         # Figure out how much healing needs to be done.
-        hp_to_restore = pokemon.hp_max - pokemon.hp
-        if hp_to_restore > 200 and max_p > 0:
+        def hp_to_restore(pokemon):
+            pokemon = inventory.pokemons().get_from_unique_id(pokemon.unique_id)
+            return pokemon.hp_max - pokemon.hp
+
+        if hp_to_restore(pokemon) > 200 and max_p > 0:
             # We should use a MAX Potion
             self._use_potion(Item.ITEM_MAX_POTION.value, pokemon)
             pokemon.hp = pokemon.hp_max
@@ -134,7 +143,7 @@ class HealPokemon(BaseTask):
 
         for item_id, max_heal in zip(potions, heals):
             if inventory.items().get(item_id).count > 0:
-                while hp_to_restore > max_heal:
+                while hp_to_restore(pokemon) > max_heal:
                     if inventory.items().get(item_id).count == 0:
                         break
                     action_delay(2, 3)
@@ -143,16 +152,13 @@ class HealPokemon(BaseTask):
                         pokemon.hp += max_heal
                         if pokemon.hp > pokemon.hp_max:
                             pokemon.hp = pokemon.hp_max
-                            hp_to_restore = 0
-                        else:
-                            hp_to_restore -= max_heal
                     else:
                         break
                         # return WorkerResult.ERROR
 
         # Now we use the least
         potion_id = 101 # Normals first
-        while hp_to_restore > 0:
+        while hp_to_restore(pokemon) > 0:
             action_delay(2, 4)
             if inventory.items().get(potion_id).count > 0:
                 if potion_id == 104:
@@ -160,14 +166,10 @@ class HealPokemon(BaseTask):
                 if self._use_potion(potion_id, pokemon):
                     if potion_id == 104:
                         pokemon.hp = pokemon.hp_max
-                        hp_to_restore = 0
                     else:
                         pokemon.hp += heals[potion_id - 101]
                         if pokemon.hp > pokemon.hp_max:
                             pokemon.hp = pokemon.hp_max
-                            hp_to_restore = 0
-                        else:
-                            hp_to_restore -= heals[potion_id - 101]
                 else:
                     if potion_id < 104:
                         self.logger.info("Failed with potion %s. Trying next." % potion_id)
@@ -199,7 +201,7 @@ class HealPokemon(BaseTask):
         sleep(2)
         if response_dict_potion:
             result = response_dict_potion.get('responses', {}).get('USE_ITEM_POTION', {}).get('result', 0)
-            if result is 1:  # Request success
+            if result is 1 or result is 0:  # Request success
                 self.emit_event(
                     'healing_pokemon',
                     formatted='Healing {name} ({hp}/{hp_max}).',
@@ -212,7 +214,8 @@ class HealPokemon(BaseTask):
                 return True
             elif result == 3:
                 # ERROR_CANNOT_USE
-                self.logger.info("Can't this to heal the %s" % pokemon.name)
+                pokemon.hp = pokemon.hp_max
+                self.logger.info("Can't use this to heal the %s" % pokemon.name)
                 return False
             else:
                 self.logger.info("Result was: %s" % result)
