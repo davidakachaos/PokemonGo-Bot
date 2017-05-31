@@ -613,6 +613,9 @@ class PokemonOptimizer(BaseTask):
         evolve = []
 
         for pokemon in try_evolve:
+            if pokemon.in_fort:
+                # Pokemon in forts can't be evolved!
+                continue
             pokemon_id = pokemon.pokemon_id
             needed_evolution_item = inventory.pokemons().evolution_item_for(pokemon_id)
             if needed_evolution_item is not None:
@@ -655,6 +658,9 @@ class PokemonOptimizer(BaseTask):
         if len(try_upgrade) > 0:
             try_upgrade.sort(key=lambda p: (p.cp), reverse=True)
         for pokemon in try_upgrade:
+            if pokemon.in_fort:
+                # Can't upgrade a Pokemon in a fort!
+                continue
             # self.log("Considering %s for upgrade" % pokemon.name)
             if pokemon.level >= upgrade_level:
                 # self.log("Pokemon already at target level. %s" % pokemon.level)
