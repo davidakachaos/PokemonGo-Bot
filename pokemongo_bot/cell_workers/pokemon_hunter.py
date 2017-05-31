@@ -59,7 +59,8 @@ class PokemonHunter(BaseTask):
         self.config_treat_family_of_vip_as_vip = self.config.get("treat_family_of_vip_as_vip", False)
         self.bot.hunter_locked_target = None
         # Hunt for trash when bags are almost full
-        self.config_hunt_for_trash = self.config.get("hunt_for_trash_to_fill_bag", True)
+        self.config_hunt_for_trash = self.config.get("hunt_for_trash_to_fill_bag", False)
+        self.config_trash_hunt_open_slots = self.config.get("trash_hunt_open_slots", 25)
         self.hunting_trash = False
 
     def work(self):
@@ -148,9 +149,9 @@ class PokemonHunter(BaseTask):
         if self.config_hunt_for_trash and self.hunting_trash is False and (self.destination is None or self._is_vip_pokemon(self.destination) is False ):
             # Okay, we should hunt for trash if the bag is almost full
             trash_mons = ["Caterpie", "Weedle", "Pidgey", "Pidgeotto", "Pidgeot", "Kakuna", "Beedrill", "Metapod", "Butterfree"]
-            if self.pokemon_slots_left() <= 20:
+            if self.pokemon_slots_left() <= self.config_trash_hunt_open_slots:
                 if self.no_log_until < now:
-                    self.logger.info("Less than 20 slots left to fill, starting hunt for trash")
+                    self.logger.info("Less than %s slots left to fill, starting hunt for trash" % self.config_trash_hunt_open_slots)
                 for pokemon in pokemons:
                     if pokemon["name"] in trash_mons:
                         self.hunting_trash = True
