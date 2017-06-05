@@ -1204,6 +1204,13 @@ class PokemonGoBot(object):
         # send empty map_cells and then our position
         self.update_web_location()
 
+    def next_gym_collection_time(self):
+        next_gym_collection = None
+        if 'daily_bonus' in self._player:
+            next_gym_collection = datetime.datetime.fromtimestamp(
+                self._player['daily_bonus']['next_defender_bonus_collect_timestamp_ms']  / 1e3)
+        return next_gym_collection
+
     def _print_character_info(self):
         # get player profile call
         # ----------------------
@@ -1230,6 +1237,13 @@ class PokemonGoBot(object):
         creation_date = datetime.datetime.fromtimestamp(
             player['creation_timestamp_ms'] / 1e3)
         creation_date = creation_date.strftime("%Y/%m/%d %H:%M:%S")
+
+        # daily_bonus
+        next_gym_collection = None
+        if 'daily_bonus' in player:
+            next_gym_collection = datetime.datetime.fromtimestamp(
+                player['daily_bonus']['next_defender_bonus_collect_timestamp_ms']  / 1e3)
+            next_gym_collection = next_gym_collection.strftime("%Y/%m/%d %H:%M:%S")
 
         pokecoins = '0'
         stardust = '0'
@@ -1296,6 +1310,8 @@ class PokemonGoBot(object):
             ' | Metal Coat: ' + str(items_inventory.get(1103).count) +
             ' | Dragon Scale: ' + str(items_inventory.get(1104).count) +
             ' | Upgrade: ' + str(items_inventory.get(1105).count))
+
+        self.logger.info('Next gym collection: ' + next_gym_collection)
 
         if warn:
             self.logger.info('')

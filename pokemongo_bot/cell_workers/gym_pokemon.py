@@ -52,6 +52,14 @@ class GymPokemon(BaseTask):
             details = fort_details(self.bot, pokemon.fort_id, lat, lng)
             fort_name = details.get('name', 'Unknown')
             self.logger.info("%s: %s (%s CP)" % (fort_name, pokemon.name, pokemon.cp))
+        present = datetime.now()
+        collection_datetime = self.bot.next_gym_collection_time()
+        if collection_datetime < present:
+            # We can collect!!
+            self.logger.info("We can collect our daily bonus!!")
+            self.logger.info("Collection date/time: %s" % collection_datetime.strftime("%Y/%m/%d %H:%M:%S"))
+        else:
+            self.logger.info("Next collection at %s" % collection_datetime.strftime("%Y/%m/%d %H:%M:%S"))
 
     def work(self):
         if not self.enabled:
@@ -146,7 +154,7 @@ class GymPokemon(BaseTask):
             else:
                 self.emit_event(
                     'gym_full',
-                    formatted=("Gym is full (10/10). Can not add a Pokemon!" )
+                    formatted=("Gym is full, can not add a Pokemon!" )
                 )
             #
 
@@ -209,7 +217,7 @@ class GymPokemon(BaseTask):
             result = deploy.get('result', -1)
             if result == 1:
                 # SUCCES
-                self.logger.info("We deployed %s (%s CP) in the gym!" % (fort_pokemon["name"], fort_pokemon["cp"]))
+                self.logger.info("We deployed %(name)s (%(cp)s CP) in the gym!", fort_pokemon)
                 self.emit_event(
                     'deployed_pokemon',
                     formatted="We dropped a pokemon in a gym!!",
