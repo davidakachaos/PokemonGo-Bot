@@ -257,7 +257,8 @@ class IncubateEggs(BaseTask):
                     break
 
         self.bot.metrics.hatched_eggs(len(pokemon_list))
-        if self.bot.catch_disabled:
+        # We only do this if we are finishing eggs.
+        if self.finish_eggs and self.bot.catch_disabled:
             self.logger.info("Egg hatched, resuming catching tasks.")
             self.bot.catch_disabled = False
         return True
