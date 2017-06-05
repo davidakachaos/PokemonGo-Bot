@@ -37,7 +37,8 @@ class PokemonHunter(BaseTask):
         self.distance_to_target = 0
         self.distance_counter = 0
         self.recent_tries = []
-        self.no_hunt_until = None
+        # No hunting from the start; give sightings a few secs to load!
+        self.no_hunt_until = time.time() + 10
         self.hunt_started_at = None
 
         self.config_max_distance = self.config.get("max_distance", 2000)
@@ -115,12 +116,19 @@ class PokemonHunter(BaseTask):
             self.hunting_trash = False
             return WorkerResult.SUCCESS
 
+        if hasattr(self.bot,"hunter_locked_target"):
+            if self.destination is not None and self.bot.hunter_locked_target is not None:
+                if self.destination is not self.bot.hunter_locked_target:
+                    self.logger.info("Locked on to a different target than destination??")
+                    self.bot.hunter_locked_target = None
+
         if self.destination is not None:
             if self.destination_caught():
                 self.logger.info("We found a %(name)s while hunting.", self.destination)
                 self.recent_tries.append(self.destination['pokemon_id'])
                 self.destination = None
                 self.hunting_trash = False
+                self.bot.hunter_locked_target = None
                 if self.config_enable_cooldown:
                     wait = uniform(120, 600)
                     self.no_hunt_until = time.time() + wait
@@ -134,6 +142,7 @@ class PokemonHunter(BaseTask):
                 self.recent_tries.append(self.destination['pokemon_id'])
                 self.destination = None
                 self.hunting_trash = False
+                self.bot.hunter_locked_target = None
                 if self.config_enable_cooldown:
                     wait = uniform(120, 600)
                     self.no_hunt_until = time.time() + wait
@@ -145,29 +154,58 @@ class PokemonHunter(BaseTask):
         now = time.time()
         pokemons = self.get_nearby_pokemons()
         pokemons = filter(lambda x: x["pokemon_id"] not in self.recent_tries, pokemons)
+        trash_mons = ["Caterpie", "Weedle", "Pidgey", "Pidgeotto", "Pidgeot", "Kakuna", "Beedrill", "Metapod", "Butterfree"]
 
-        if self.config_hunt_for_trash and self.hunting_trash is False and (self.destination is None or self._is_vip_pokemon(self.destination) is False ):
+        if self.config_hunt_for_trash and self.hunting_trash is False and (self.destination is None or not self._is_vip_pokemon(self.destination) ):
             # Okay, we should hunt for trash if the bag is almost full
-            trash_mons = ["Caterpie", "Weedle", "Pidgey", "Pidgeotto", "Pidgeot", "Kakuna", "Beedrill", "Metapod", "Butterfree"]
+            pokemons.sort(key=lambda p: p["distance"])
+            possible_targets = filter(lambda x: x["name"] in trash_mons, pokemons)
             if self.pokemon_slots_left() <= self.config_trash_hunt_open_slots:
                 if self.no_log_until < now:
                     self.logger.info("Less than %s slots left to fill, starting hunt for trash" % self.config_trash_hunt_open_slots)
-                for pokemon in pokemons:
-                    if pokemon["name"] in trash_mons:
-                        self.hunting_trash = True
-                        self.destination = pokemon
-                        self.lost_counter = 0
-                        self.hunt_started_at = datetime.now()
-                        self.logger.info("Hunting for trash at %(distance).2f meters: %(name)s", self.destination)
-                        self.set_target()
-                        # We have a target
-                        return WorkerResult.SUCCESS
+                    if len(possible_targets) is 0:
+                        self.logger.info("No trash pokemon around...")
+                for pokemon in possible_targets:
+                    if self.destination is not None:
+                        self.logger.info("Trash hunt takes priority! Changing target...")
+                    self.hunting_trash = True
+                    self.destination = pokemon
+                    self.lost_counter = 0
+                    self.hunt_started_at = datetime.now()
+                    self.logger.info("Hunting for trash at %(distance).2f meters: %(name)s", self.destination)
+                    self.set_target()
+                    # We have a target
+                    return WorkerResult.SUCCESS
 
         if self.config_hunt_for_trash and self.hunting_trash:
-            if self.pokemon_slots_left() > 20:
+            if self.pokemon_slots_left() > self.config_trash_hunt_open_slots:
                 self.logger.info("No longer trying to fill the bag. Electing new target....")
                 self.hunting_trash = False
                 self.destination = None
+            # Closer target?
+            if self.no_log_until < now:
+                # Don't check every tick!
+                if self.destination is not None and len(pokemons) > 0:
+                    pokemons.sort(key=lambda p: p["distance"])
+                    possible_targets = filter(lambda x: x["name"] in trash_mons, pokemons)
+                    # Check for a closer target
+                    self.destination["distance"] = self.get_distance(self.bot.position, self.destination)
+                    for pokemon in possible_targets:
+                        if pokemon is not self.destination:
+                            if round(pokemon["distance"], 2) >= round(self.destination["distance"], 2):
+                                # further away!
+                                break
+                            self.logger.info("Found a closer target: %s < %s" % (pokemon["distance"], self.destination["distance"]))
+                            if self.destination is not None:
+                                self.logger.info("Closer trash hunt takes priority! Changing target...")
+                            self.hunting_trash = True
+                            self.destination = pokemon
+                            self.lost_counter = 0
+                            self.hunt_started_at = datetime.now()
+                            self.logger.info("New target at %(distance).2f meters: %(name)s", self.destination)
+                            self.set_target()
+                            # We have a target
+                            return WorkerResult.SUCCESS
 
         if self.destination is None:
             worth_pokemons = self.get_worth_pokemons(pokemons, self.config_hunt_closest_first)
@@ -175,8 +213,9 @@ class PokemonHunter(BaseTask):
             if len(worth_pokemons) > 0:
                 # Pick a random target from the list
                 # random.shuffle(worth_pokemons)
-                # Priotize closer pokemon
-                worth_pokemons.sort(key=lambda p: p["distance"])
+                if self.config_hunt_closest_first:
+                    # Priotize closer pokemon
+                    worth_pokemons.sort(key=lambda p: p["distance"])
                 # Prevents the bot from looping the same Pokemon
                 self.destination = worth_pokemons[0]
                 self.set_target()
@@ -289,7 +328,13 @@ class PokemonHunter(BaseTask):
             else:
                 self.distance_counter = 0
 
-            if self.distance_counter >= 3:
+            if self.distance_counter is 3:
+                # Try another walker
+                self.logger.info("Having difficulty walking to target, changing walker!")
+                self.walker = StepWalker(self.bot, self.search_points[0][0], self.search_points[0][1])
+                self.distance_counter += 1
+
+            if self.distance_counter >= 6:
                 # Ignore last 3
                 if len(self.recent_tries) > 3:
                     self.recent_tries.pop()

@@ -80,6 +80,7 @@ class PokemonCatchWorker(BaseTask):
         self.berry_threshold = self.config.get('berry_threshold', 0.35)
         self.vip_berry_threshold = self.config.get('vip_berry_threshold', 0.9)
         self.treat_unseen_as_vip = self.config.get('treat_unseen_as_vip', DEFAULT_UNSEEN_AS_VIP)
+        self.treat_family_of_vip_as_vip = self.config.get('treat_family_of_vip_as_vip', False)
         self.daily_catch_limit = self.config.get('daily_catch_limit', 800)
         self.use_pinap_on_vip = self.config.get('use_pinap_on_vip', False)
         self.pinap_on_level_below = self.config.get('pinap_on_level_below', 0)
@@ -111,9 +112,6 @@ class PokemonCatchWorker(BaseTask):
         self.catchsim_changeball_wait_max = self.catchsim_config.get('changeball_wait_max', 3)
         self.catchsim_newtodex_wait_min = self.catchsim_config.get('newtodex_wait_min', 20)
         self.catchsim_newtodex_wait_max = self.catchsim_config.get('newtodex_wait_max', 30)
-
-
-
 
 
     ############################################################################
@@ -409,6 +407,23 @@ class PokemonCatchWorker(BaseTask):
     def _should_catch_pokemon(self, pokemon):
         return self._pokemon_matches_config(self.bot.config.catch, pokemon)
 
+    def get_family_ids(self, pokemon_id):
+        family_id = inventory.pokemons().data_for(pokemon_id).first_evolution_id
+        ids = [family_id]
+        ids += inventory.pokemons().data_for(family_id).next_evolutions_all[:]
+
+        return ids
+
+    def _is_family_of_vip(self, pokemon):
+        for fid in self.get_family_ids(pokemon.pokemon_id):
+            name = inventory.pokemons().name_for(fid)
+            if self.bot.config.vips.get(name) == {}:
+                if name != pokemon.name:
+                    self.logger.info("%s is a VIP because it's family to %s" % (pokemon.name, name))
+                return True
+        # No, not a family member of the VIP
+        return False
+
     def _is_vip_pokemon(self, pokemon):
         # having just a name present in the list makes them vip
         # Not seen pokemons also will become vip if it's not disabled in config
@@ -417,6 +432,15 @@ class PokemonCatchWorker(BaseTask):
         # Treat all shiny pokemon as VIP!
         if pokemon.shiny:
             return True
+        # If we must treat family of VIP as VIP
+        if self.treat_family_of_vip_as_vip:
+            if self._is_family_of_vip(pokemon):
+                return True
+        # If we need the Pokemon for an evolution, catch it.
+        if self.treat_unseen_as_vip and any(not inventory.pokedex().seen(fid) for fid in self.get_family_ids(pokemon.pokemon_id)):
+            self.logger.info('Found a Pokemon whoes family is not yet complete in Pokedex!')
+            return True
+
         return self._pokemon_matches_config(self.bot.config.vips, pokemon, default_logic='or')
 
     def _pct(self, rate_by_ball):
