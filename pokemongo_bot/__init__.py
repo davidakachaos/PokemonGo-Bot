@@ -1206,7 +1206,7 @@ class PokemonGoBot(object):
 
     def next_gym_collection_time(self):
         next_gym_collection = None
-        if 'daily_bonus' in self._player:
+        if 'daily_bonus' in self._player and 'next_defender_bonus_collect_timestamp_ms' in self._player['daily_bonus']:
             next_gym_collection = datetime.datetime.fromtimestamp(
                 self._player['daily_bonus']['next_defender_bonus_collect_timestamp_ms']  / 1e3)
         return next_gym_collection
@@ -1239,8 +1239,8 @@ class PokemonGoBot(object):
         creation_date = creation_date.strftime("%Y/%m/%d %H:%M:%S")
 
         # daily_bonus
-        next_gym_collection = None
-        if 'daily_bonus' in player:
+        next_gym_collection = 'Never'
+        if 'daily_bonus' in player and 'next_defender_bonus_collect_timestamp_ms' in player['daily_bonus']:
             next_gym_collection = datetime.datetime.fromtimestamp(
                 player['daily_bonus']['next_defender_bonus_collect_timestamp_ms']  / 1e3)
             next_gym_collection = next_gym_collection.strftime("%Y/%m/%d %H:%M:%S")
