@@ -89,7 +89,7 @@ class GymPokemon(BaseTask):
         team = self.bot.player_data['team']
         if 'owned_by_team' not in gym:
             self.logger.info("Empty gym found!!")
-            self.drop_pokemon_in_gym(gym)
+            self.drop_pokemon_in_gym(gym, [])
             if len(gyms) > 1:
                 return WorkerResult.RUNNING
             else:
@@ -178,7 +178,7 @@ class GymPokemon(BaseTask):
             gym_longitude=lng,
             player_latitude=f2i(self.bot.position[0]),
             player_longitude=f2i(self.bot.position[1]),
-            client_version='0.63.1'
+            client_version='0.63.4'
         )
 
         if ('responses' in response_dict) and ('GET_GYM_DETAILS' in response_dict['responses']):
