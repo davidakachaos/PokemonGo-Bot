@@ -35,6 +35,7 @@ class SpinFort(BaseTask):
     def initialize(self):
         # 10 seconds from current time
         self.next_update = datetime.now() + timedelta(0, 10)
+        self.fort_spins = 0
 
         self.ignore_item_count = self.config.get("ignore_item_count", False)
         self.spin_wait_min = self.config.get("spin_wait_min", 2)
@@ -42,6 +43,10 @@ class SpinFort(BaseTask):
         self.min_interval = int(self.config.get('min_interval', 120))
         self.exit_on_limit_reached = self.config.get("exit_on_limit_reached", True)
         self.use_lure = self.config.get("use_lure", False)
+        self.try_to_keep_streak = self.config.get("try_to_keep_streak", True)
+
+        if self.try_to_keep_streak and len(self.bot.recent_forts) is not 10:
+            self.logger.warn("You enabled the setting for keeping a 10 stop streak, but the number of recent forts is not set to 10! It is set to %s. This will cause the streak to fail!" % len(self.bot.recent_forts))
 
     def should_run(self):
         has_space_for_loot = inventory.Items.has_space_for_loot()
@@ -73,6 +78,13 @@ class SpinFort(BaseTask):
             return WorkerResult.SUCCESS
 
         fort = forts[0]
+
+        if fort['id'] in self.bot.recent_forts:
+            self.fort_spins = 1
+        elif self.fort_spins >= 10:
+            self.fort_spins = 1
+        else:
+            self.fort_spins += 1
 
         lat = fort['latitude']
         lng = fort['longitude']
@@ -137,12 +149,16 @@ class SpinFort(BaseTask):
                     awards = ', '.join(["{}x {}".format(items_awarded[x], x) for x in items_awarded if x != u'Egg'])
                     if egg_awarded is not None:
                         awards += u', {} Egg'.format(egg_awarded['egg_km_walked_target'])
+                    if experience_awarded > 50:
+                        self.fort_spins = len(self.bot.recent_forts)
                     self.emit_event(
                         'spun_pokestop',
-                        formatted="Spun pokestop {pokestop}. Experience awarded: {exp}. Items awarded: {items}",
+                        formatted="Spun pokestop {pokestop} ({spin_amount_now}/{max_spins}). Experience awarded: {exp}. Items awarded: {items}",
                         data={
                             'pokestop': fort_name,
                             'exp': experience_awarded,
+                            'spin_amount_now': self.fort_spins,
+                            'max_spins': len(self.bot.recent_forts),
                             'items': awards
                         }
                     )
@@ -219,7 +235,7 @@ class SpinFort(BaseTask):
                     result = c.fetchone()
 
                     if result[0] == 1:
-                        source = str("PokemonCatchWorker")
+                        source = str("SpinFort")
                         status = str("Possible Softban")
                         conn.execute('''INSERT INTO softban_log (status, source) VALUES (?, ?)''', (status, source))
                     else:
@@ -241,6 +257,12 @@ class SpinFort(BaseTask):
     def get_forts_in_range(self):
         forts = self.bot.get_forts(order_by_distance=True)
         forts = filter(lambda fort: fort["id"] not in self.bot.fort_timeouts, forts)
+        if self.bot.camping_forts and self.try_to_keep_streak:
+            if datetime.now() >= self.next_update:
+                self.logger.info("Camping forts, ignoring 10 stops streak.")
+        elif self.try_to_keep_streak:
+            # Remove all forts which were spun in the last ticks to keep 10 stops streak
+            forts = filter(lambda x: x["id"] not in self.bot.recent_forts, forts)
 
         if self.bot.config.replicate_gps_xy_noise:
             forts = filter(lambda fort: distance(

@@ -33,10 +33,7 @@ class HealPokemon(BaseTask):
         pokemons = inventory.pokemons().all()
         pokemons.sort(key=lambda p: p.hp)
         for pokemon in pokemons:
-            if pokemon.hp == pokemon.hp_max:
-                # Other are all fine!
-                break
-            elif pokemon.hp < 1.0:
+            if pokemon.hp < 1.0:
                 self.logger.info("Dead: %s (%s CP| %s/%s )" % (pokemon.name, pokemon.cp, pokemon.hp, pokemon.hp_max))
                 to_revive += [pokemon]
             elif pokemon.hp < pokemon.hp_max:
@@ -93,6 +90,9 @@ class HealPokemon(BaseTask):
             action_delay(2, 3)
             if response_dict_revive:
                 result = response_dict_revive.get('responses', {}).get('USE_ITEM_REVIVE', {}).get('result', 0)
+                revive_item = inventory.items().get(item)
+                # Remove the revive from the iventory
+                revive_item.remove(1)
                 if result is 1:  # Request success
                     self.emit_event(
                         'revived_pokemon',
@@ -198,10 +198,14 @@ class HealPokemon(BaseTask):
             self.logger.info("Healing with a MAX potion we have %s left." % (potion_count - 1))
 
         response_dict_potion = self.bot.api.use_item_potion(item_id=potion_id, pokemon_id=pokemon.unique_id)
+        # Select potion
         sleep(2)
         if response_dict_potion:
             result = response_dict_potion.get('responses', {}).get('USE_ITEM_POTION', {}).get('result', 0)
             if result is 1 or result is 0:  # Request success
+                potion_item = inventory.items().get(potion_id)
+                # Remove the potion from the iventory
+                potion_item.remove(1)
                 self.emit_event(
                     'healing_pokemon',
                     formatted='Healing {name} ({hp}/{hp_max}).',

@@ -62,9 +62,6 @@ class GymPokemon(BaseTask):
             self.logger.info("Next collection at %s" % collection_datetime.strftime("%Y/%m/%d %H:%M:%S"))
 
     def work(self):
-        if not self.enabled:
-            return WorkerResult.SUCCESS
-
         self.pokemons = inventory.pokemons().all()
         self.fort_pokemons = [p for p in self.pokemons if p.in_fort]
         self.pokemons = [p for p in self.pokemons if not p.in_fort]
@@ -77,6 +74,9 @@ class GymPokemon(BaseTask):
         if self._should_print():
             self.display_fort_pokemon()
             self._compute_next_update()
+        # Do display teh stats about Pokemon in Gym and collection time [please]
+        if not self.enabled:
+            return WorkerResult.SUCCESS
 
         if not self.should_run() or len(gyms) == 0:
             return WorkerResult.SUCCESS

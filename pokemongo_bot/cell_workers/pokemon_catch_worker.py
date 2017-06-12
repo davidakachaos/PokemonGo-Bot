@@ -711,6 +711,9 @@ class PokemonCatchWorker(BaseTask):
 
             # abandon if pokemon vanished
             elif catch_pokemon_status == CATCH_STATUS_VANISHED:
+                # Expect 25 xp for fled pokemon
+                inventory.player().exp += 25
+
                 #insert into DB
                 with self.bot.database as conn:
                     c = conn.cursor()
@@ -732,7 +735,7 @@ class PokemonCatchWorker(BaseTask):
 
                 self.emit_event(
                     'pokemon_vanished',
-                    formatted='{} vanished!'.format(pokemon.name),
+                    formatted='{} vanished! 25xp gained'.format(pokemon.name),
                     data={
                         'pokemon': pokemon.name,
                         'encounter_id': self.pokemon['encounter_id'],

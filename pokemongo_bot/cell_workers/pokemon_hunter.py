@@ -14,13 +14,14 @@ from pokemongo_bot.item_list import Item
 from pokemongo_bot.walkers.polyline_walker import PolylineWalker
 from pokemongo_bot.walkers.step_walker import StepWalker
 from pokemongo_bot.worker_result import WorkerResult
-from .utils import fort_details
+from .utils import fort_details, format_dist
 
 import random
 from random import uniform
 
 class PokemonHunter(BaseTask):
     SUPPORTED_TASK_API_VERSION = 1
+    LOOK_AROUND_TIME = 20
 
     def __init__(self, bot, config):
         super(PokemonHunter, self).__init__(bot, config)
@@ -39,6 +40,7 @@ class PokemonHunter(BaseTask):
         self.recent_tries = []
         # No hunting from the start; give sightings a few secs to load!
         self.no_hunt_until = time.time() + 10
+        self.no_look_around_until = time.time() + 20
         self.hunt_started_at = None
 
         self.config_max_distance = self.config.get("max_distance", 2000)
@@ -279,7 +281,6 @@ class PokemonHunter(BaseTask):
                             self.bot.hunter_locked_target = self.destination
                         self.logger.info("Found a VIP Pokemon! Looking for a %(name)s at %(distance).2f.", self.destination)
                         return WorkerResult.SUCCESS
-            pass
 
         if self.destination is None:
             if self.no_log_until < now:
@@ -350,13 +351,22 @@ class PokemonHunter(BaseTask):
                     self.logger.info("Hunting on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
                 return WorkerResult.ERROR
             else:
-                self.logger.info("Moving to destination at %s meters: %s", round(distance, 2), self.destination["name"])
+                unit = self.bot.config.distance_unit  # Unit to use when printing formatted distance
+                self.emit_event(
+                    'moving_to_hunter_target',
+                    formatted="Moving towards target {target_name} - {distance}",
+                    data={
+                        'target_name': u"{}".format(self.destination["name"]),
+                        'distance': format_dist(distance, unit),
+                    }
+                )
+                # self.logger.info("Moving to destination at %s meters: %s", round(distance, 2), self.destination["name"])
                 # record the new distance...
                 self.distance_to_target = round(distance, 2)
                 if self.config_lock_on_target and not self.config_lock_vip_only:
                     # Just to ensure we stay on target
                     self.bot.hunter_locked_target = self.destination
-                self.no_log_until = now + 30
+                self.no_log_until = now + 5
 
         return WorkerResult.RUNNING
 
