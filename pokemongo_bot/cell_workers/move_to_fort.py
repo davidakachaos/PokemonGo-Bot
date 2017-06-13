@@ -95,13 +95,14 @@ class MoveToFort(BaseTask):
                 self.distance_counter += 1
             # If the distance stays the same for 6 runs, abort moving to this fort
             elif self.distance_counter >= 16:
-                # Ignore last 3
-                if len(self.recent_tries) > 16:
+                # Ignore last 10
+                if len(self.recent_tries) > 10:
                     self.recent_tries.pop()
                 self.recent_tries.append(fortID)
                 self.walker = self.config.get('walker', 'StepWalker')
                 self.changed_walker = False
                 self.logger.info("Can't move toward %s", fort_name)
+                self.distance_counter = 0
                 return WorkerResult.ERROR
             else:
                 self.distance_to_target = round(dist, 2)
@@ -201,6 +202,8 @@ class MoveToFort(BaseTask):
             ),
             forts
         )
+        if len(self.recent_tries) > 10:
+            self.recent_tries.pop()
         # Remove forts we can't seem to move to
         forts = filter(lambda x: x["id"] not in self.recent_tries, forts)
 

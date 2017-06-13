@@ -33,6 +33,7 @@ ITEM_POKEBALL = 1
 ITEM_GREATBALL = 2
 ITEM_ULTRABALL = 3
 ITEM_RAZZBERRY = 701
+ITEM_NANABBERRY = 703
 ITEM_PINAPBERRY = 705
 
 DEFAULT_UNSEEN_AS_VIP = True
@@ -87,6 +88,9 @@ class PokemonCatchWorker(BaseTask):
         self.pinap_on_candy_below = self.config.get('pinap_on_candy_below', 0)
         self.pinap_operator = self.config.get('pinap_operator', "or")
         self.pinap_ignore_threshold = self.config.get('pinap_ignore_threshold', False)
+        # nanab
+        self.use_nanab = self.config.get('use_nanab', False)
+        self.nanab_on_level_below = self.config.get('nanab_on_level_below', 0)
 
         self.vanish_settings = self.config.get('vanish_settings', {})
         self.consecutive_vanish_limit = self.vanish_settings.get('consecutive_vanish_limit', 10)
@@ -535,6 +539,18 @@ class PokemonCatchWorker(BaseTask):
         if self.use_pinap_on_vip and is_vip and pokemon.level <= self.pinap_on_level_below and self.pinap_operator == "and":
             berry_id = ITEM_PINAPBERRY
             catch_for_candy = False
+        elif self.use_nanab:
+            # self.logger.info("L: %s <= %s No prev evo: %s Next evo: %s" % (pokemon.level, self.nanab_on_level_below, pokemon.prev_evolution_id is None, pokemon.has_next_evolution()))
+            if pokemon.level <= self.nanab_on_level_below and pokemon.prev_evolution_id is None and not pokemon.has_next_evolution():
+                # low-level unevolvable Pokémon
+                # (that don't need Pinap because they are unevolvable and don't need Razz
+                # because they can be caught with a normal Pokéball).
+                self.logger.info("Using nanab if available")
+                berry_id = ITEM_NANABBERRY
+                catch_for_candy = False
+            else:
+                berry_id = ITEM_RAZZBERRY
+                catch_for_candy = False
         else:
             berry_id = ITEM_RAZZBERRY
             catch_for_candy = False
@@ -547,11 +563,13 @@ class PokemonCatchWorker(BaseTask):
         # Only non VIP; use pinap if low on candy
         catch_for_candy = False
         if not is_vip and self.pinap_on_candy_below > 0:
-            candies = inventory.candies().get(pokemon.pokemon_id).quantity
-            if candies < self.pinap_on_candy_below:
-                # self.logger.info("Current candies ({}) lower then threshold ({})".format(candies, self.pinap_on_candy_below))
-                berry_id = ITEM_PINAPBERRY
-                catch_for_candy = True
+            # First check if the Pokemon can be evolved at all
+            if pokemon.has_next_evolution or pokemon.prev_evolution_id is not None:
+                candies = inventory.candies().get(pokemon.pokemon_id).quantity
+                if candies < self.pinap_on_candy_below:
+                    # self.logger.info("Current candies ({}) lower then threshold ({})".format(candies, self.pinap_on_candy_below))
+                    berry_id = ITEM_PINAPBERRY
+                    catch_for_candy = True
 
         berry_count = self.inventory.get(berry_id).count
 
@@ -600,7 +618,7 @@ class PokemonCatchWorker(BaseTask):
                 berry_count = self.inventory.get(berry_id).count
 
             # check if we've got berries to spare
-            berries_to_spare = berry_count > 0 if (is_vip or catch_for_candy) else berry_count > num_next_balls + 30
+            berries_to_spare = berry_count > 0 if (is_vip or catch_for_candy or berry_id == ITEM_NANABBERRY) else berry_count > num_next_balls + 30
 
             changed_ball = False
 
@@ -613,7 +631,8 @@ class PokemonCatchWorker(BaseTask):
                     berry_count -= 1
                     used_berry = True
             # If ideal rate already reached, but we use berry for candy, throw!
-            if not used_berry and berries_to_spare and catch_for_candy:
+            # If we should use a nanab berry, also always throw if we can
+            if not used_berry and berries_to_spare and (catch_for_candy or berry_id == ITEM_NANABBERRY):
                 new_catch_rate_by_ball = self._use_berry(berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
                 if new_catch_rate_by_ball != catch_rate_by_ball:
                     catch_rate_by_ball = new_catch_rate_by_ball

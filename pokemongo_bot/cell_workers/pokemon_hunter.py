@@ -34,6 +34,7 @@ class PokemonHunter(BaseTask):
         self.search_cell_id = None
         self.search_points = []
         self.lost_counter = 0
+        self.lost_map_counter = 0
         self.no_log_until = 0
         self.distance_to_target = 0
         self.distance_counter = 0
@@ -131,6 +132,8 @@ class PokemonHunter(BaseTask):
                 self.destination = None
                 self.hunting_trash = False
                 self.bot.hunter_locked_target = None
+                self.lost_counter = 0
+                self.lost_map_counter = 0
                 if self.config_enable_cooldown:
                     wait = uniform(120, 600)
                     self.no_hunt_until = time.time() + wait
@@ -145,6 +148,8 @@ class PokemonHunter(BaseTask):
                 self.destination = None
                 self.hunting_trash = False
                 self.bot.hunter_locked_target = None
+                self.lost_counter = 0
+                self.lost_map_counter = 0
                 if self.config_enable_cooldown:
                     wait = uniform(120, 600)
                     self.no_hunt_until = time.time() + wait
@@ -155,8 +160,42 @@ class PokemonHunter(BaseTask):
 
         now = time.time()
         pokemons = self.get_nearby_pokemons()
+
         pokemons = filter(lambda x: x["pokemon_id"] not in self.recent_tries, pokemons)
         trash_mons = ["Caterpie", "Weedle", "Pidgey", "Pidgeotto", "Pidgeot", "Kakuna", "Beedrill", "Metapod", "Butterfree"]
+
+        if self.destination is not None:
+            target_mons = filter(lambda x: x["name"] is self.destination["name"], pokemons)
+            if self.no_log_until < now:
+                # self.logger.info("Targets on sightings: %s" % len(target_mons))
+                if len(pokemons) > 0:
+                    if len(target_mons) < 1:
+                        # Target off sightings; must be getting close
+                        # Drops of at about 120 meters to target...
+                        distance = great_circle(self.bot.position, (self.walker.dest_lat, self.walker.dest_lng)).meters
+                        if (distance > 125 and self.lost_map_counter > 4) or self.lost_map_counter > 10:
+                            # If > 120 meter => must be gone?
+                            # Searching for 10 times, give up...
+                            self.logger.info("It seems %(name)s is no longer there!", self.destination)
+                            self.destination = None
+                            self.hunting_trash = False
+                            self.bot.hunter_locked_target = None
+                            self.lost_map_counter = 0
+                            self.lost_counter = 0
+                            if self.config_enable_cooldown:
+                                wait = uniform(120, 600)
+                                self.no_hunt_until = time.time() + wait
+                                self.logger.info("Hunting on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
+                                return WorkerResult.SUCCESS
+                            else:
+                                self.logger.info("Electing new target....")
+                        else:
+                            self.lost_map_counter += 1
+                    else:
+                        self.lost_map_counter = 0
+                else:
+                    self.logger.info("No sightings available at the moment...")
+
 
         if self.config_hunt_for_trash and self.hunting_trash is False and (self.destination is None or not self._is_vip_pokemon(self.destination) ):
             # Okay, we should hunt for trash if the bag is almost full
@@ -244,8 +283,10 @@ class PokemonHunter(BaseTask):
                     # Show like "Pidgey (12), Zubat(2)"
                     names = Counter((p["name"] for p in pokemons))
                     sorted(names) # unicode object, no lower? , key=str.lower)
-
-                    self.logger.info("There is no nearby pokemon worth hunting down [%s]", ", ".join('{}({})'.format(key, val) for key, val in names.items()))
+                    if len(names) > 0:
+                        self.logger.info("There is no nearby pokemon worth hunting down [%s]", ", ".join('{}({})'.format(key, val) for key, val in names.items()))
+                    else:
+                        self.logger.info("No sightings available at the moment...")
                     self.no_log_until = now + 120
                     self.destination = None
                     if self.config_enable_cooldown:
@@ -279,7 +320,7 @@ class PokemonHunter(BaseTask):
                         self.set_target()
                         if self.config_lock_on_target:
                             self.bot.hunter_locked_target = self.destination
-                        self.logger.info("Found a VIP Pokemon! Looking for a %(name)s at %(distance).2f.", self.destination)
+                        self.logger.info("Spotted a VIP Pokemon! Looking for a %(name)s at %(distance).2f.", self.destination)
                         return WorkerResult.SUCCESS
 
         if self.destination is None:
