@@ -196,6 +196,8 @@ class SleepSchedule(object):
         now = datetime.now()
 
         if now >= self._next_sleep and now < self._next_end:
+            if hasattr(self.bot, "hunter_locked_target") and self.bot.hunter_locked_target is not None:
+                return False
             self._next_duration = (self._next_end - now).total_seconds()
             return True
 
