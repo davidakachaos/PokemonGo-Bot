@@ -1221,7 +1221,10 @@ class PokemonGoBot(object):
     def _print_character_info(self):
         # get player profile call
         # ----------------------
-        response_dict = self.api.get_player()
+        request = self.api.create_request()
+        request.get_player()
+        response_dict = request.call()
+
         # print('Response dictionary: \n\r{}'.format(json.dumps(response_dict, indent=2)))
         currency_1 = "0"
         currency_2 = "0"
@@ -1376,7 +1379,9 @@ class PokemonGoBot(object):
         self.logger.info('')
 
     def use_lucky_egg(self):
-        return self.api.use_item_xp_boost(item_id=301)
+        request = self.api.create_request()
+        request.use_item_xp_boost(item_id=301)
+        return request.call()
 
     def _set_starting_position(self):
 
@@ -1599,28 +1604,12 @@ class PokemonGoBot(object):
                 self.empty_response = True
             except:
                 self.logger.warning('Error occured in heatbeat, retying')
+                self.empty_response = True
 
-            if responses is not None and responses['responses']['GET_PLAYER']['success'] == True:
-                # we get the player_data anyway, might as well store it
-                self._player = responses['responses']['GET_PLAYER']['player_data']
-                self.event_manager.emit(
-                    'player_data',
-                    sender=self,
-                    level='debug',
-                    formatted='player_data: {player_data}',
-                    data={'player_data': self._player}
-                )
-            if responses is not None and responses['responses']['CHECK_AWARDED_BADGES']['success'] == True:
-                # store awarded_badges reponse to be used in a task or part of heartbeat
-                self._awarded_badges = responses['responses']['CHECK_AWARDED_BADGES']
-
-            if 'awarded_badges' in self._awarded_badges:
-                i = 0
-                for badge in self._awarded_badges['awarded_badges']:
-                    badgelevel = self._awarded_badges['awarded_badge_levels'][i]
-                    badgename = badge_type_pb2._BADGETYPE.values_by_number[badge].name
-                    i += 1
-
+            if not self.empty_response:
+                if responses['responses']['GET_PLAYER']['success'] == True:
+                    # we get the player_data anyway, might as well store it
+                    self._player = responses['responses']['GET_PLAYER']['player_data']
                     self.event_manager.emit(
                         'player_data',
                         sender=self,
@@ -1719,12 +1708,15 @@ class PokemonGoBot(object):
         if time.time() - self.last_time_map_object < self.config.map_object_cache_time:
             return self.last_map_object
 
-        self.last_map_object = self.api.get_map_objects(
+        request = self.api.create_request()
+        request.get_map_objects(
             latitude=f2i(lat),
             longitude=f2i(lng),
             since_timestamp_ms=timestamp,
             cell_id=cellid
         )
+        self.last_map_object = request.call()
+
         self.emit_forts_event(self.last_map_object)
         #if self.last_map_object:
         #    print self.last_map_object
