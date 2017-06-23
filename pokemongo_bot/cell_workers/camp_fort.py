@@ -10,6 +10,7 @@ from pokemongo_bot.base_task import BaseTask
 from pokemongo_bot.cell_workers.utils import coord2merc, merc2coord
 from pokemongo_bot.constants import Constants
 from pokemongo_bot.walkers.polyline_walker import PolylineWalker
+from pokemongo_bot.walkers.step_walker import StepWalker
 from pokemongo_bot.worker_result import WorkerResult
 from pokemongo_bot.item_list import Item
 from pokemongo_bot import inventory
@@ -34,6 +35,8 @@ class CampFort(BaseTask):
         self.move_until = 0
         self.no_log_until = 0
         self.no_recheck_cluster_until = 0
+        self.distance_counter = 0
+        self.previous_distance = 0
 
         self.config_max_distance = self.config.get("max_distance", 2000)
         self.config_min_forts_count = self.config.get("min_forts_count", 2)
@@ -165,15 +168,29 @@ class CampFort(BaseTask):
         elif self.walker.step():
             self.stay_until = now + self.config_camping_time
             self.bot.camping_forts = True
+            self.distance_counter = 0
             self.emit_event("arrived_at_destination",
                             formatted="Arrived at destination: {size} forts, {lured} lured.".format(**self.cluster))
         elif self.no_log_until < now:
             if self.cluster["lured"] == 0:
                 self.cluster = None
                 self.bot.camping_forts = False
+                self.distance_counter = 0
                 self.emit_event("reset_destination",
                                 formatted="Lures gone! Resetting destination!")
             else:
+                if self.previous_distance == self.cluster["distance"]:
+                    self.distance_counter += 1
+                    if self.distance_counter == 3:
+                        self.logger.info("Having difficulty walking to lures, changing walker!")
+                        self.walker = StepWalker(self.bot, self.cluster["center"][0], self.cluster["center"][1])
+                    elif self.distance_counter > 6:
+                        self.logger.info("Can't walk to the lures!")
+                        self.distance_counter = 0
+                        return WorkerResult.ERROR
+                elif self.distance_counter > 0:
+                    self.distance_counter -= 1
+
                 self.no_log_until = now + LOG_TIME_INTERVAL
                 self.emit_event("moving_to_destination",
                                 formatted="Moving to destination at {distance:.2f} meters: {size} forts, {lured} lured".format(**self.cluster))
