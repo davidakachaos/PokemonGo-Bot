@@ -14,7 +14,7 @@ from pokemongo_bot.item_list import Item
 from pokemongo_bot.walkers.polyline_walker import PolylineWalker
 from pokemongo_bot.walkers.step_walker import StepWalker
 from pokemongo_bot.worker_result import WorkerResult
-from .utils import fort_details, format_dist
+from .utils import fort_details, format_dist, distance
 
 import random
 from random import uniform
@@ -30,6 +30,7 @@ class PokemonHunter(BaseTask):
         self.max_pokemon_storage = inventory.get_pokemon_inventory_size()
         self.notified_second_gen = []
         self.destination = None
+        self.previous_destination = None
         self.walker = None
         self.search_cell_id = None
         self.search_points = []
@@ -66,6 +67,9 @@ class PokemonHunter(BaseTask):
         self.config_hunt_for_trash = self.config.get("hunt_for_trash_to_fill_bag", False)
         self.config_trash_hunt_open_slots = self.config.get("trash_hunt_open_slots", 25)
         self.hunting_trash = False
+        # Allow the bot to run to a VIP?
+        self.config_run_to_vip = self.config.get("run_to_vip", False)
+        self.runs_to_vips = 0
 
     def work(self):
         if not self.enabled:
@@ -264,10 +268,9 @@ class PokemonHunter(BaseTask):
                 self.hunt_started_at = datetime.now()
 
                 self.logger.info("New destination at %(distance).2f meters: %(name)s", self.destination)
-                if self._is_vip_pokemon(self.destination):
-                    self.logger.info("This is a VIP Pokemon! Starting hunt.")
-                    if self.config_lock_on_target:
-                        self.bot.hunter_locked_target = self.destination
+                if self._is_vip_pokemon(self.destination) and self.config_lock_on_target:
+                    self.logger.info("This is a VIP Pokemon! Locking on to target!")
+                    self.bot.hunter_locked_target = self.destination
                 elif self._is_needed_pokedex(self.destination):
                     self.logger.info("I need a %(name)s to complete the Pokedex! I have %(candies)s candies.", self.destination)
                     if self.config_lock_on_target and not self.config_lock_vip_only:
@@ -339,10 +342,30 @@ class PokemonHunter(BaseTask):
                     self.logger.info("Hunting on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
                 return WorkerResult.SUCCESS
 
+        # Determin if we are allowed to run to a VIP
+        different_target = False
+        if self.previous_destination is None:
+            self.previous_destination = self.destination
+        elif self.previous_destination is not self.destination:
+            different_target = True
+            self.previous_destination = self.destination
+
+        if self.config_run_to_vip and self._is_vip_pokemon(self.destination):
+            if self.runs_to_vips > 3:
+                self.logger.info("Ran to 3 Pokemon in a row. Cooling down...")
+                self.runs_to_vips = 0
+                speed = None
+            else:
+                speed = self.bot.config.walk_max
+                if different_target:
+                    self.runs_to_vips += 1
+        else:
+            speed = None
+
         if any(self.destination["encounter_id"] == p["encounter_id"] for p in self.bot.cell["catchable_pokemons"] + self.bot.cell["wild_pokemons"]):
             self.destination = None
             self.hunting_trash = False
-        elif self.walker.step():
+        elif self.walker.step(speed):
             if not any(self.destination["encounter_id"] == p["encounter_id"] for p in pokemons):
                 self.lost_counter += 1
             else:
@@ -393,14 +416,24 @@ class PokemonHunter(BaseTask):
                 return WorkerResult.ERROR
             else:
                 unit = self.bot.config.distance_unit  # Unit to use when printing formatted distance
-                self.emit_event(
-                    'moving_to_hunter_target',
-                    formatted="Moving towards target {target_name} - {distance}",
-                    data={
-                        'target_name': u"{}".format(self.destination["name"]),
-                        'distance': format_dist(distance, unit),
-                    }
-                )
+                if speed is not None:
+                    self.emit_event(
+                        'moving_to_hunter_target',
+                        formatted="Running towards VIP target {target_name} - {distance}",
+                        data={
+                            'target_name': u"{}".format(self.destination["name"]),
+                            'distance': format_dist(distance, unit),
+                        }
+                    )
+                else:
+                    self.emit_event(
+                        'moving_to_hunter_target',
+                        formatted="Moving towards target {target_name} - {distance}",
+                        data={
+                            'target_name': u"{}".format(self.destination["name"]),
+                            'distance': format_dist(distance, unit),
+                        }
+                    )
                 # self.logger.info("Moving to destination at %s meters: %s", round(distance, 2), self.destination["name"])
                 # record the new distance...
                 self.distance_to_target = round(distance, 2)
@@ -433,6 +466,15 @@ class PokemonHunter(BaseTask):
                     fort_name = details.get('name', 'Unknown')
                     self.logger.info("%s is hiding at %s, going there first!" % (self.destination["name"], fort_name))
                     self.walker = PolylineWalker(self.bot, lat, lng)
+        else:
+            nearest_fort = self.get_nearest_fort_on_the_way()
+            if nearest_fort is not None:
+                lat = nearest_fort['latitude']
+                lng = nearest_fort['longitude']
+                details = fort_details(self.bot, nearest_fort['id'], lat, lng)
+                fort_name = details.get('name', 'Unknown')
+                self.logger.info("Moving to %s via %s." % (self.destination["name"], fort_name))
+                self.walker = PolylineWalker(self.bot, lat, lng)
 
     def pokemon_slots_left(self):
         left = self.max_pokemon_storage - inventory.Pokemons.get_space_used()
@@ -442,6 +484,14 @@ class PokemonHunter(BaseTask):
         radius = self.config_max_distance
 
         pokemons = [p for p in self.bot.cell["nearby_pokemons"] if self.get_distance(self.bot.start_position, p) <= radius]
+
+        # if 'wild_pokemons' in self.bot.cell:
+        #     for pokemon in self.bot.cell['wild_pokemons']:
+        #         pokemons.append(pokemon)
+        #
+        # if 'catchable_pokemons' in self.bot.cell:
+        #     for pokemon in self.bot.cell['catchable_pokemons']:
+        #         pokemons.append(pokemon)
 
         for pokemon in pokemons:
             pokemon["distance"] = self.get_distance(self.bot.position, pokemon)
@@ -579,3 +629,28 @@ class PokemonHunter(BaseTask):
             self.logger.info("We lost {} {}(s) since {}".format(amount, self.destination["name"], self.hunt_started_at.strftime("%Y-%m-%d %H:%M:%S")))
 
         return vanished
+
+    def get_nearest_fort_on_the_way(self):
+        forts = self.bot.get_forts(order_by_distance=True)
+
+        # Remove stops that are still on timeout
+        forts = filter(lambda x: x["id"] not in self.bot.fort_timeouts, forts)
+        i = 0
+        while i < len(forts):
+            ratio = float(self.config.get('max_extra_dist_fort', 20))
+            dist_self_to_fort = distance(self.bot.position[0], self.bot.position[1], forts[i]['latitude'],
+                                         forts[i]['longitude'])
+            # self.search_points[0][0], self.search_points[0][1]
+            dist_fort_to_pokemon = distance(self.search_points[0][0], self.search_points[0][1], forts[i]['latitude'],
+                                            forts[i]['longitude'])
+            total_dist = dist_self_to_fort + dist_fort_to_pokemon
+            dist_self_to_pokemon = distance(self.bot.position[0], self.bot.position[1], self.search_points[0][0], self.search_points[0][1])
+            if total_dist < (1 + (ratio / 100)) * dist_self_to_pokemon:
+                i += 1
+            else:
+                del forts[i]
+            # Return nearest fort if there are remaining
+        if len(forts):
+            return forts[0]
+        else:
+            return None
