@@ -127,8 +127,6 @@ class CatchPokemon(BaseTask):
         if self.config.get('treat_family_of_vip_as_vip', False):
             if self._is_family_of_vip(pokemon['pokemon_id']):
                 return True
-        else:
-            self.logger.info("Not checking family for VIP")
         # If we need the Pokemon for an evolution, catch it.
         if any(not inventory.pokedex().seen(fid) for fid in self.get_family_ids(pokemon['pokemon_id'])):
             # self.logger.info('Found a Pokemon whoes family is not yet complete in Pokedex!')
