@@ -26,7 +26,7 @@ class UpdateLiveInventory(BaseTask):
                    in seconds (defaults to 120 seconds).
                    The update interval cannot be accurate as workers run synchronously.
     show_all_multiple_lines : Logs all items on inventory using multiple lines.
-                              Ignores configuration of 'items' 
+                              Ignores configuration of 'items'
     items : An array of items to display and their display order (implicitly),
             see available items below (defaults to []).
 
@@ -183,7 +183,8 @@ class UpdateLiveInventory(BaseTask):
             'kingsrock': 'KingsRock: {:,}'.format(self.inventory.get(1102).count),
             'metalcoat': 'MetalCoat: {:,}'.format(self.inventory.get(1103).count),
             'dragonscale': 'DragonScale: {:,}'.format(self.inventory.get(1104).count),
-            'upgrade': 'Upgrade: {:,}'.format(self.inventory.get(1105).count)
+            'upgrade': 'Upgrade: {:,}'.format(self.inventory.get(1105).count),
+            'freeraidpass': 'Free raid pass: {:,}'.format(self.inventory.get(1401).count)
         }
 
         def get_item(item):
@@ -222,7 +223,7 @@ class UpdateLiveInventory(BaseTask):
                 inventory.get_pokemon_inventory_size()
             )
         )
-		
+
         self.logger.info(
             'Items: {}/{}'.format(
                 self.inventory.get_space_used(),
@@ -291,5 +292,11 @@ class UpdateLiveInventory(BaseTask):
                 )
             )
 
-        self.compute_next_update()
+        self.logger.info(
+            'Free Raid pass: {} | Premium Raid pass: {}'.format(
+                self.inventory.get(1401).count,
+                self.inventory.get(1402).count
+                )
+            )
 
+        self.compute_next_update()
