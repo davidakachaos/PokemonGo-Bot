@@ -42,6 +42,7 @@ class UpdateLiveInventory(BaseTask):
         'nanabberries'
         'wapabberries'
         'pinapberries'
+        'goldenrazzberries'
         'luckyegg'
         'incubator'
         'troydisk'
@@ -167,6 +168,7 @@ class UpdateLiveInventory(BaseTask):
             'nanabberries': 'NanabBerries: {:,}'.format(self.inventory.get(703).count),
             'wepabberries': 'WeparBerries: {:,}'.format(self.inventory.get(704).count),
             'pinapberries': 'PinapBerries: {:,}'.format(self.inventory.get(705).count),
+            'goldenrazzberries': 'GoldenRazzBerries: {:,}'.format(self.inventory.get(706).count),
             'luckyegg': 'LuckyEgg: {:,}'.format(self.inventory.get(301).count),
             'incubator': 'Incubator: {:,}'.format(self.inventory.get(902).count),
             'troydisk': 'TroyDisk: {:,}'.format(self.inventory.get(501).count),
@@ -241,12 +243,13 @@ class UpdateLiveInventory(BaseTask):
             )
 
         self.logger.info(
-            'RazzBerries: {} | BlukBerries: {} | NanabBerries: {} | WeparBerries: {} | PinapBerries: {}'.format(
+            'RazzBerries: {} | BlukBerries: {} | NanabBerries: {} | WeparBerries: {} | PinapBerries: {} | GoldenRazzBerries: {}'.format(
                 self.inventory.get(701).count,
                 self.inventory.get(702).count,
                 self.inventory.get(703).count,
                 self.inventory.get(704).count,
-                self.inventory.get(705).count
+                self.inventory.get(705).count,
+                self.inventory.get(706).count
                 )
             )
 
