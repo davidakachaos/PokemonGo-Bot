@@ -178,7 +178,7 @@ class GymPokemon(BaseTask):
             gym_longitude=lng,
             player_latitude=f2i(self.bot.position[0]),
             player_longitude=f2i(self.bot.position[1]),
-            client_version='0.63.4'
+            client_version='0.67.1'
         )
 
         if ('responses' in response_dict) and ('GET_GYM_DETAILS' in response_dict['responses']):
