@@ -19,6 +19,7 @@ SPIN_REQUEST_RESULT_SUCCESS = 1
 SPIN_REQUEST_RESULT_OUT_OF_RANGE = 2
 SPIN_REQUEST_RESULT_IN_COOLDOWN_PERIOD = 3
 SPIN_REQUEST_RESULT_INVENTORY_FULL = 4
+SPIN_REQUEST_RESULT_POI_INACCESSIBLE = 5
 
 LURE_REQUEST_RESULT_SUCCESS = 1
 LURE_REQUEST_FORT_ALREADY_HAS_MODIFIER= 2
@@ -149,23 +150,31 @@ class SpinFort(BaseTask):
                 experience_awarded = spin_details.get('experience_awarded', 0)
                 items_awarded = self.get_items_awarded_from_fort_spinned(response_dict)
                 egg_awarded = spin_details.get('pokemon_data_egg', None)
+                gym_badge_awarded = spin_details.get('awarded_gym_badge', None)
+                chain_hack_sequence_number = spin_details.get('chain_hack_sequence_number', 0)
 
                 if egg_awarded is not None:
                     items_awarded[u'Egg'] = egg_awarded['egg_km_walked_target']
 
+                if gym_badge_awarded is not None:
+                    self.logger.info("Gained a Gym Badge! %s" % gym_badge_awarded)
+
+                if chain_hack_sequence_number > 0:
+                    self.logger.info("Chain hack sequence: %s" % chain_hack_sequence_number)
+
                 if experience_awarded or items_awarded:
+                    self.logger.info("Items awarded: %s" % items_awarded)
                     awards = ', '.join(["{}x {}".format(items_awarded[x], x) for x in items_awarded if x != u'Egg'])
                     if egg_awarded is not None:
                         awards += u', {} Egg'.format(egg_awarded['egg_km_walked_target'])
-                    if experience_awarded > 50:
-                        self.fort_spins = 10
+                    self.fort_spins = chain_hack_sequence_number
                     self.emit_event(
                         'spun_pokestop',
                         formatted="Spun pokestop {pokestop} ({spin_amount_now}/{max_spins}). Experience awarded: {exp}. Items awarded: {items}",
                         data={
                             'pokestop': fort_name,
                             'exp': experience_awarded,
-                            'spin_amount_now': self.fort_spins,
+                            'spin_amount_now': chain_hack_sequence_number,
                             'max_spins': 10,
                             'items': awards
                         }
@@ -215,6 +224,9 @@ class SpinFort(BaseTask):
                         formatted="Pokestop {pokestop} on cooldown. Time left: {minutes_left}.",
                         data={'pokestop': fort_name, 'minutes_left': minutes_left}
                     )
+            elif spin_result == SPIN_REQUEST_RESULT_POI_INACCESSIBLE:
+                self.logger.info("Pokestop not accessable at this time.")
+                self.bot.fort_timeouts[fort["id"]] = (time.time() + 300) * 1000  # Don't spin for 5m
             else:
                 self.emit_event(
                     'unknown_spin_result',
@@ -296,13 +308,17 @@ class SpinFort(BaseTask):
         inventory.player().exp += experience_awarded
 
         items_awarded = response_dict['responses']['FORT_SEARCH'].get('items_awarded', {})
-        if items_awarded:
-            tmp_count_items = {}
-            for item_awarded in items_awarded:
+        loot = response_dict['responses']['FORT_SEARCH'].get('loot', {})
+        bonus_loot = response_dict['responses']['FORT_SEARCH'].get('bonus_loot', {})
+        team_bonus_loot = response_dict['responses']['FORT_SEARCH'].get('team_bonus_loot', {})
+        tmp_count_items = {}
 
-                item_awarded_id = item_awarded['item_id']
+        if loot:
+            self.logger.info("Loot: %s" % loot)
+            for item_awarded in loot['loot_item']:
+                item_awarded_id = item_awarded['item']
                 item_awarded_name = inventory.Items.name_for(item_awarded_id)
-                item_awarded_count = item_awarded['item_count']
+                item_awarded_count = item_awarded['count']
 
                 if item_awarded_name not in tmp_count_items:
                     tmp_count_items[item_awarded_name] = item_awarded_count
@@ -311,11 +327,56 @@ class SpinFort(BaseTask):
 
                 self._update_inventory(item_awarded)
 
-            return tmp_count_items
+        if bonus_loot:
+            self.logger.info("Bonus Loot: %s" % bonus_loot)
+            for item_awarded in bonus_loot['loot_item']:
+                item_awarded_id = item_awarded['item']
+                item_awarded_name = inventory.Items.name_for(item_awarded_id)
+                item_awarded_count = item_awarded['count']
+
+                if item_awarded_name not in tmp_count_items:
+                    tmp_count_items[item_awarded_name] = item_awarded_count
+                else:
+                    tmp_count_items[item_awarded_name] += item_awarded_count
+
+                self._update_inventory(item_awarded)
+
+        if team_bonus_loot:
+            self.logger.info("Team Bonus Loot: %s" % team_bonus_loot)
+            for item_awarded in team_bonus_loot['loot_item']:
+                item_awarded_id = item_awarded['item']
+                item_awarded_name = inventory.Items.name_for(item_awarded_id)
+                item_awarded_count = item_awarded['count']
+
+                if item_awarded_name not in tmp_count_items:
+                    tmp_count_items[item_awarded_name] = item_awarded_count
+                else:
+                    tmp_count_items[item_awarded_name] += item_awarded_count
+
+                self._update_inventory(item_awarded)
+
+        # if items_awarded:
+        #     for item_awarded in items_awarded:
+        #
+        #         item_awarded_id = item_awarded['item_id']
+        #         item_awarded_name = inventory.Items.name_for(item_awarded_id)
+        #         item_awarded_count = item_awarded['item_count']
+        #
+        #         if item_awarded_name not in tmp_count_items:
+        #             tmp_count_items[item_awarded_name] = item_awarded_count
+        #         else:
+        #             tmp_count_items[item_awarded_name] += item_awarded_count
+        #
+        #         self._update_inventory(item_awarded)
+        #
+        return tmp_count_items
 
     # TODO : Refactor this class, hide the inventory update right after the api call
     def _update_inventory(self, item_awarded):
-        inventory.items().get(item_awarded['item_id']).add(item_awarded['item_count'])
+        if 'item_id' in item_awarded:
+            inventory.items().get(item_awarded['item_id']).add(item_awarded['item_count'])
+        elif 'item' in item_awarded:
+            inventory.items().get(item_awarded['item']).add(item_awarded['count'])
 
     def _compute_next_update(self):
         """
