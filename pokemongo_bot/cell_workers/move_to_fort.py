@@ -22,12 +22,6 @@ class MoveToFort(BaseTask):
         self.walker = self.config.get('walker', 'StepWalker')
         self.wait_at_fort = self.config.get('wait_on_lure', False)
         self.wait_log_sent = None
-        # Note if we are able to move toward the fort
-        self.recent_tries = []
-        self.distance_to_target = 0
-        self.distance_counter = 0
-        self.changed_walker = False
-        self.bot.target_fort_id = None
 
     def should_run(self):
         has_space_for_loot = inventory.Items.has_space_for_loot()
@@ -56,13 +50,6 @@ class MoveToFort(BaseTask):
         details = fort_details(self.bot, fortID, lat, lng)
         fort_name = details.get('name', 'Unknown')
 
-        if self.bot.target_fort_id is None:
-            self.bot.target_fort_id = fort_name
-        elif self.bot.target_fort_id is not fort_name:
-            # self.logger.info("Changed Pokestop target.")
-            self.walker = self.config.get('walker', 'StepWalker')
-            self.changed_walker = False
-
         unit = self.bot.config.distance_unit  # Unit to use when printing formatted distance
 
         dist = distance(
@@ -81,32 +68,6 @@ class MoveToFort(BaseTask):
         moving = noised_dist > Constants.MAX_DISTANCE_FORT_IS_REACHABLE if self.bot.config.replicate_gps_xy_noise else dist > Constants.MAX_DISTANCE_FORT_IS_REACHABLE
 
         if moving:
-            # Check if we are able toward move to the fort
-            if round(dist, 2) >= self.distance_to_target:
-                # Hmm, not moved toward the fort?
-                self.distance_counter += 1
-            elif self.distance_counter > 0:
-                self.distance_counter -= 1
-
-            if self.distance_counter is 8 and self.walker is not 'StepWalker':
-                # Try another walker
-                # self.logger.info("Having difficulty walking to PokesStop, changing walker!")
-                self.walker = 'StepWalker'
-                self.distance_counter += 1
-            # If the distance stays the same for 6 runs, abort moving to this fort
-            elif self.distance_counter >= 16:
-                # Ignore last 10
-                if len(self.recent_tries) > 10:
-                    self.recent_tries.pop()
-                self.recent_tries.append(fortID)
-                self.walker = self.config.get('walker', 'StepWalker')
-                self.changed_walker = False
-                self.logger.info("Can't move toward %s", fort_name)
-                self.distance_counter = 0
-                return WorkerResult.ERROR
-            else:
-                self.distance_to_target = round(dist, 2)
-
             self.wait_log_sent = None
             fort_event_data = {
                 'fort_name': u"{}".format(fort_name),
@@ -202,10 +163,6 @@ class MoveToFort(BaseTask):
             ),
             forts
         )
-        if len(self.recent_tries) > 10:
-            self.recent_tries.pop()
-        # Remove forts we can't seem to move to
-        forts = filter(lambda x: x["id"] not in self.recent_tries, forts)
 
         next_attracted_pts, lure_distance = self._get_nearest_fort_on_lure_way(forts)
 
