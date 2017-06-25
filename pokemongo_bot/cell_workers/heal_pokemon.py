@@ -176,12 +176,12 @@ class HealPokemon(BaseTask):
                         potion_id += 1
                     else:
                         self.logger.info("Failed with MAX potion. Done.")
-                        hp_to_restore = 0
+                        break
             elif potion_id < 104:
                 potion_id += 1
             else:
                 self.logger.info("Can't heal a %s" % pokemon.name)
-                hp_to_restore = 0
+                break
 
 
     def _use_potion(self, potion_id, pokemon):
