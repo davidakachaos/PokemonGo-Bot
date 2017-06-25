@@ -1292,7 +1292,8 @@ class PokemonGoBot(object):
         self.logger.info(
             'RazzBerries: ' + str(items_inventory.get(701).count) +
             ' | Nanab Berries: ' + str(items_inventory.get(703).count) +
-            ' | Pinap Berries: ' + str(items_inventory.get(705).count))
+            ' | Pinap Berries: ' + str(items_inventory.get(705).count) +
+            ' | Golden Razz Berries: ' + str(items_inventory.get(706).count))
 
         self.logger.info(
             'LuckyEgg: ' + str(items_inventory.get(301).count) +
@@ -1320,6 +1321,15 @@ class PokemonGoBot(object):
             ' | Metal Coat: ' + str(items_inventory.get(1103).count) +
             ' | Dragon Scale: ' + str(items_inventory.get(1104).count) +
             ' | Upgrade: ' + str(items_inventory.get(1105).count))
+
+        self.logger.info(
+            'Free Raid Pass: ' + str(items_inventory.get(1401).count) +
+            ' | Premium Raid Pass: ' + str(items_inventory.get(1402).count) +
+            ' | Rare Candy: ' + str(items_inventory.get(1301).count))
+
+        self.logger.info(
+            'Onbekend: ' + str(items_inventory.get(1202).count) +
+            ' | Onbekend2: ' + str(items_inventory.get(1201).count))
 
         self.logger.info('Next gym collection: ' + next_gym_collection)
 
@@ -1671,7 +1681,7 @@ class PokemonGoBot(object):
     def get_forts(self, order_by_distance=False):
         forts = [fort
                  for fort in self.cell['forts']
-                 if 'latitude' in fort and 'type' in fort]
+                 if 'latitude' in fort and 'longitude' in fort]
         # Need to filter out disabled forts!
         forts = filter(lambda x: x["enabled"] is True, forts)
         forts = filter(lambda x: 'closed' not in fort, forts)
