@@ -15,7 +15,7 @@ from pokemongo_bot.human_behaviour import action_delay, sleep
 from pokemongo_bot.worker_result import WorkerResult
 from pokemongo_bot.base_task import BaseTask
 from pokemongo_bot import inventory
-from .utils import distance, format_time, fort_details
+from .utils import distance, format_time, fort_details, format_dist
 from pokemongo_bot.tree_config_builder import ConfigException
 from pokemongo_bot.walkers.walker_factory import walker_factory
 from pokemongo_bot.inventory import Pokemons
@@ -90,22 +90,31 @@ class GymPokemon(BaseTask):
                 gym_details = self.get_gym_details(gym)
                 if gym_details:
                     pokes = self._get_pokemons_in_gym(gym_details)
-                    self.logger.info("Pokemons in Gym: %s" % pokes)
-                    if 'closed' in gym:
-                        if gym['closed']:
+                    if len(pokes) == 6:
+                        # self.logger.info("Gym full of Pokemon")
+                        continue
+                    if 'enabled' in gym:
+                        if not gym['enabled']:
                             continue
                     if 'owned_by_team' in gym:
                         if gym["owned_by_team"] == team:
                             self.logger.info("Gym on our team!")
+                            self.logger.info("Pokemons in Gym: %s" % pokes)
+                            # self.logger.info("Gym: %s" % gym)
+                            # self.logger.info("Details: %s" % gym_details)
                             if 'gym_display' in gym:
                                 display = gym['gym_display']
                                 if 'slots_available' in display:
                                     self.logger.info("Gym has %s open spots!" % display['slots_available'])
                                     if display['slots_available'] > 0 and gym["id"] not in self.dropped_gyms:
-                                        gym_details = self.get_gym_details(self.destination)
-                                        current_pokemons = self._get_pokemons_in_gym(gym_details)
+                                        # gym_details = self.get_gym_details(self.destination)
+                                        # current_pokemons = self._get_pokemons_in_gym(gym_details)
                                         self.logger.info("Dropping pokemon in %s" % gym_details["name"])
-                                        self.drop_pokemon_in_gym(self.destination, current_pokemons)
+                                        self.drop_pokemon_in_gym(self.destination, pokes)
+                        else:
+                            self.logger.info("Not on our team: %s" % gym['owned_by_team'])
+                    else:
+                        self.logger.info("Neutral gym? %s" % gym)
 
         if hasattr(self.bot, "hunter_locked_target") and self.bot.hunter_locked_target is not None:
             return WorkerResult.SUCCESS
@@ -125,9 +134,11 @@ class GymPokemon(BaseTask):
                 # Ignore after done for 5 mins
                 self.recent_gyms.append(gym["id"])
 
-                if 'closed' in gym:
+                if 'enabled' in gym:
+                    # self.logger.info("Gym enabled? %s" % gym)
                     # Gym can be closed for a raid or something, skipp to the next
-                    if gym['closed']:
+                    if not gym['enabled']:
+                        # self.logger.info("Yes, it's closed...")
                         continue
 
                 if 'owned_by_team' in gym:
@@ -146,9 +157,6 @@ class GymPokemon(BaseTask):
                     self.destination = gym
                     break
 
-                gym_details = self.get_gym_details(gym)
-                if gym_details:
-                    self.logger.info("Gym details: %s" % gym_details)
 
         if self.destination is not None:
             # Moving to a gym to deploy Pokemon
@@ -245,34 +253,39 @@ class GymPokemon(BaseTask):
 
     def drop_pokemon_in_gym(self, gym, current_pokemons):
         #FortDeployPokemon
-        self.dropped_gyms.append(gym["id"])
+        self.logger.info("Trying to deploy Pokemon in gym.")
         fort_pokemon = self._get_best_pokemon(current_pokemons)
         pokemon_id = fort_pokemon.unique_id
-        lat = gym['latitude']
-        lng = gym['longitude']
-        response_dict = self.bot.api.fort_deploy_pokemon(
+        self.logger.info("Trying to deploy %s (%s)" % (fort_pokemon, pokemon_id))
+
+        request = self.bot.api.create_request()
+        request.fort_deploy_pokemon(
             fort_id=gym['id'],
             pokemon_id=pokemon_id,
-            gym_latitude=lat,
-            gym_longitude=lng,
             player_latitude=f2i(self.bot.position[0]),
             player_longitude=f2i(self.bot.position[1])
         )
+        response_dict = request.call()
+        self.logger.info("Called deploy pokemon: %s" % response_dict)
+
         if ('responses' in response_dict) and ('FORT_DEPLOY_POKEMON' in response_dict['responses']):
             deploy = response_dict['responses']['FORT_DEPLOY_POKEMON']
-            result = deploy.get('result', -1)
+            result = response_dict.get('status_code', -1)
+            self.logger.info("Status: %s" % result)
             if result == 1:
+                self.dropped_gyms.append(gym["id"])
                 # SUCCES
-                self.logger.info("We deployed %s (%s CP) in the gym!" % (fort_pokemon["name"], fort_pokemon["cp"]))
+                self.logger.info("We deployed %s (%s CP) in the gym!" % (fort_pokemon.name, fort_pokemon.cp))
                 self.emit_event(
                     'deployed_pokemon',
-                    formatted="We dropped a %s in a gym!!".format(fort_pokemon["name"]),
+                    formatted="We dropped a %s in a gym!!".format(fort_pokemon.name),
                     data={'gym_id': gym['id'], 'pokemon_id': pokemon_id}
                 )
                 return WorkerResult.SUCCESS
             elif result == 2:
                 #ERROR_ALREADY_HAS_POKEMON_ON_FORT
                 self.logger.info('ERROR_ALREADY_HAS_POKEMON_ON_FORT')
+                self.dropped_gyms.append(gym["id"])
                 return WorkerResult.ERROR
             elif result == 3:
                 #ERROR_OPPOSING_TEAM_OWNS_FORT
@@ -363,9 +376,9 @@ class GymPokemon(BaseTask):
                 raise ConfigException("order by {}' isn't available".format(self.order_by))
             return poke_info[info]
         # Don't place a Pokemon which is already in the gym (prevent ALL Blissey etc)
-        possible_pokemons = [p for p in self.pokemons if not p["name"] in current_pokemons]
+        possible_pokemons = [p for p in self.pokemons if not p.name in current_pokemons]
         # Don't put in Pokemon above 3000 cp (morale drops too fast)
-        possible_pokemons = [p for p in self.pokemons if p.cp < 3000]
+        possible_pokemons = [p for p in possible_pokemons if p.cp < 3000]
         # Sort them
         pokemons_ordered = sorted(possible_pokemons, key=lambda x: get_poke_info(self.order_by, x), reverse=True)
         return pokemons_ordered[0]
