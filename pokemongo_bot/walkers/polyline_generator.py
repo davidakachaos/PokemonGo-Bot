@@ -63,7 +63,7 @@ class Polyline(object):
         self.origin = origin
         self.destination = tuple(destination)
         self.DIRECTIONS_API_URL = 'https://maps.googleapis.com/maps/api/directions/json?mode=walking'
-        self.DIRECTIONS_URL = '{}&origin={}&destination={}'.format(self.DIRECTIONS_API_URL,
+        self.DIRECTIONS_URL = '{}&origin={}&destination={}&avoid=highways'.format(self.DIRECTIONS_API_URL,
                 '{},{}'.format(*self.origin),
                 '{},{}'.format(*self.destination))
         if google_map_api_key:

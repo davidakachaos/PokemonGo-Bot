@@ -9,6 +9,7 @@ from pokemongo_bot.worker_result import WorkerResult
 from pokemongo_bot.base_task import BaseTask
 from .utils import distance, format_dist, fort_details
 from datetime import datetime, timedelta
+import time
 
 class MoveToFort(BaseTask):
     SUPPORTED_TASK_API_VERSION = 1
@@ -22,6 +23,8 @@ class MoveToFort(BaseTask):
         self.walker = self.config.get('walker', 'StepWalker')
         self.wait_at_fort = self.config.get('wait_on_lure', False)
         self.wait_log_sent = None
+        self.previous_distance = []
+        self.target_id = None
 
     def should_run(self):
         has_space_for_loot = inventory.Items.has_space_for_loot()
@@ -39,6 +42,9 @@ class MoveToFort(BaseTask):
         if not self.should_run():
             return WorkerResult.SUCCESS
 
+        if hasattr(self.bot, "hunter_locked_target") and self.bot.hunter_locked_target is not None:
+            return WorkerResult.SUCCESS
+
         nearest_fort = self.get_nearest_fort()
 
         if nearest_fort is None:
@@ -49,6 +55,9 @@ class MoveToFort(BaseTask):
         fortID = nearest_fort['id']
         details = fort_details(self.bot, fortID, lat, lng)
         fort_name = details.get('name', 'Unknown')
+
+        if self.target_id is None:
+            self.target_id = fort_name
 
         unit = self.bot.config.distance_unit  # Unit to use when printing formatted distance
 
@@ -66,6 +75,38 @@ class MoveToFort(BaseTask):
         )
 
         moving = noised_dist > Constants.MAX_DISTANCE_FORT_IS_REACHABLE if self.bot.config.replicate_gps_xy_noise else dist > Constants.MAX_DISTANCE_FORT_IS_REACHABLE
+
+        distance_to_target = int(noised_dist if self.bot.config.replicate_gps_xy_noise else dist)
+        if len(self.previous_distance) == 0:
+            self.previous_distance.append(distance_to_target)
+        elif self.target_id is not fort_name:
+            # self.logger.info("Changed target from %s to %s" % (self.target_id, fort_name))
+            self.previous_distance = [distance_to_target]
+            self.target_id = fort_name
+            if self.walker is not self.config.get('walker', 'StepWalker'):
+                self.walker = self.config.get('walker', 'StepWalker')
+        else:
+            # self.logger.info("Previous distances: %s" % self.previous_distance)
+            if len(self.previous_distance) > 5:
+                self.previous_distance.pop(0)
+            error_moving = False
+            times_found = 0
+            for prev_distance in self.previous_distance:
+                if prev_distance == distance_to_target:
+                    error_moving = True
+                    break
+
+            if error_moving:
+                if self.walker == 'StepWalker':
+                    self.logger.info("Having difficulty walking to %s" % fort_name)
+                    self.bot.recent_forts = self.bot.recent_forts[1:] + [fortID]
+                    return WorkerResult.ERROR
+                else:
+                    self.logger.info("Having difficulty walking to %s. Changing walker." % fort_name)
+                    self.walker = 'StepWalker'
+                    self.previous_distance = [distance_to_target]
+            else:
+                self.previous_distance.append(distance_to_target)
 
         if moving:
             self.wait_log_sent = None

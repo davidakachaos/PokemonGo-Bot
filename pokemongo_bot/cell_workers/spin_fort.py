@@ -156,14 +156,13 @@ class SpinFort(BaseTask):
                 if egg_awarded is not None:
                     items_awarded[u'Egg'] = egg_awarded['egg_km_walked_target']
 
-                if gym_badge_awarded is not None:
-                    self.logger.info("Gained a Gym Badge! %s" % gym_badge_awarded)
-
-                if chain_hack_sequence_number > 0:
-                    self.logger.info("Chain hack sequence: %s" % chain_hack_sequence_number)
+                # if gym_badge_awarded is not None:
+                #     self.logger.info("Gained a Gym Badge! %s" % gym_badge_awarded)
+                #
+                # if chain_hack_sequence_number > 0:
+                #     self.logger.info("Chain hack sequence: %s" % chain_hack_sequence_number)
 
                 if experience_awarded or items_awarded:
-                    self.logger.info("Items awarded: %s" % items_awarded)
                     awards = ', '.join(["{}x {}".format(items_awarded[x], x) for x in items_awarded if x != u'Egg'])
                     if egg_awarded is not None:
                         awards += u', {} Egg'.format(egg_awarded['egg_km_walked_target'])
@@ -314,7 +313,7 @@ class SpinFort(BaseTask):
         tmp_count_items = {}
 
         if loot:
-            self.logger.info("Loot: %s" % loot)
+            # self.logger.info("Loot: %s" % loot)
             for item_awarded in loot['loot_item']:
                 item_awarded_id = item_awarded['item']
                 item_awarded_name = inventory.Items.name_for(item_awarded_id)
@@ -328,7 +327,7 @@ class SpinFort(BaseTask):
                 self._update_inventory(item_awarded)
 
         if bonus_loot:
-            self.logger.info("Bonus Loot: %s" % bonus_loot)
+            # self.logger.info("Bonus Loot: %s" % bonus_loot)
             for item_awarded in bonus_loot['loot_item']:
                 item_awarded_id = item_awarded['item']
                 item_awarded_name = inventory.Items.name_for(item_awarded_id)
@@ -342,7 +341,7 @@ class SpinFort(BaseTask):
                 self._update_inventory(item_awarded)
 
         if team_bonus_loot:
-            self.logger.info("Team Bonus Loot: %s" % team_bonus_loot)
+            # self.logger.info("Team Bonus Loot: %s" % team_bonus_loot)
             for item_awarded in team_bonus_loot['loot_item']:
                 item_awarded_id = item_awarded['item']
                 item_awarded_name = inventory.Items.name_for(item_awarded_id)

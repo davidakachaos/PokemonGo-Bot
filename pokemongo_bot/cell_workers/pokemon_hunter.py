@@ -550,6 +550,8 @@ class PokemonHunter(BaseTask):
         else:
             worth_pokemons = []
 
+            worth_pokemons += [p for p in pokemons if not inventory.pokedex().seen(p["pokemon_id"])]
+
             if self.config_hunt_vip:
                 worth_pokemons += [p for p in pokemons if p["name"] in self.bot.config.vips]
 
