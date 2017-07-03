@@ -112,8 +112,16 @@ class ApiWrapper(PGoApi, object):
             self.logger.warning("Please set a valid hash key in your auth JSON file!")
             exit(-3)
             raise
-        except:
-            raise
+        except HashingOfflineException as e:
+            self.logger.error("Hashing server seems to be down!")
+            self.logger.warning("Botting not possible untill the hashing server is back up. Exiting...")
+            # Let the use take this information in...
+            sleep(10)
+            exit(-3)
+            raise e
+        except Exception as e:
+            self.logger.error("Error logging in!")
+            raise e
         # cleanup code
         self.useVanillaRequest = False
         return response
