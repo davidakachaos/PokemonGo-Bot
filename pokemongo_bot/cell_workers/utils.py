@@ -26,8 +26,23 @@ def fort_details(bot, fort_id, latitude, longitude):
     """
     Lookup fort metadata and (if possible) serve from cache.
     """
-
+    first_call = False
     if fort_id not in FORT_CACHE:
+        """
+        Lookup the fort details and cache the response for future use.
+        """
+        request = bot.api.create_request()
+        request.fort_details(fort_id=fort_id, latitude=latitude, longitude=longitude)
+        try:
+            response_dict = request.call()
+            FORT_CACHE[fort_id] = response_dict['responses']['FORT_DETAILS']
+            first_call = True
+        except Exception:
+            FORT_CACHE[fort_id] = dict()
+            first_call = True
+
+    if not first_call:
+      if FORT_CACHE.get(fort_id, dict()) == dict() and distance(latitude, longitude, bot.position[0], bot.position[1]) < 400:
         """
         Lookup the fort details and cache the response for future use.
         """
@@ -38,7 +53,6 @@ def fort_details(bot, fort_id, latitude, longitude):
             FORT_CACHE[fort_id] = response_dict['responses']['FORT_DETAILS']
         except Exception:
             FORT_CACHE[fort_id] = dict()
-            pass
 
     # Just to avoid KeyErrors
     return FORT_CACHE.get(fort_id, {})

@@ -74,6 +74,7 @@ class CatchPokemon(BaseTask):
             self.pokemon = [p for p in self.pokemon if p not in self.bot.skipped_pokemon]
 
         num_pokemon = len(self.pokemon)
+        always_catch_family_of_vip = self.config.get('always_catch_family_of_vip', False)
 
         if num_pokemon > 0:
             # try catching
@@ -85,7 +86,7 @@ class CatchPokemon(BaseTask):
                 mon_name = Pokemons.name_for(mon_to_catch['pokemon_id'])
                 bounty_name = Pokemons.name_for(bounty['pokemon_id'])
 
-                if mon_name != bounty_name and is_vip is False:
+                if (mon_name != bounty_name and is_vip is False) or (always_catch_family_of_vip and not self._is_family_of_vip(mon_to_catch['pokemon_id'])):
                     # This is not the Pokémon you are looking for...
                     self.logger.info("[Hunter locked a {}] Ignoring a {}".format(bounty_name, mon_name))
                     self.ignored_while_looking.append(mon_to_catch['pokemon_id'])
@@ -116,6 +117,8 @@ class CatchPokemon(BaseTask):
 
     def _is_vip_pokemon(self, pokemon):
         if 'pokemon_id' not in pokemon:
+            if not 'name' in pokemon:
+                return False
             pokemon['pokemon_id'] = Pokemons.id_for(pokemon['name'])
         # having just a name present in the list makes them vip
         # Not seen pokemons also will become vip if it's not disabled in config

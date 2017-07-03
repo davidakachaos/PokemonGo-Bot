@@ -994,6 +994,8 @@ class Pokemon(object):
         self.shiny = self.display_data.get('shiny', False)
         # self.form = self.display_data.get('form', )
 
+        self.is_bad = data.get('is_bad', False)
+
         # Combat points value
         self.cp = data['cp']
         # Base CP multiplier, fixed at the catch time
