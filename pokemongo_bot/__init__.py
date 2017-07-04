@@ -380,7 +380,8 @@ class PokemonGoBot(object):
             'moving_to_fort',
             parameters=(
                 'fort_name',
-                'distance'
+                'distance',
+                'target_type'
             )
         )
         self.event_manager.register_event(
@@ -388,13 +389,14 @@ class PokemonGoBot(object):
             parameters=(
                 'fort_name',
                 'distance',
+                'target_type',
                 'lure_distance'
             )
         )
         self.event_manager.register_event(
             'spun_pokestop',
             parameters=(
-                'pokestop', 'exp', 'spin_amount_now', 'max_spins', 'items'
+                'pokestop', 'exp', 'spin_amount_now', 'items', 'stop_kind'
             )
         )
         self.event_manager.register_event(
@@ -1703,6 +1705,7 @@ class PokemonGoBot(object):
         # Need to filter out disabled gyms!
         forts = filter(lambda x: x["enabled"] is True, forts)
         forts = filter(lambda x: 'closed' not in fort, forts)
+        # forts = filter(lambda x: 'type' not in fort, forts)
 
         if order_by_distance:
             forts.sort(key=lambda x: distance(

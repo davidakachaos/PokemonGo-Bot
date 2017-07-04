@@ -302,8 +302,8 @@ class PokemonHunter(BaseTask):
                 return WorkerResult.SUCCESS
 
         # Make sure a VIP is treated that way
-        if self.config_lock_on_target and self.destination is not None:
-            if self._is_vip_pokemon(self.destination) and self.bot.hunter_locked_target is None:
+        if self.config_lock_on_target and self.bot.hunter_locked_target is None and self.destination is not None:
+            if self._is_vip_pokemon(self.destination):
                 self.bot.hunter_locked_target = self.destination
 
         # Check if there is a VIP around to hunt

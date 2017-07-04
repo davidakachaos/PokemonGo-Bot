@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import sys
 import time
 import random
+from random import uniform
 
 from pgoapi.utilities import f2i
 from pokemongo_bot import inventory
@@ -41,6 +42,9 @@ class GymPokemon(BaseTask):
         self.next_update = datetime.now() + timedelta(0, 10)
         self.order_by = self.config.get('order_by', 'cp')
         self.min_interval = self.config.get('min_interval', 60)
+        self.min_recheck = self.config.get('min_interval', 60)
+        self.max_recheck = self.config.get('max_interval', 240)
+        self.recheck = datetime.now()
         self.walker = self.config.get('walker', 'StepWalker')
         self.destination = None
         self.recent_gyms = []
@@ -51,6 +55,8 @@ class GymPokemon(BaseTask):
         self.dropped_gyms = []
         self.blacklist= []
         self.check_interval = 0
+        self.gyms = []
+        self.raid_gyms = dict()
 
     def should_run(self):
         # Check if we have any Pokemons and are level > 5
@@ -87,6 +93,10 @@ class GymPokemon(BaseTask):
         if len(self.fort_pokemons) >= 20:
             if self._should_print():
                 self.logger.info("We have a max of 20 Pokemon in gyms.")
+            return WorkerResult.SUCCESS
+
+        if hasattr(self.bot, "hunter_locked_target") and self.bot.hunter_locked_target is not None:
+            # Don't move to a gym when hunting for a Pokemon
             return WorkerResult.SUCCESS
 
         # Check if we are walking past a gym
@@ -131,6 +141,7 @@ class GymPokemon(BaseTask):
 
             self.logger.info("Inspecting %s gyms." % len(gyms))
             self.logger.info("Recent gyms: %s" % len(self.recent_gyms))
+            self.logger.info("Active raid gyms: %s" % len(self.raid_gyms))
 
             for gym in gyms:
                 # Ignore after done for 5 mins
@@ -141,6 +152,12 @@ class GymPokemon(BaseTask):
                     # Gym can be closed for a raid or something, skipp to the next
                     if not gym['enabled']:
                         # self.logger.info("Yes, it's closed...")
+                        continue
+
+                if 'type' in gym:
+                    self.logger.info("Type: %s" % gym["type"] )
+                    if gym["type"] == 1:
+                        self.logger.info("Seems to be a Pokestop?")
                         continue
 
                 if 'owned_by_team' in gym:
@@ -165,11 +182,6 @@ class GymPokemon(BaseTask):
                     # self.logger.info("Info: %s" % gym)
                     self.destination = gym
                     break
-
-
-        if hasattr(self.bot, "hunter_locked_target") and self.bot.hunter_locked_target is not None:
-            # Don't move to a gym when hunting for a Pokemon
-            return WorkerResult.SUCCESS
 
         if self.destination is not None:
             # self.logger.info("Check interval: %s" % self.check_interval )
@@ -283,20 +295,6 @@ class GymPokemon(BaseTask):
         self.fort_pokemons = [p for p in self.pokemons if p.in_fort]
         self.pokemons = [p for p in self.pokemons if not p.in_fort]
         close_gyms = self.get_gyms_in_range()
-
-        if 'same_team_deploy_lockout_end_ms' in gym:
-            # self.logger.info("%f" % gym["same_team_deploy_lockout_end_ms"])
-            org_time = int(gym["same_team_deploy_lockout_end_ms"]) / 1e3
-            self.logger.info("org_time: %f" % org_time)
-            lockout_time = datetime.fromtimestamp(org_time)
-            self.logger.info("Lockout time: %s" % lockout_time.strftime('%Y-%m-%d %H:%M:%S.%f'))
-            t = datetime.today()
-
-            if lockout_time < datetime.now():
-                self.logger.info("No need to wait.")
-            else:
-                self.logger.info("Waiting for %s seconds deployment lockout to end..." % (lockout_time-t).seconds)
-                sleep((lockout_time-t).seconds)
     
         for g in close_gyms:
             if g["id"] == gym["id"]:
@@ -318,20 +316,27 @@ class GymPokemon(BaseTask):
         # Check for raid
         if 'raid_info' in gym:
             raid_info = gym["raid_info"]
+            raid_starts = datetime.fromtimestamp(int(raid_info["raid_battle_ms"]) / 1e3)
             raid_ends = datetime.fromtimestamp(int(raid_info["raid_end_ms"]) / 1e3)
+            self.logger.info("Raid starts: %s" % raid_starts.strftime('%Y-%m-%d %H:%M:%S.%f'))
             self.logger.info("Raid ends: %s" % raid_ends.strftime('%Y-%m-%d %H:%M:%S.%f'))
             t = datetime.today()
 
-            if raid_ends < datetime.now():
-                self.logger.info("No need to wait.")
-            elif (raid_ends-t).seconds > 600:
-                self.logger.info("Need to wait long than 10 minutes, skipping")
-                self.destination = None
-                self.recent_gyms.append(gym["id"])
-                return WorkerResult.SUCCESS
+            if raid_starts < datetime.now():
+                self.logger.info("Active raid?")
+                if raid_ends < datetime.now():
+                    self.logger.info("No need to wait.")
+                elif (raid_ends-t).seconds > 600:
+                    self.logger.info("Need to wait long than 10 minutes, skipping")
+                    self.destination = None
+                    self.recent_gyms.append(gym["id"])
+                    self.raid_gyms[gym["id"]] = raid_ends
+                    return WorkerResult.SUCCESS
+                else:
+                    self.logger.info("Waiting for %s seconds for raid to end..." % (raid_ends-t).seconds)
+                    sleep((raid_ends-t).seconds)
             else:
-                self.logger.info("Waiting for %s seconds for raid to end..." % (raid_ends-t).seconds)
-                sleep((raid_ends-t).seconds)
+                self.logger.info("Raid has not begun yet!")
 
         for pokemon in self.fort_pokemons:
             if pokemon.fort_id == gym["id"]:
@@ -339,6 +344,20 @@ class GymPokemon(BaseTask):
                 self.dropped_gyms.append(pokemon.fort_id)
                 self.recent_gyms.append(gym["id"])
                 return WorkerResult.SUCCESS
+
+        if 'same_team_deploy_lockout_end_ms' in gym:
+            # self.logger.info("%f" % gym["same_team_deploy_lockout_end_ms"])
+            org_time = int(gym["same_team_deploy_lockout_end_ms"]) / 1e3
+            self.logger.info("org_time: %f" % org_time)
+            lockout_time = datetime.fromtimestamp(org_time)
+            self.logger.info("Lockout time: %s" % lockout_time.strftime('%Y-%m-%d %H:%M:%S.%f'))
+            t = datetime.today()
+
+            if lockout_time < datetime.now():
+                self.logger.info("No need to wait.")
+            else:
+                self.logger.info("Waiting for %s seconds deployment lockout to end..." % (lockout_time-t).seconds)
+                sleep((lockout_time-t).seconds)
 
         #FortDeployPokemon
         # self.logger.info("Trying to deploy Pokemon in gym: %s" % gym)
@@ -411,34 +430,48 @@ class GymPokemon(BaseTask):
                 return WorkerResult.ERROR
 
     def get_gyms(self, skip_recent_filter=False):
-        gyms = self.bot.get_gyms(order_by_distance=True)
+        self.gyms = self.bot.get_gyms(order_by_distance=True)
         if self._should_expire():
             self.recent_gyms = []
             self._compute_next_expire()
+        # Check raid gyms for raids that ended
+        for gym_id in self.raid_gyms:
+            if self.raid_gyms[gym_id] < datetime.now():
+                del(self.raid_gyms[gym_id])
+
         if not skip_recent_filter:
-            gyms = filter(lambda gym: gym["id"] not in self.recent_gyms, gyms)
+            self.gyms = filter(lambda gym: gym["id"] not in self.recent_gyms, self.gyms)
+        # Filter blacklisted gyms
+        self.gyms = filter(lambda gym: gym["id"] not in self.blacklist, self.gyms)
+        # Filter out gyms we already in
+        self.gyms = filter(lambda gym: gym["id"] not in self.dropped_gyms, self.gyms)
+        # Filter ongoing raids
+        self.gyms = filter(lambda gym: gym["id"] not in self.raid_gyms, self.gyms)
+        # filter fake gyms
+        # self.gyms = filter(lambda gym: "type" not in gym or gym["type"] != 1, self.gyms)
 
-        gyms = filter(lambda gym: gym["id"] not in self.blacklist, gyms)
-        gyms = filter(lambda gym: gym["id"] not in self.dropped_gyms, gyms)
 
-        return gyms
+        return self.gyms
 
     def get_gyms_in_range(self):
-        gyms = self.get_gyms()
+        if len(self.gyms) == 0:
+            self.get_gyms()
+
+        gyms = []
         if self.bot.config.replicate_gps_xy_noise:
             gyms = filter(lambda fort: distance(
                 self.bot.noised_position[0],
                 self.bot.noised_position[1],
                 fort['latitude'],
                 fort['longitude']
-            ) <= Constants.MAX_DISTANCE_FORT_IS_REACHABLE, gyms)
+            ) <= Constants.MAX_DISTANCE_FORT_IS_REACHABLE, self.gyms)
         else:
             gyms = filter(lambda fort: distance(
                 self.bot.position[0],
                 self.bot.position[1],
                 fort['latitude'],
                 fort['longitude']
-            ) <= Constants.MAX_DISTANCE_FORT_IS_REACHABLE, gyms)
+            ) <= Constants.MAX_DISTANCE_FORT_IS_REACHABLE, self.gyms)
 
         return gyms
 
@@ -450,6 +483,13 @@ class GymPokemon(BaseTask):
 
     def _compute_next_expire(self):
         self.next_expire = datetime.now() + timedelta(seconds=300)
+
+    def _compute_next_recheck(self):
+        wait = uniform(self.min_recheck, self.max_recheck)
+        self.recheck = datetime.now() + timedelta(seconds=wait)
+
+    def _should_recheck(self):
+        return self.recheck is None or datetime.now() >= self.recheck
 
     def _compute_next_update(self):
         """

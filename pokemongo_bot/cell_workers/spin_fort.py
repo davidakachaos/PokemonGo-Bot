@@ -167,14 +167,22 @@ class SpinFort(BaseTask):
                     if egg_awarded is not None:
                         awards += u', {} Egg'.format(egg_awarded['egg_km_walked_target'])
                     self.fort_spins = chain_hack_sequence_number
+
+                    if "type" in fort and fort["type"] == 1:
+                        # It's a Pokestop
+                        stop_kind = "pokestop"
+                    else:
+                        # It's a gym
+                        stop_kind = "gym"
+
                     self.emit_event(
                         'spun_pokestop',
-                        formatted="Spun pokestop {pokestop} ({spin_amount_now}/{max_spins}). Experience awarded: {exp}. Items awarded: {items}",
+                        formatted="Spun {stop_kind} {pokestop} ({spin_amount_now} streak). Experience awarded: {exp}. Items awarded: {items}",
                         data={
+                            'stop_kind': stop_kind,
                             'pokestop': fort_name,
                             'exp': experience_awarded,
                             'spin_amount_now': chain_hack_sequence_number,
-                            'max_spins': 10,
                             'items': awards
                         }
                     )
