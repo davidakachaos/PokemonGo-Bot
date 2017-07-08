@@ -132,7 +132,7 @@ class PokemonHunter(BaseTask):
         if self.destination is not None:
             if self.destination_caught():
                 self.logger.info("We found a %(name)s while hunting.", self.destination)
-                self.recent_tries.append(self.destination['pokemon_id'])
+                # self.recent_tries.append(self.destination['pokemon_id'])
                 self.destination = None
                 self.hunting_trash = False
                 self.bot.hunter_locked_target = None
@@ -148,7 +148,7 @@ class PokemonHunter(BaseTask):
 
             if self.destination_vanished():
                 self.logger.info("Darn, target got away!")
-                self.recent_tries.append(self.destination['pokemon_id'])
+                # self.recent_tries.append(self.destination['pokemon_id'])
                 self.destination = None
                 self.hunting_trash = False
                 self.bot.hunter_locked_target = None

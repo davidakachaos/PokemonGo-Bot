@@ -75,6 +75,8 @@ class CatchPokemon(BaseTask):
 
         num_pokemon = len(self.pokemon)
         always_catch_family_of_vip = self.config.get('always_catch_family_of_vip', False)
+        always_catch_trash = self.config.get('always_catch_trash', False)
+        trash_pokemon = ["Caterpie", "Weedle", "Pidgey", "Pidgeotto", "Pidgeot", "Kakuna", "Beedrill", "Metapod", "Butterfree"]
 
         if num_pokemon > 0:
             # try catching
@@ -86,22 +88,37 @@ class CatchPokemon(BaseTask):
                 mon_name = Pokemons.name_for(mon_to_catch['pokemon_id'])
                 bounty_name = Pokemons.name_for(bounty['pokemon_id'])
 
-                if (mon_name != bounty_name and is_vip is False) or (always_catch_family_of_vip and not self._is_family_of_vip(mon_to_catch['pokemon_id'])):
-                    # This is not the Pokémon you are looking for...
-                    self.logger.info("[Hunter locked a {}] Ignoring a {}".format(bounty_name, mon_name))
-                    self.ignored_while_looking.append(mon_to_catch['pokemon_id'])
+                family_catch = False
+                trash_catch = False
 
-                    if num_pokemon > 1:
-                        return WorkerResult.RUNNING
-                    else:
-                        return WorkerResult.SUCCESS
-                else:
-                    # We have found a vip or our target...
-                    if bounty_name == mon_name:
-                        self.bot.hunter_locked_target = None
-                        self.logger.info("Found my target {}!".format(bounty_name))
-                    else:
+                if always_catch_trash:
+                    if mon_name in trash_pokemon:
                         self.logger.info("While on the hunt for {}, I found a {}! I want that Pokemon! Will try to catch...".format(bounty_name, mon_name))
+                        trash_catch = True
+
+                if always_catch_family_of_vip:
+                    if mon_name != bounty_name:
+                        if self._is_family_of_vip(mon_to_catch['pokemon_id']):
+                            self.logger.info("While on the hunt for {}, I found a {}! I want that Pokemon! Will try to catch...".format(bounty_name, mon_name))
+                            family_catch = True
+
+                if not family_catch and not trash_catch:
+                    if (mon_name != bounty_name and is_vip is False):
+                        # This is not the Pokémon you are looking for...
+                        self.logger.info("[Hunter locked a {}] Ignoring a {}".format(bounty_name, mon_name))
+                        self.ignored_while_looking.append(mon_to_catch['pokemon_id'])
+
+                        if num_pokemon > 1:
+                            return WorkerResult.RUNNING
+                        else:
+                            return WorkerResult.SUCCESS
+                    else:
+                        # We have found a vip or our target...
+                        if bounty_name == mon_name:
+                            self.bot.hunter_locked_target = None
+                            self.logger.info("Found my target {}!".format(bounty_name))
+                        else:
+                            self.logger.info("While on the hunt for {}, I found a {}! I want that Pokemon! Will try to catch...".format(bounty_name, mon_name))
             try:
                 if self.catch_pokemon(mon_to_catch) == WorkerResult.ERROR:
                     # give up incase something went wrong in our catch worker (ran out of balls, etc)

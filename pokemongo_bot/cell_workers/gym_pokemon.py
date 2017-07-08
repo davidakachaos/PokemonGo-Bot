@@ -7,6 +7,7 @@ import sys
 import time
 import random
 from random import uniform
+from collections import Counter
 
 from pgoapi.utilities import f2i
 from pokemongo_bot import inventory
@@ -42,8 +43,8 @@ class GymPokemon(BaseTask):
         self.next_update = datetime.now() + timedelta(0, 10)
         self.order_by = self.config.get('order_by', 'cp')
         self.min_interval = self.config.get('min_interval', 60)
-        self.min_recheck = self.config.get('min_interval', 60)
-        self.max_recheck = self.config.get('max_interval', 240)
+        self.min_recheck = self.config.get('min_recheck', 30)
+        self.max_recheck = self.config.get('max_recheck', 120)
         self.recheck = datetime.now()
         self.walker = self.config.get('walker', 'StepWalker')
         self.destination = None
@@ -99,37 +100,39 @@ class GymPokemon(BaseTask):
             # Don't move to a gym when hunting for a Pokemon
             return WorkerResult.SUCCESS
 
-        # Check if we are walking past a gym
-        close_gyms = self.get_gyms_in_range()
-        if len(close_gyms) > 0:
-            # self.logger.info("Walking past a gym!")
-            for gym in close_gyms:
-                if gym["id"] in self.dropped_gyms:
-                    continue
-                gym_details = self.get_gym_details(gym)
-                if gym_details:
-                    pokes = self._get_pokemons_in_gym(gym_details)
-                    if len(pokes) == 6:
+        if self.destination is None:
+            # Check if we are walking past a gym
+            close_gyms = self.get_gyms_in_range()
+            if len(close_gyms) > 0:
+                # self.logger.info("Walking past a gym!")
+                for gym in close_gyms:
+                    if gym["id"] in self.dropped_gyms:
                         continue
-                    if 'enabled' in gym:
-                        if not gym['enabled']:
+
+                    gym_details = self.get_gym_details(gym)
+                    if gym_details:
+                        pokes = self._get_pokemons_in_gym(gym_details)
+                        if len(pokes) == 6:
                             continue
-                    if 'owned_by_team' in gym:
-                        if gym["owned_by_team"] == team:
-                            if 'gym_display' in gym:
-                                display = gym['gym_display']
-                                if 'slots_available' in display:
-                                    self.logger.info("Gym has %s open spots!" % display['slots_available'])
-                                    if display['slots_available'] > 0 and gym["id"] not in self.dropped_gyms:
-                                        self.logger.info("Dropping pokemon in %s" % gym_details["name"])
-                                        self.drop_pokemon_in_gym(gym, pokes)
-                                        if self.destination is not None and gym["id"] == self.destination["id"]:
-                                            self.destination = None
-                                        return WorkerResult.SUCCESS
-                        # else:
-                        #     self.logger.info("Not on our team: %s" % gym['owned_by_team'])
-                    else:
-                        self.logger.info("Neutral gym? %s" % gym)
+                        if 'enabled' in gym:
+                            if not gym['enabled']:
+                                continue
+                        if 'owned_by_team' in gym:
+                            if gym["owned_by_team"] == team:
+                                if 'gym_display' in gym:
+                                    display = gym['gym_display']
+                                    if 'slots_available' in display:
+                                        self.logger.info("Gym has %s open spots!" % display['slots_available'])
+                                        if display['slots_available'] > 0 and gym["id"] not in self.dropped_gyms:
+                                            self.logger.info("Dropping pokemon in %s" % gym_details["name"])
+                                            self.drop_pokemon_in_gym(gym, pokes)
+                                            if self.destination is not None and gym["id"] == self.destination["id"]:
+                                                self.destination = None
+                                            return WorkerResult.SUCCESS
+                            # else:
+                            #     self.logger.info("Not on our team: %s" % gym['owned_by_team'])
+                        else:
+                            self.logger.info("Neutral gym? %s" % gym)
 
         if not self.should_run():
             return WorkerResult.SUCCESS
@@ -137,12 +140,14 @@ class GymPokemon(BaseTask):
         if self.destination is None:
             gyms = self.get_gyms()
             if len(gyms) == 0:
+                if len(self.recent_gyms) == 0:
+                    self.logger.info("No Gyms in range to scan!")
                 return WorkerResult.SUCCESS
 
             self.logger.info("Inspecting %s gyms." % len(gyms))
             self.logger.info("Recent gyms: %s" % len(self.recent_gyms))
             self.logger.info("Active raid gyms: %s" % len(self.raid_gyms))
-
+            teams = []
             for gym in gyms:
                 # Ignore after done for 5 mins
                 self.recent_gyms.append(gym["id"])
@@ -154,21 +159,21 @@ class GymPokemon(BaseTask):
                         # self.logger.info("Yes, it's closed...")
                         continue
 
-                if 'type' in gym:
-                    self.logger.info("Type: %s" % gym["type"] )
-                    if gym["type"] == 1:
-                        self.logger.info("Seems to be a Pokestop?")
-                        continue
+                # if 'type' in gym:
+                #     self.logger.info("Type: %s" % gym["type"] )
+                #     if gym["type"] == 1:
+                #         self.logger.info("Seems to be a Pokestop?")
+                #         continue
 
                 if 'owned_by_team' in gym:
                     if gym["owned_by_team"] == 1:
-                        self.logger.info("Found a Mystic gym")
+                        teams.append("Mystic")
                     elif gym["owned_by_team"] == 2:
-                        self.logger.info("Found a Valor gym")
+                        teams.append("Valor")
                     elif gym["owned_by_team"] == 3:
-                        self.logger.info("Found a Instinct gym")
-                    else:
-                        self.logger.info("Unknown team? %s" % gym)
+                        teams.append("Instinct")
+                    # else:
+                    #     self.logger.info("Unknown team? %s" % gym)
 
                     if gym["owned_by_team"] == team:
                         if 'gym_display' in gym:
@@ -182,6 +187,9 @@ class GymPokemon(BaseTask):
                     # self.logger.info("Info: %s" % gym)
                     self.destination = gym
                     break
+            if len(teams) > 0:
+                count_teams = Counter(teams)
+                self.logger.info("Gym Teams %s", ", ".join('{}({})'.format(key, val) for key, val in count_teams.items()))
 
         if self.destination is not None:
             # self.logger.info("Check interval: %s" % self.check_interval )
@@ -295,6 +303,8 @@ class GymPokemon(BaseTask):
         self.fort_pokemons = [p for p in self.pokemons if p.in_fort]
         self.pokemons = [p for p in self.pokemons if not p.in_fort]
         close_gyms = self.get_gyms_in_range()
+
+        empty_gym = False
     
         for g in close_gyms:
             if g["id"] == gym["id"]:
@@ -308,6 +318,7 @@ class GymPokemon(BaseTask):
                     self.logger.info("Empty gym?? %s" % g)
                     gym_details = self.get_gym_details(gym)
                     self.logger.info("Details: %s" % gym_details)
+                    empty_gym = True
                     if not gym_details or gym_details == {}:
                         self.logger.info("No details for this Gym? Blacklisting!")
                         self.blacklist.append(gym["id"])
@@ -377,7 +388,7 @@ class GymPokemon(BaseTask):
         )
         # self.logger.info("Req: %s" % request)
         response_dict = request.call()
-        # self.logger.info("Called deploy pokemon: %s" % response_dict)
+        self.logger.info("Called deploy pokemon: %s" % response_dict)
 
         if ('responses' in response_dict) and ('GYM_DEPLOY' in response_dict['responses']):
             deploy = response_dict['responses']['GYM_DEPLOY']
@@ -430,34 +441,46 @@ class GymPokemon(BaseTask):
                 return WorkerResult.ERROR
 
     def get_gyms(self, skip_recent_filter=False):
-        self.gyms = self.bot.get_gyms(order_by_distance=True)
+        if len(self.gyms) == 0:
+            self.gyms = self.bot.get_gyms(order_by_distance=True)
+
+        if self._should_recheck():
+            self.gyms = self.bot.get_gyms(order_by_distance=True)
+            self._compute_next_recheck()
+
         if self._should_expire():
             self.recent_gyms = []
             self._compute_next_expire()
         # Check raid gyms for raids that ended
         for gym_id in self.raid_gyms:
             if self.raid_gyms[gym_id] < datetime.now():
+                self.logger.info("Raid at %s ended (%s)" % (gym_id, self.raid_gyms[gym_id]))
                 del(self.raid_gyms[gym_id])
 
-        if not skip_recent_filter:
-            self.gyms = filter(lambda gym: gym["id"] not in self.recent_gyms, self.gyms)
+        gyms = []
+        # if not skip_recent_filter:
+        gyms = filter(lambda gym: gym["id"] not in self.recent_gyms, self.gyms)
         # Filter blacklisted gyms
-        self.gyms = filter(lambda gym: gym["id"] not in self.blacklist, self.gyms)
+        gyms = filter(lambda gym: gym["id"] not in self.blacklist, gyms)
         # Filter out gyms we already in
-        self.gyms = filter(lambda gym: gym["id"] not in self.dropped_gyms, self.gyms)
+        gyms = filter(lambda gym: gym["id"] not in self.dropped_gyms, gyms)
         # Filter ongoing raids
-        self.gyms = filter(lambda gym: gym["id"] not in self.raid_gyms, self.gyms)
+        gyms = filter(lambda gym: gym["id"] not in self.raid_gyms, gyms)
         # filter fake gyms
         # self.gyms = filter(lambda gym: "type" not in gym or gym["type"] != 1, self.gyms)
+        # sort by current distance
+        gyms.sort(key=lambda x: distance(
+                self.bot.position[0],
+                self.bot.position[1],
+                x['latitude'],
+                x['longitude']
+            ))
 
-
-        return self.gyms
+        return gyms
 
     def get_gyms_in_range(self):
-        if len(self.gyms) == 0:
-            self.get_gyms()
+        gyms = self.get_gyms()
 
-        gyms = []
         if self.bot.config.replicate_gps_xy_noise:
             gyms = filter(lambda fort: distance(
                 self.bot.noised_position[0],

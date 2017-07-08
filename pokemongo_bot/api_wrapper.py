@@ -14,6 +14,7 @@ from pgoapi.pgoapi import PGoApi
 from pgoapi.pgoapi import PGoApiRequest
 from pgoapi.pgoapi import RpcApi
 from pgoapi.protos.pogoprotos.networking.requests.request_type_pb2 import RequestType
+from pgoapi.protos.pogoprotos.networking.platform.platform_request_type_pb2 import PlatformRequestType
 from pgoapi.utilities import get_time
 from .human_behaviour import sleep, gps_noise_rng
 from pokemongo_bot.base_dir import _base_dir
@@ -157,6 +158,7 @@ class ApiRequest(PGoApiRequest):
         PGoApiRequest.__init__(self, *args)
         self.logger = logging.getLogger(__name__)
         self.request_callers = []
+        self.platform_callers = []
         self.last_api_request_time = None
         self.requests_per_seconds = 2
 
@@ -188,14 +190,24 @@ class ApiRequest(PGoApiRequest):
         self.request_callers = []
         return [i.upper() for i in r]
 
-    def is_response_valid(self, result, request_callers):
+    def _pop_platform_callers(self):
+        r = self.platform_callers
+        self.platform_callers = []
+        return [i.upper() for i in r]
+
+    def is_response_valid(self, result, request_callers, platform_callers):
         if not result or result is None or not isinstance(result, dict):
+            self.logger.warning("Called: %s" % request_callers)
+            self.logger.warning("Platform: %s" % platform_callers)
+            self.logger.warning("Invalid result: %s" % result)
             return False
 
         if not 'responses' in result or not 'status_code' in result:
+            self.logger.warning("No responses or status code? %s" % result)
             return False
 
         if not isinstance(result['responses'], dict):
+            self.logger.warning("Responses is not a dict! %s" % result['responses'])
             return False
 
         try:
@@ -204,6 +216,7 @@ class ApiRequest(PGoApiRequest):
                 'GET_INVENTORY']:
                 raise PermaBannedException
         except KeyError:
+            self.logger.warning("KeyError? %s" % result)
             # Still wrong
             return False
 
@@ -211,12 +224,14 @@ class ApiRequest(PGoApiRequest):
         # but still be wrong. we need to check if the server did sent what we asked it
         for request_caller in request_callers:
             if not request_caller in result['responses']:
+                self.logger.warning("%s not in result responses: %s" % (request_caller, result['responses']) )
                 return False
 
         return True
 
     def call(self, max_retry=15):
         request_callers = self._pop_request_callers()
+        platform_callers = self._pop_platform_callers()
         if not self.can_call():
             return False  # currently this is never ran, exceptions are raised before
 
@@ -243,6 +258,7 @@ class ApiRequest(PGoApiRequest):
             except UnexpectedResponseException:
                 should_unexpected_response_retry = True
             except:
+                
                 should_unexpected_response_retry = True
 
             if hashing_offline:
@@ -267,7 +283,7 @@ class ApiRequest(PGoApiRequest):
                     sleep(2)
                 continue
 
-            if not self.is_response_valid(result, request_callers):
+            if not self.is_response_valid(result, request_callers, platform_callers):
                 try_cnt += 1
                 if try_cnt > 3:
                     self.logger.warning(
@@ -284,6 +300,8 @@ class ApiRequest(PGoApiRequest):
     def __getattr__(self, func):
         if func.upper() in RequestType.keys():
             self.request_callers.append(func)
+        elif func.upper() in PlatformRequestType.keys():
+            self.platform_callers.append(func)
         return PGoApiRequest.__getattr__(self, func)
 
     def throttle_sleep(self):

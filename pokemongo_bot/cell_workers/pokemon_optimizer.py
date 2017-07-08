@@ -609,6 +609,10 @@ class PokemonOptimizer(BaseTask):
 
         # We will gain a candy whether we choose to transfer or evolve these Pokemon
         candies += len(crap)
+        # If we transfer the crap after a evolve, we gain another candy
+        if self.config_transfer_after_xp_evolve:
+            if family_name in self.config_evolve_for_xp:
+                candies += len(crap)
 
         evolve = []
 
@@ -1114,6 +1118,7 @@ class PokemonOptimizer(BaseTask):
         return 0
 
     def favor_pokemon(self, pokemon):
+        return True
         request = self.bot.api.create_request()
         request.set_favorite_pokemon(pokemon_id=pokemon.unique_id, is_favorite=True)
         response_dict = request.call()
@@ -1137,6 +1142,7 @@ class PokemonOptimizer(BaseTask):
                 self.logger.info("Unable to set %s as favorite!" % pokemon.name)
 
     def unfavor_pokemon(self, pokemon):
+        return True
         request = self.bot.api.create_request()
         request.set_favorite_pokemon(pokemon_id=pokemon.unique_id, is_favorite=False)
         response_dict = request.call()

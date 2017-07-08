@@ -37,6 +37,9 @@ class UpdateHashStats(BaseTask):
         self.bot.event_manager.register_event('log_hash_stats', parameters=('stats'))
     
     def work(self):
+        if HashServer.status.get('remaining', 0) < 75:
+            self.logger.warning("LESS THAN 75 REMAINING!!! %s" % HashServer.status.get('remaining', 0))
+
         if not self._should_display() and self.enabled:
             return WorkerResult.SUCCESS
             

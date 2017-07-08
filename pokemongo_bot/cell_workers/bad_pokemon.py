@@ -4,29 +4,40 @@ from pokemongo_bot.inventory import Pokemons
 from pokemongo_bot.human_behaviour import sleep, action_delay
 from pokemongo_bot.base_task import BaseTask
 from pokemongo_bot.worker_result import WorkerResult
+from datetime import datetime, timedelta
 
 class BadPokemon(BaseTask):
   SUPPORTED_TASK_API_VERSION = 1
 
   def __init__(self, bot, config):
-    super(TransferPokemon, self).__init__(bot, config)
+    super(BadPokemon, self).__init__(bot, config)
 
   def initialize(self):
     self.config_transfer = self.config.get('transfer', False)
     self.config_bulktransfer_enabled = self.config.get('bulktransfer_enabled', True)
     self.config_action_wait_min = self.config.get("action_wait_min", 3)
     self.config_action_wait_max = self.config.get("action_wait_max", 5)
+    self.min_interval = self.config.get('min_interval', 120)
+    self.next_update = None
 
   def work(self):
     bad_pokemons = [p for p in inventory.pokemons().all() if p.is_bad]
     
     if len(bad_pokemons) > 0:
-      self.logger.warning("You have %s bad (slashed) Pokemon!" % len(bad_pokemons))
-      sleep(5)
+      if self._should_print():
+          self.logger.warning("You have %s bad (slashed) Pokemon!" % len(bad_pokemons))
+          self._compute_next_update()
+          sleep(1)
       if self.config_transfer:
         self.transfer_pokemon(bad_pokemons)
 
     return WorkerResult.SUCCESS
+
+  def _should_print(self):
+    return self.next_update is None or datetime.now() >= self.next_update
+
+  def _compute_next_update(self):
+    self.next_update = datetime.now() + timedelta(seconds=self.min_interval)
 
   def transfer_pokemon(self, pokemons, skip_delay=False):
         error_codes = {
