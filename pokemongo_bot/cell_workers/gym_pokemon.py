@@ -140,7 +140,7 @@ class GymPokemon(BaseTask):
         if self.destination is None:
             gyms = self.get_gyms()
             if len(gyms) == 0:
-                if len(self.recent_gyms) == 0:
+                if len(self.recent_gyms) == 0 and self._should_print():
                     self.logger.info("No Gyms in range to scan!")
                 return WorkerResult.SUCCESS
 
@@ -383,12 +383,12 @@ class GymPokemon(BaseTask):
         request.gym_deploy(
             fort_id=gym["id"],
             pokemon_id=pokemon_id,
-            player_latitude=f2i(self.bot.position[0]),
-            player_longitude=f2i(self.bot.position[1])
+            player_lat_degrees=f2i(self.bot.position[0]),
+            player_lng_degrees=f2i(self.bot.position[1])
         )
         # self.logger.info("Req: %s" % request)
         response_dict = request.call()
-        self.logger.info("Called deploy pokemon: %s" % response_dict)
+        # self.logger.info("Called deploy pokemon: %s" % response_dict)
 
         if ('responses' in response_dict) and ('GYM_DEPLOY' in response_dict['responses']):
             deploy = response_dict['responses']['GYM_DEPLOY']
