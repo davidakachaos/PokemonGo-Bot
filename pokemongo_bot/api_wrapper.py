@@ -106,23 +106,32 @@ class ApiWrapper(PGoApi, object):
             )
         except:
             raise
-        try:
-            response = PGoApi.app_simulation_login(self)
-        except BadHashRequestException:
-            self.logger.warning("You hashkey seems to have expired or is not accepted!")
-            self.logger.warning("Please set a valid hash key in your auth JSON file!")
-            exit(-3)
-            raise
-        except HashingOfflineException as e:
-            self.logger.error("Hashing server seems to be down!")
-            self.logger.warning("Botting not possible untill the hashing server is back up. Exiting...")
-            # Let the use take this information in...
-            sleep(10)
-            exit(-3)
-            raise e
-        except Exception as e:
-            self.logger.error("Error logging in!")
-            raise e
+        try_cnt = 0
+        while True:
+            try:
+                response = PGoApi.app_simulation_login(self)
+                break
+            except BadHashRequestException:
+                self.logger.warning("You hashkey seems to have expired or is not accepted!")
+                self.logger.warning("Please set a valid hash key in your auth JSON file!")
+                exit(-3)
+                raise
+            except HashingOfflineException as e:
+                try_cnt += 1
+                if try_cnt > 3:
+                    self.logger.error("Hashing server seems to be down!")
+                    self.logger.warning("Botting not possible untill the hashing server is back up. Exiting...")
+                    # Let the use take this information in...
+                    sleep(10)
+                    exit(-3)
+                    raise e
+                else:
+                    self.logger.warning('Hashing server issue, retrying in 5 Secs...')
+                    sleep(5)
+                    continue
+            except Exception as e:
+                self.logger.error("Error logging in!")
+                raise e
         # cleanup code
         self.useVanillaRequest = False
         return response

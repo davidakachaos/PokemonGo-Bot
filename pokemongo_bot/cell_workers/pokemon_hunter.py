@@ -133,6 +133,7 @@ class PokemonHunter(BaseTask):
             if self.destination_caught():
                 self.logger.info("We found a %(name)s while hunting.", self.destination)
                 # self.recent_tries.append(self.destination['pokemon_id'])
+                self.previous_destination = self.destination
                 self.destination = None
                 self.hunting_trash = False
                 self.bot.hunter_locked_target = None
@@ -149,6 +150,7 @@ class PokemonHunter(BaseTask):
             if self.destination_vanished():
                 self.logger.info("Darn, target got away!")
                 # self.recent_tries.append(self.destination['pokemon_id'])
+                self.previous_destination = self.destination
                 self.destination = None
                 self.hunting_trash = False
                 self.bot.hunter_locked_target = None
@@ -200,7 +202,6 @@ class PokemonHunter(BaseTask):
                 else:
                     self.logger.info("No sightings available at the moment...")
 
-
         if self.config_hunt_for_trash and self.hunting_trash is False and (self.destination is None or not self._is_vip_pokemon(self.destination) ):
             # Okay, we should hunt for trash if the bag is almost full
             pokemons.sort(key=lambda p: p["distance"])
@@ -220,7 +221,7 @@ class PokemonHunter(BaseTask):
                     self.logger.info("Hunting for trash at %(distance).2f meters: %(name)s", self.destination)
                     self.set_target()
                     # We have a target
-                    return WorkerResult.SUCCESS
+                    return WorkerResult.RUNNING
 
         if self.config_hunt_for_trash and self.hunting_trash:
             if self.pokemon_slots_left() > self.config_trash_hunt_open_slots:
@@ -250,7 +251,7 @@ class PokemonHunter(BaseTask):
                             self.logger.info("New target at %(distance).2f meters: %(name)s", self.destination)
                             self.set_target()
                             # We have a target
-                            return WorkerResult.SUCCESS
+                            return WorkerResult.RUNNING
 
         if self.destination is None:
             worth_pokemons = self.get_worth_pokemons(pokemons, self.config_hunt_closest_first)
@@ -261,8 +262,34 @@ class PokemonHunter(BaseTask):
                 if self.config_hunt_closest_first:
                     # Priotize closer pokemon
                     worth_pokemons.sort(key=lambda p: p["distance"])
+                else:
+                    random.shuffle(worth_pokemons)
                 # Prevents the bot from looping the same Pokemon
                 self.destination = worth_pokemons[0]
+
+                if self.previous_destination is not None:
+                    # Check if we are hunting the same target again...
+                    if self.previous_destination["pokemon_id"] == self.destination["pokemon_id"]:
+                        # Hunting the same pokemon again?
+                        if "fort_id" in self.previous_destination and "fort_id" in self.destination and \
+                        self.previous_destination["fort_id"] == self.destination["fort_id"]:
+                            # Hunting the same target again?
+                            if len(worth_pokemons) > 1:
+                                self.destination = worth_pokemons[1]
+                        else:
+                            # Checking if it's the same distance...
+                            self.previous_destination["distance"] = self.get_distance(self.bot.start_position, self.previous_destination)
+                            self.destination["distance"] = self.get_distance(self.bot.start_position, self.destination)
+                            if round(self.previous_destination["distance"], 2) == round(self.destination["distance"], 2):
+                                self.logger.info("Likely we are trying the same Pokemon again")
+                                if len(worth_pokemons) > 1:
+                                    self.destination = worth_pokemons[1]
+
+                    if self.previous_destination == self.destination:
+                        # We already caught that Pokemon!
+                        if len(worth_pokemons) > 1:
+                            self.destination = worth_pokemons[1]
+
                 self.set_target()
                 self.lost_counter = 0
                 self.hunt_started_at = datetime.now()
@@ -270,6 +297,9 @@ class PokemonHunter(BaseTask):
                 self.logger.info("New destination at %(distance).2f meters: %(name)s", self.destination)
                 if self._is_vip_pokemon(self.destination) and self.config_lock_on_target:
                     self.logger.info("This is a VIP Pokemon! Locking on to target!")
+                    self.bot.hunter_locked_target = self.destination
+                elif self._is_family_of_vip(self.destination) and self.config_treat_family_of_vip_as_vip and self.config_lock_on_target:
+                    self.logger.info("This Pokemon is family of a VIP! Locking target!")
                     self.bot.hunter_locked_target = self.destination
                 elif self._is_needed_pokedex(self.destination):
                     self.logger.info("I need a %(name)s to complete the Pokedex! I have %(candies)s candies.", self.destination)
@@ -305,6 +335,76 @@ class PokemonHunter(BaseTask):
         if self.config_lock_on_target and self.bot.hunter_locked_target is None and self.destination is not None:
             if self._is_vip_pokemon(self.destination):
                 self.bot.hunter_locked_target = self.destination
+        #Check if we are treating Family of VIP as VIP
+        if self.config_treat_family_of_vip_as_vip and self.destination is not None:
+            if self._is_family_of_vip(self.destination):
+                # We're hunting for family, so we need to check if we find a VIP
+                if self.no_log_until < now:
+                    # Not every tick please
+                    possible_targets = filter(lambda p: self._is_vip_pokemon(p), pokemons)
+                    # Update the distance to targets
+                    for p in possible_targets:
+                        p["distance"] = self.get_distance(self.bot.position, p)
+                    possible_targets.sort(key=lambda p: p["distance"])
+                    if len(possible_targets) > 0:
+                        # Check if it's not the same mon...
+                        if possible_targets[0]["name"] != self.destination["name"]:
+                            self.logger.info("We found a real VIP while hunting for %(name)s", self.destination)
+                            self.destination = possible_targets[0]
+                            self.bot.hunter_locked_target = self.destination
+                            self.lost_counter = 0
+                            self.hunt_started_at = datetime.now()
+                            self.logger.info("New VIP target at %(distance).2f meters: %(name)s", self.destination)
+                            self.set_target()
+                            # We have a target
+                            return WorkerResult.RUNNING
+
+        # Now we check if there is a VIP target closer by
+        if self.destination is not None and self.bot.hunter_locked_target is self.destination:
+            # Hunting a VIP, checking for closer VIP target
+            if self.no_log_until < now:
+                # Not every tick please
+                possible_targets = filter(lambda p: self._is_vip_pokemon(p), pokemons)
+                # Update the distance to targets
+                for p in possible_targets:
+                    p["distance"] = self.get_distance(self.bot.position, p)
+                possible_targets.sort(key=lambda p: p["distance"])
+                # Check for a closer target
+                self.destination["distance"] = self.get_distance(self.bot.position, self.destination)
+                for pokemon in possible_targets:
+                    if pokemon is not self.destination:
+                        if round(pokemon["distance"], 2) >= round(self.destination["distance"], 2):
+                            # further away!
+                            break
+                        with self.bot.database as conn:
+                            c = conn.cursor()
+                            c.execute(
+                                "SELECT COUNT(pokemon) FROM catch_log where pokemon = '{}' and  datetime(dated, 'localtime') > Datetime('{}')".format(pokemon["name"], self.hunt_started_at.strftime("%Y-%m-%d %H:%M:%S")))
+                        # Now check if there is 1 or more caught
+                        amount = c.fetchone()[0]
+                        if amount > 0:
+                            # We caught this pokemon recently, skip it
+                            continue
+                        if self.config_treat_family_of_vip_as_vip and self._is_family_of_vip(pokemon):
+                            if self._is_vip_pokemon(self.destination):
+                                self.logger.info("Seeing a familymember of a VIP at %(distance).2f meters: %(name)s", pokemon)
+                                self.logger.info("Not hunting down because we are locked to a real VIP: %(name)s", self.destination)
+                                continue
+                            else:
+                                self.logger.info("Closer (is distance) familymember of VIP found!")
+
+                        self.logger.info("Found a closer VIP target: %s < %s" % (pokemon["distance"], self.destination["distance"]))
+                        if self.destination is not None:
+                            self.logger.info("Closer VIP hunt takes priority! Changing target...")
+                        self.destination = pokemon
+                        self.bot.hunter_locked_target = self.destination
+                        self.lost_counter = 0
+                        self.hunt_started_at = datetime.now()
+                        self.logger.info("New VIP target at %(distance).2f meters: %(name)s", self.destination)
+                        self.set_target()
+                        # We have a target
+                        return WorkerResult.RUNNING
+                
 
         # Check if there is a VIP around to hunt
         if (self.destination is not None and
@@ -334,6 +434,7 @@ class PokemonHunter(BaseTask):
         if self.config_lock_on_target and not self.config_lock_vip_only:
             if self.bot.hunter_locked_target == None:
                 self.logger.info("We found a %(name)s while hunting. Aborting the current search.", self.destination)
+                self.previous_destination = self.destination
                 self.destination = None
                 self.hunting_trash = False
                 if self.config_enable_cooldown:
@@ -344,11 +445,12 @@ class PokemonHunter(BaseTask):
 
         # Determin if we are allowed to run to a VIP
         different_target = False
-        if self.previous_destination is None:
-            self.previous_destination = self.destination
-        elif self.previous_destination is not self.destination:
-            different_target = True
-            self.previous_destination = self.destination
+        if self.destination is not None:
+            if self.previous_destination is None:
+                self.previous_destination = self.destination
+            elif self.previous_destination is not self.destination:
+                different_target = True
+                self.previous_destination = self.destination
 
         if self.config_run_to_vip and self._is_vip_pokemon(self.destination):
             if self.runs_to_vips > 3:
@@ -382,9 +484,11 @@ class PokemonHunter(BaseTask):
                     self.logger.info("Hunting on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
             else:
                 self.logger.info("Now searching for %(name)s", self.destination)
-
-                self.walker = StepWalker(self.bot, self.search_points[0][0], self.search_points[0][1])
-                self.search_points = self.search_points[1:] + self.search_points[:1]
+                if self.search_points == []:
+                    self.walker = StepWalker(self.bot, self.destination['latitude'], self.destination['longitude'])
+                else:
+                    self.walker = StepWalker(self.bot, self.search_points[0][0], self.search_points[0][1])
+                    self.search_points = self.search_points[1:] + self.search_points[:1]
         elif self.no_log_until < now:
             distance = great_circle(self.bot.position, (self.walker.dest_lat, self.walker.dest_lng)).meters
             if round(distance, 2) == self.distance_to_target:
@@ -448,10 +552,20 @@ class PokemonHunter(BaseTask):
         return sum([inventory.items().get(ball.value).count for ball in [Item.ITEM_POKE_BALL, Item.ITEM_GREAT_BALL, Item.ITEM_ULTRA_BALL]])
 
     def set_target(self):
-        self.search_points = self.get_search_points(self.destination["s2_cell_id"])
-        self.walker = PolylineWalker(self.bot, self.search_points[0][0], self.search_points[0][1])
-        self.search_cell_id = self.destination["s2_cell_id"]
-        self.search_points = self.search_points[1:] + self.search_points[:1]
+        if not 's2_cell_id' in self.destination:
+            # This Pokemon has coords
+            self.search_points = []
+            self.walker = PolylineWalker(self.bot, self.destination["latitude"], self.destination["longitude"])
+            self.logger.info("Target must be close by...")
+            # self.logger.info("destination: %s" % self.destination)
+            # self.search_points = self.get_search_points(self.bot.cell["s2_cell_id"])
+            # self.search_cell_id = self.bot.cell["s2_cell_id"]
+            # self.search_points = self.search_points[1:] + self.search_points[:1]
+        else:
+            self.search_points = self.get_search_points(self.destination["s2_cell_id"])
+            self.walker = PolylineWalker(self.bot, self.search_points[0][0], self.search_points[0][1])
+            self.search_cell_id = self.destination["s2_cell_id"]
+            self.search_points = self.search_points[1:] + self.search_points[:1]
 
         if "fort_id" in self.destination:
             # The Pokemon is hding at a POkestop, so move to that Pokestop!
@@ -485,17 +599,39 @@ class PokemonHunter(BaseTask):
 
         pokemons = [p for p in self.bot.cell["nearby_pokemons"] if self.get_distance(self.bot.start_position, p) <= radius]
 
-        # if 'wild_pokemons' in self.bot.cell:
-        #     for pokemon in self.bot.cell['wild_pokemons']:
-        #         pokemons.append(pokemon)
-        #
-        # if 'catchable_pokemons' in self.bot.cell:
-        #     for pokemon in self.bot.cell['catchable_pokemons']:
-        #         pokemons.append(pokemon)
+        if 'wild_pokemons' in self.bot.cell:
+            for pokemon in self.bot.cell['wild_pokemons']:
+                if pokemon['encounter_id'] in map(lambda pokemon: pokemon['encounter_id'], pokemons):
+                    # Already added this Pokemon
+                    continue
+                if self.get_distance(self.bot.start_position, pokemon) <= radius:
+                    pokemons.append(pokemon)
+        
+        if 'catchable_pokemons' in self.bot.cell:
+            for pokemon in self.bot.cell['catchable_pokemons']:
+                if pokemon['encounter_id'] in map(lambda pokemon: pokemon['encounter_id'], pokemons):
+                    # Already added this Pokemon
+                    continue
+                if self.get_distance(self.bot.start_position, pokemon) <= radius:
+                    pokemons.append(pokemon)
 
         for pokemon in pokemons:
+            if "pokemon_data" in pokemon:
+                pokemon["pokemon_id"] = pokemon["pokemon_data"]["pokemon_id"]
+                pokemon["name"] = inventory.pokemons().name_for(pokemon["pokemon_id"])
+
+            if "name" not in pokemon and "pokemon_id" not in pokemon:
+                self.logger.warning("Strange result? %s" % pokemon)
+                # Skip this one!
+                continue
+
             pokemon["distance"] = self.get_distance(self.bot.position, pokemon)
-            pokemon["name"] = inventory.pokemons().name_for(pokemon["pokemon_id"])
+            
+            if "name" not in pokemon:
+                pokemon["name"] = inventory.pokemons().name_for(pokemon["pokemon_id"])
+            if "pokemon_id" not in pokemon:
+                pokemon["pokemon_id"] = inventory.pokemons().id_for(pokemon["name"])
+
             pokemon["candies"] = inventory.candies().get(pokemon["pokemon_id"]).quantity
             # Pokemon also has a fort_id of the PokeStop the Pokemon is hiding at.
             # We should set our first destination at that Pokestop.
@@ -510,8 +646,8 @@ class PokemonHunter(BaseTask):
         if self.bot.config.vips.get(pokemon["name"]) == {} or (self.config_treat_unseen_as_vip and not inventory.pokedex().seen(pokemon["pokemon_id"])):
             return True
         # If we must treat the family of the Pokemon as a VIP, also return true!
-        if self.config_treat_family_of_vip_as_vip and self._is_family_of_vip(pokemon):
-            return True
+        # if self.config_treat_family_of_vip_as_vip and self._is_family_of_vip(pokemon):
+        #     return True
 
     def _is_family_of_vip(self, pokemon):
         for fid in self.get_family_ids(pokemon):
