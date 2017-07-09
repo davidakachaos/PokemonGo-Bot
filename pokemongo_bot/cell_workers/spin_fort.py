@@ -362,20 +362,6 @@ class SpinFort(BaseTask):
 
                 self._update_inventory(item_awarded)
 
-        # if items_awarded:
-        #     for item_awarded in items_awarded:
-        #
-        #         item_awarded_id = item_awarded['item_id']
-        #         item_awarded_name = inventory.Items.name_for(item_awarded_id)
-        #         item_awarded_count = item_awarded['item_count']
-        #
-        #         if item_awarded_name not in tmp_count_items:
-        #             tmp_count_items[item_awarded_name] = item_awarded_count
-        #         else:
-        #             tmp_count_items[item_awarded_name] += item_awarded_count
-        #
-        #         self._update_inventory(item_awarded)
-        #
         return tmp_count_items
 
     # TODO : Refactor this class, hide the inventory update right after the api call
