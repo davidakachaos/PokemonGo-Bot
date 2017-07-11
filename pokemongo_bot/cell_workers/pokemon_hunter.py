@@ -769,6 +769,10 @@ class PokemonHunter(BaseTask):
         return vanished
 
     def get_nearest_fort_on_the_way(self):
+        # No search points, skip
+        if self.search_points == []:
+            return None
+
         forts = self.bot.get_forts(order_by_distance=True)
 
         # Remove stops that are still on timeout

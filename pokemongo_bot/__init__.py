@@ -121,6 +121,9 @@ class PokemonGoBot(object):
         self.logger = logging.getLogger(type(self).__name__)
         self.alt = self.config.gps_default_altitude
 
+        # A list with ids for the inbox check.
+        self.inbox_message_ids = []
+
         # Make our own copy of the workers for this instance
         self.workers = []
 
@@ -258,6 +261,7 @@ class PokemonGoBot(object):
             parameters=(
                 'name',
                 'hp',
+                'hp_new',
                 'hp_max'
             )
         )
@@ -1092,7 +1096,20 @@ class PokemonGoBot(object):
         )
 
         link = "https://pokehash.buddyauth.com/api/hash/versions"
-        f = urllib2.urlopen(link)
+        try_cnt = 0
+        while True:
+            try:
+                f = urllib2.urlopen(link)
+                break
+            except:
+                try_cnt += 1
+                if try_cnt > 3:
+                    raise
+                else:
+                    self.logger.warning("Problem loading versions from Hash Server, retrying...")
+                    sleep(5)
+                    continue
+                    
         myfile = f.read()
         f.close()
         bossland_hash_endpoint = myfile.split(",")
@@ -1655,11 +1672,17 @@ class PokemonGoBot(object):
                     # self.logger.info("Got inbox messages?")
                     # self.logger.info("Inbox: %s" % responses['responses']['GET_INBOX'])
                 if 'notifications' in self._inbox:
+                    if len(self.inbox_message_ids) == 0:
+                        # Assume we are just starting up, hide all notifications
+                        for notification in self._inbox['notifications']:
+                            self.inbox_message_ids.append(notification['notification_id'])
+                        
                     for notification in self._inbox['notifications']:
-                        notification_date = datetime.datetime.fromtimestamp(int(notification['create_timestamp_ms']) / 1e3)
-                        if previous_heartbeat > (int(notification['create_timestamp_ms']) / 1e3):
+                        if notification['notification_id'] in self.inbox_message_ids:
                             # Skipp old notifications!
                             continue
+                        notification_date = datetime.datetime.fromtimestamp(int(notification['create_timestamp_ms']) / 1e3)
+                        self.inbox_message_ids.append(notification['notification_id'])
 
                         if notification['category'] == 'pokemon_hungry':
                             gym_name = pokemon = 'Unknown'

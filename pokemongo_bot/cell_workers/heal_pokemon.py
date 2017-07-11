@@ -186,16 +186,21 @@ class HealPokemon(BaseTask):
 
     def _use_potion(self, potion_id, pokemon):
         potion_count = inventory.items().get(potion_id).count
+        healing = 0
         if potion_count == 0:
             return False
         if potion_id == 101:
             self.logger.info("Healing with a normal potion we have %s left." % (potion_count - 1))
+            healing = 20
         if potion_id == 102:
             self.logger.info("Healing with a Super potion we have %s left." % (potion_count - 1))
+            healing = 50
         if potion_id == 103:
             self.logger.info("Healing with a HYper potion we have %s left." % (potion_count - 1))
+            healing = 200
         if potion_id == 104:
             self.logger.info("Healing with a MAX potion we have %s left." % (potion_count - 1))
+            healing = pokemon.hp_max - pokemon.hp
 
         response_dict_potion = self.bot.api.use_item_potion(item_id=potion_id, pokemon_id=pokemon.unique_id)
         # Select potion
@@ -208,10 +213,11 @@ class HealPokemon(BaseTask):
                 potion_item.remove(1)
                 self.emit_event(
                     'healing_pokemon',
-                    formatted='Healing {name} ({hp}/{hp_max}).',
+                    formatted='Healing {name} ({hp} -> {hp_new}/{hp_max}).',
                     data={
                         'name': pokemon.name,
                         'hp': pokemon.hp,
+                        'hp_new': pokemon.hp + healing,
                         'hp_max': pokemon.hp_max
                     }
                 )
@@ -226,10 +232,11 @@ class HealPokemon(BaseTask):
                 self.emit_event(
                     'healing_pokemon',
                     level='error',
-                    formatted='Failed to heal {name} ({hp}/{hp_max})!',
+                    formatted='Failed to heal {name} ({hp} -> {hp_new}/{hp_max})!',
                     data={
                         'name': pokemon.name,
                         'hp': pokemon.hp,
+                        'hp_new': pokemon.hp + healing,
                         'hp_max': pokemon.hp_max
                     }
                 )

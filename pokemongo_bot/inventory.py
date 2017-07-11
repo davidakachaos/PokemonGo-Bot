@@ -556,6 +556,7 @@ class Types(_StaticInventoryComponent):
     See more information:
     https://i.redd.it/oy7lrixl8r9x.png
     https://www.reddit.com/r/TheSilphRoad/comments/4t8seh/pokemon_go_type_advantage_chart/
+    https://pokemongo.gamepress.gg/pokemon-type-chart-strengths-weakness
     https://github.com/jehy/Pokemon-Go-Weakness-calculator/blob/master/app/src/main/java/ru/jehy/pokemonweaknesscalculator/MainActivity.java#L31
     """
 
@@ -567,7 +568,7 @@ class Types(_StaticInventoryComponent):
         ret = OrderedDict()
         for t in sorted(data, key=lambda x: x["name"]):
             name = str(t["name"])
-            ret[name] = Type(name, t["effectiveAgainst"], t["weakAgainst"])
+            ret[name] = Type(name, t["effectiveAgainst"], t["weakAgainst"])#, t["immuneAgainst"], t["immuneTo"])
 
         # additional manipulations
         size = len(ret)
@@ -576,6 +577,7 @@ class Types(_StaticInventoryComponent):
         for t in ret.itervalues():  # type: Type
             t.attack_effective_against = [ret[name] for name in t.attack_effective_against]
             t.attack_weak_against = [ret[name] for name in t.attack_weak_against]
+            # t.attack_immume_against = [ret[name] for name in t.attack_immune_against]
 
             # group types effective against, weak against specific types
             for l, d in (t.attack_effective_against, by_effectiveness), \
@@ -718,7 +720,7 @@ class ChargedAttacks(_Attacks):
 # Instances
 
 class Type(object):
-    def __init__(self, name, effective_against, weak_against):
+    def __init__(self, name, effective_against, weak_against): #, immune_against, immune_to):
         # type: (string, Iterable[Type], Iterable[Type]) -> None
 
         self.name = name
@@ -759,6 +761,10 @@ class Type(object):
         self.pokemon_resistant_to = set()  # type: Set[Type]
         # pokemon of this type is vulnerable to ...
         self.pokemon_vulnerable_to = set()  # type: Set[Type]
+        # pokemon of this type is immune against
+        # self.attack_immune_against = set(immune_against)
+        # pokemon of this type is immune to
+        # self.attack_immune_to = set(immune_to)
 
         # average factor for damage of this type relative to all types
         self.rate = 1.
@@ -1428,11 +1434,12 @@ class Inventory(object):
 
 # STAB (Same-type attack bonus)
 # Factor applied to attack of the same type as pokemon
-STAB_FACTOR = 1.25
+STAB_FACTOR = 1.2
 # Factor applied to attack when it's effective against defending pokemon type
-EFFECTIVENESS_FACTOR = 1.25
+EFFECTIVENESS_FACTOR = 1.4
 # Factor applied to attack when it's weak against defending pokemon type
-RESISTANCE_FACTOR = 0.8
+RESISTANCE_FACTOR = 0.714
+IMMUNITY_FACTOR = 0.51
 
 
 _inventory = None  # type: Inventory
