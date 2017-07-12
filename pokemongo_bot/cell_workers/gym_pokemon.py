@@ -651,7 +651,7 @@ class GymPokemon(BaseTask):
         # Sort them
         pokemons_ordered = sorted(possible_pokemons, key=lambda x: get_poke_info(self.order_by, x), reverse=True)
         # Top 10 picks
-        pokemons_ordered = pokemons_ordered[0:10]
+        pokemons_ordered = pokemons_ordered[0:20]
         # Pick a random one!
         random.shuffle(pokemons_ordered)
         return pokemons_ordered[0]
