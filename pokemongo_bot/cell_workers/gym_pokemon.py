@@ -132,6 +132,9 @@ class GymPokemon(BaseTask):
     def check_close_gym(self):
         # Check if we are walking past a gym
         close_gyms = self.get_gyms_in_range()
+        # Filter active raids from the gyms
+        close_gyms = filter(lambda gym: gym["id"] not in self.raid_gyms, close_gyms)
+
         if len(close_gyms) > 0:
             # self.logger.info("Walking past a gym!")
             for gym in close_gyms:
@@ -277,7 +280,13 @@ class GymPokemon(BaseTask):
             # Feed the Pokemon now we're here...
             # self.feed_pokemons_in_gym(self.destination)
             self.destination = None
-            return WorkerResult.SUCCESS
+            # Look around if there are more gyms to fill
+            self.determin_new_destination()
+            # If there is none, we're done, else we go to the next!
+            if self.destination is None:
+                return WorkerResult.SUCCESS
+            else:
+                return WorkerResult.RUNNING
     
     def get_gym_details(self, gym):
         lat = gym['latitude']

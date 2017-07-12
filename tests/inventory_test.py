@@ -135,7 +135,7 @@ class InventoryTest(unittest.TestCase):
         self.assertAlmostEqual(poke.moveset.dps,15.130190007037298 )
         self.assertAlmostEqual(poke.moveset.dps_attack, 16.256157635467982)
         self.assertAlmostEqual(poke.moveset.dps_defense, 6.377929397804805 )
-        self.assertAlmostEqual(poke.moveset.attack_perfection, 0.1976822769744798)
+        self.assertAlmostEqual(poke.moveset.attack_perfection, 0.15433958252117524)
         self.assertAlmostEqual(poke.moveset.defense_perfection, 0.62438387986335)
 
         poke = Pokemon({

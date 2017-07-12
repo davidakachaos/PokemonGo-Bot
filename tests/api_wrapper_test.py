@@ -67,8 +67,9 @@ class TestApiWrapper(unittest.TestCase):
         for wrong in wrong_return_values:
             request = returnRequest(wrong)
             request_callers = request._pop_request_callers() # we can pop because we do no call
+            platform_callers = request._pop_platform_callers() # we can pop because we do no call
 
-            is_valid = request.is_response_valid(wrong, request_callers)
+            is_valid = request.is_response_valid(wrong, request_callers, platform_callers)
             self.assertFalse(is_valid, 'return value {} is valid somehow ?'.format(wrong))
 
     def test_return_value_is_valid(self):
