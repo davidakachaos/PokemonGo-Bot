@@ -1042,6 +1042,7 @@ class Pokemon(object):
             self.fort_id = data['deployed_fort_id']
         self.is_favorite = data.get('favorite', 0) is 1
         self.buddy_candy = data.get('buddy_candy_awarded', 0)
+        self.is_bad = data.get('is_bad', False)
         self.buddy_distance_needed = self.static.buddy_distance_needed
 
         self.fast_attack = FastAttacks.data_for(data['move_1'])
