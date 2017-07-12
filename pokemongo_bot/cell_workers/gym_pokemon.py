@@ -463,24 +463,31 @@ class GymPokemon(BaseTask):
                     self.raid_gyms[gym["id"]] = raid_ends
                     return WorkerResult.SUCCESS
                 else:
-                    self.logger.info("Waiting for %s seconds for raid to end..." % (raid_ends-t).seconds)
-                    sleep((raid_ends-t).seconds)
+                    while raid_ends > datetime.now():
+                        self.logger.info("Waiting for %s seconds for raid to end..." % (raid_ends-datetime.today()).seconds)
+                        if (raid_ends-datetime.today()).seconds > 20:
+                            sleep(20)
+                        else:
+                            sleep((raid_ends-datetime.today()).seconds)
+                            break
             else:
                 self.logger.info("Raid has not begun yet!")
 
         if 'same_team_deploy_lockout_end_ms' in gym:
             # self.logger.info("%f" % gym["same_team_deploy_lockout_end_ms"])
             org_time = int(gym["same_team_deploy_lockout_end_ms"]) / 1e3
-            self.logger.info("org_time: %f" % org_time)
             lockout_time = datetime.fromtimestamp(org_time)
-            self.logger.info("Lockout time: %s" % lockout_time.strftime('%Y-%m-%d %H:%M:%S.%f'))
             t = datetime.today()
 
-            if lockout_time < datetime.now():
-                self.logger.info("No need to wait.")
-            else:
-                self.logger.info("Waiting for %s seconds deployment lockout to end..." % (lockout_time-t).seconds)
-                sleep((lockout_time-t).seconds)
+            if lockout_time > datetime.now():
+                self.logger.info("Lockout time: %s" % lockout_time.strftime('%Y-%m-%d %H:%M:%S.%f'))
+                while lockout_time > datetime.now():
+                    self.logger.info("Waiting for %s seconds deployment lockout to end..." % (lockout_time-datetime.today()).seconds)
+                    if (lockout_time-datetime.today()).seconds > 20:
+                        sleep(20)
+                    else:
+                        sleep((lockout_time-t).seconds)
+                        break
 
         #FortDeployPokemon
         # self.logger.info("Trying to deploy Pokemon in gym: %s" % gym)
@@ -511,7 +518,7 @@ class GymPokemon(BaseTask):
                 self.dropped_gyms.append(gym["id"])
                 gym_details = self.get_gym_details(gym)
                 # SUCCES
-                self.logger.info("We deployed %s (%s CP) in the gym!" % (fort_pokemon.name, fort_pokemon.cp))
+                self.logger.info("We deployed %s (%s CP) in the gym! We now have %s Pokemon in gyms!" % (fort_pokemon.name, fort_pokemon.cp, len(self.dropped_gyms)))
                 self.emit_event(
                     'deployed_pokemon',
                     formatted=("We deployed %s (%s CP) in the gym %s!!" % (fort_pokemon.name, fort_pokemon.cp, gym_details["name"])),
