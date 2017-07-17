@@ -16,6 +16,7 @@ from pokemongo_bot.human_behaviour import sleep, action_delay
 from pokemongo_bot.item_list import Item
 from pokemongo_bot.tree_config_builder import ConfigException
 from pokemongo_bot.worker_result import WorkerResult
+from pokemongo_bot.inventory import LevelToCPm
 
 SUCCESS = 1
 ERROR_XP_BOOST_ALREADY_ACTIVE = 3
@@ -79,6 +80,7 @@ class PokemonOptimizer(BaseTask):
         self.config_may_unfavor_pokemon = self.config.get("may_unfavor_pokemon", False)
         self.config_upgrade = self.config.get("upgrade", False)
         self.config_upgrade_level = self.config.get("upgrade_level", 30)
+        self.config_max_cp_upgrade = self.config.get("max_cp_upgrade", False)
         self.config_groups = self.config.get("groups", {"gym": ["Dragonite", "Snorlax", "Lapras", "Arcanine"]})
         self.config_rules = self.config.get("rules", [{"mode": "overall", "top": 1, "sort": ["max_cp", "cp"], "keep": {"candy": -124}, "evolve": False, "buddy": True},
                                                       {"mode": "overall", "top": 1, "sort": ["-candy", "max_cp", "cp"], "evolve": False, "buddy": True},
@@ -87,6 +89,8 @@ class PokemonOptimizer(BaseTask):
                                                       {"mode": "by_family", "top": 1, "sort": ["ncp"], "evolve": {"ncp": 0.9}},
                                                       {"mode": "by_family", "top": 1, "sort": ["cp"], "evolve": False},
                                                       {"mode": "by_pokemon", "names": ["!with_next_evolution"], "top": 1, "sort": ["dps_attack", "iv"], "keep": {"iv": 0.9}}])
+        # upgrade to limited CP
+        self.config_max_upgrade_cp = self.config.get("max_upgrade_cp", 2999)
 
         if (not self.config_may_use_lucky_egg) and self.config_evolve_only_with_lucky_egg:
             self.config_evolve = False
@@ -279,17 +283,19 @@ class PokemonOptimizer(BaseTask):
             evolve_all = []
             upgrade_all = []
             xp_all = []
+            upgrade_limited_all = []
             for family_id, pokemon_list in self.group_by_family_id(inventory.pokemons().all()):
                 keep = [p for p in keep_all if self.get_family_id(p) == family_id]
                 try_evolve = [p for p in try_evolve_all if self.get_family_id(p) == family_id]
                 try_upgrade = [p for p in try_upgrade_all if self.get_family_id(p) == family_id]
 
-                transfer, evolve, upgrade, xp = self.get_evolution_plan(family_id, pokemon_list, keep, try_evolve, try_upgrade)
+                transfer, evolve, upgrade, xp, limited_upgrade = self.get_evolution_plan(family_id, pokemon_list, keep, try_evolve, try_upgrade)
 
                 transfer_all += transfer
                 evolve_all += evolve
                 upgrade_all += upgrade
                 xp_all += xp
+                upgrade_limited_all.append(limited_upgrade)
 
             if not self.config_may_evolve_favorites:
                 self.logger.info("Removing favorites from evolve list.")
@@ -301,7 +307,7 @@ class PokemonOptimizer(BaseTask):
             # Remove all shiny Pokemon from transfer! Always!
             transfer_all = [p for p in transfer_all if not p.shiny]
 
-            self.apply_optimization(transfer_all, evolve_all, upgrade_all, xp_all)
+            self.apply_optimization(transfer_all, evolve_all, upgrade_all, xp_all, upgrade_limited_all)
 
         return WorkerResult.SUCCESS
 
@@ -657,10 +663,53 @@ class PokemonOptimizer(BaseTask):
                 evolve.append(pokemon)
 
         upgrade = []
+        limited_upgrade = []
         upgrade_level = min(self.config_upgrade_level, inventory.player().level + 1.5, 40)
+        max_cp_upgrade =  self.config_max_cp_upgrade
         # Highest CP on top.
         if len(try_upgrade) > 0:
             try_upgrade.sort(key=lambda p: (p.cp), reverse=True)
+
+        if max_cp_upgrade and int(max_cp_upgrade) > 0:
+            for pokemon in try_upgrade:
+                if pokemon.in_fort:
+                    # Can't upgrade a Pokemon in a fort!
+                    continue
+                if pokemon.cp >= int(max_cp_upgrade):
+                    # self.log("Pokemon already at target CP. %s" % pokemon.cp)
+                    continue
+                if pokemon.static.max_cp < int(max_cp_upgrade):
+                    continue # will be done by the next upgrade.
+
+                upgrade_candy_cost = 0
+                upgrade_stardust_cost = 0
+                pokemon_level = pokemon.level
+                number_of_powerups = 0
+                for i in range(int(pokemon.level * 2), int(upgrade_level * 2)):
+                    pokemon_level += 0.5
+                    new_cp = self.pokemon_cp_at_level(pokemon, pokemon_level)
+                    if new_cp < max_cp_upgrade:
+                        number_of_powerups += 1
+                        upgrade_cost = self.pokemon_upgrade_cost[i - 2]
+                        upgrade_candy_cost += upgrade_cost[0]
+                        upgrade_stardust_cost += upgrade_cost[1]
+                    else:
+                        # That is the max now!
+                        break
+                candies -= upgrade_candy_cost
+                self.ongoing_stardust_count -= upgrade_stardust_cost
+
+                if (candies < 0) or (self.ongoing_stardust_count < 0):
+                    self.ongoing_stardust_count += upgrade_stardust_cost
+                    continue
+                if number_of_powerups == 0:
+                    continue
+                else:
+                    upgrade = dict()
+                    upgrade["level"] = pokemon_level
+                    upgrade["pokemon"] = pokemon
+                    limited_upgrade.append(upgrade)
+
         for pokemon in try_upgrade:
             if pokemon.in_fort:
                 # Can't upgrade a Pokemon in a fort!
@@ -714,16 +763,17 @@ class PokemonOptimizer(BaseTask):
             xp = [p for p in crap if p.has_next_evolution() and p.evolution_cost == lowest_evolution_cost][:keep_for_xp]
             transfer = [p for p in crap if p not in xp]
 
-        return (transfer, evolve, upgrade, xp)
+        return (transfer, evolve, upgrade, xp, limited_upgrade)
 
     def unique_pokemon_list(self, pokemon_list):
         seen = set()
         return [p for p in pokemon_list if not (p.unique_id in seen or seen.add(p.unique_id))]
 
-    def apply_optimization(self, transfer, evolve, upgrade, xp):
+    def apply_optimization(self, transfer, evolve, upgrade, xp, upgrade_limited_all):
         transfer_count = len(transfer)
         evolve_count = len(evolve)
         upgrade_count = len(upgrade)
+        upgrade_limited_count = len(upgrade_limited_all)
         xp_count = len(xp)
 
         if self.config_transfer or self.bot.config.test:
@@ -738,6 +788,12 @@ class PokemonOptimizer(BaseTask):
 
                 for pokemon in upgrade:
                     self.upgrade_pokemon(pokemon)
+
+            if upgrade_limited_count > 0:
+                self.logger.info("Upgrading %s Pokemon to a max of a certain CP [%s stardust]", upgrade_limited_count, self.bot.stardust)
+                for upgrade in upgrade_limited_all:
+                    self.logger.info("Upgrade: %s" % upgrade)
+                    self.upgrade_pokemon(upgrade["pokemon"], upgrade["level"])
 
         if self.config_evolve or self.bot.config.test:
             evolve_xp_count = evolve_count + xp_count
@@ -989,8 +1045,14 @@ class PokemonOptimizer(BaseTask):
 
         return True
 
-    def upgrade_pokemon(self, pokemon):
-        upgrade_level = min(self.config_upgrade_level, inventory.player().level + 1.5, 40)
+    def upgrade_pokemon(self, pokemon, target_level=None):
+        if target_level is None:
+            upgrade_level = min(self.config_upgrade_level, inventory.player().level + 1.5, 40)
+        else:
+            upgrade_level = target_level
+        
+        self.logger.info("Pokemon: %s" % pokemon)
+
         candy = inventory.candies().get(pokemon.pokemon_id)
 
         for i in range(int(pokemon.level * 2), int(upgrade_level * 2)):
@@ -1159,3 +1221,46 @@ class PokemonOptimizer(BaseTask):
                                       "iv": pokemon.iv,
                                       "cp": pokemon.cp})
                 action_delay(self.config_action_wait_min, self.config_action_wait_max)
+
+    def pokemon_cp_at_level(self, pokemon, level):
+        cp_multiplier = LevelToCPm.cp_multiplier_for(level)
+        return self._calc_cp(
+            pokemon.static.base_attack, pokemon.static.base_defense, pokemon.static.base_stamina,
+            pokemon.iv_attack, pokemon.iv_defense, pokemon.iv_stamina, cp_multiplier)
+    
+    def _calc_cp(self, base_attack, base_defense, base_stamina,
+             iv_attack, iv_defense, iv_stamina,
+             cp_multiplier=.0):
+        """
+        CP calculation
+
+        CP = (Attack * Defense^0.5 * Stamina^0.5 * CP_Multiplier^2) / 10
+        CP = (BaseAtk+AtkIV) * (BaseDef+DefIV)^0.5 * (BaseStam+StamIV)^0.5 * Lvl(CPScalar)^2 / 10
+
+        See https://www.reddit.com/r/TheSilphRoad/comments/4t7r4d/exact_pokemon_cp_formula/
+        See https://www.reddit.com/r/pokemongodev/comments/4t7xb4/exact_cp_formula_from_stats_and_cpm_and_an_update/
+        See http://pokemongo.gamepress.gg/pokemon-stats-advanced
+        See http://pokemongo.gamepress.gg/cp-multiplier
+        See http://gaming.stackexchange.com/questions/280491/formula-to-calculate-pokemon-go-cp-and-hp
+
+        :param base_attack:   Pokemon BaseAttack
+        :param base_defense:  Pokemon BaseDefense
+        :param base_stamina:  Pokemon BaseStamina
+        :param iv_attack:     Pokemon IndividualAttack (0..15)
+        :param iv_defense:    Pokemon IndividualDefense (0..15)
+        :param iv_stamina:    Pokemon IndividualStamina (0..15)
+        :param cp_multiplier: CP Multiplier (0.79030001 is max - value for level 40)
+        :return: CP as float
+        """
+        assert base_attack > 0
+        assert base_defense > 0
+        assert base_stamina > 0
+
+        if cp_multiplier <= .0:
+            cp_multiplier = LevelToCPm.MAX_CPM
+            assert cp_multiplier > .0
+
+        return (base_attack + iv_attack) \
+            * ((base_defense + iv_defense)**0.5) \
+            * ((base_stamina + iv_stamina)**0.5) \
+            * (cp_multiplier ** 2) / 10

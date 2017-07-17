@@ -28,7 +28,7 @@ def fort_details(bot, fort_id, latitude, longitude):
     """
     first_call = False
     if fort_id not in FORT_CACHE:
-        if distance(latitude, longitude, bot.position[0], bot.position[1]) > 600:
+        if distance(latitude, longitude, bot.position[0], bot.position[1]) > 1000:
           # Fort too far away to get the details!
           FORT_CACHE[fort_id] = dict()
           first_call = True
@@ -47,7 +47,7 @@ def fort_details(bot, fort_id, latitude, longitude):
               first_call = True
 
     if not first_call and FORT_CACHE.get(fort_id, dict()) == dict():
-      if distance(latitude, longitude, bot.position[0], bot.position[1]) < 500:
+      if distance(latitude, longitude, bot.position[0], bot.position[1]) < 1000:
         """
         Lookup the fort details and cache the response for future use.
         """

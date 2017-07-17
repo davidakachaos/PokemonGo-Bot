@@ -606,14 +606,14 @@ class PokemonHunter(BaseTask):
                     continue
                 if self.get_distance(self.bot.start_position, pokemon) <= radius:
                     pokemons.append(pokemon)
-        
-        if 'catchable_pokemons' in self.bot.cell:
-            for pokemon in self.bot.cell['catchable_pokemons']:
-                if pokemon['encounter_id'] in map(lambda pokemon: pokemon['encounter_id'], pokemons):
-                    # Already added this Pokemon
-                    continue
-                if self.get_distance(self.bot.start_position, pokemon) <= radius:
-                    pokemons.append(pokemon)
+        # Catchable pokemons includes targets we already caught...
+        # if 'catchable_pokemons' in self.bot.cell:
+        #     for pokemon in self.bot.cell['catchable_pokemons']:
+        #         if pokemon['encounter_id'] in map(lambda pokemon: pokemon['encounter_id'], pokemons):
+        #             # Already added this Pokemon
+        #             continue
+        #         if self.get_distance(self.bot.start_position, pokemon) <= radius:
+        #             pokemons.append(pokemon)
 
         for pokemon in pokemons:
             if "pokemon_data" in pokemon:
