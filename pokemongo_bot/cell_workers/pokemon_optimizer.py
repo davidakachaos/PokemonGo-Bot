@@ -295,7 +295,10 @@ class PokemonOptimizer(BaseTask):
                 evolve_all += evolve
                 upgrade_all += upgrade
                 xp_all += xp
-                upgrade_limited_all.append(limited_upgrade)
+                if len(limited_upgrade) > 0:
+                    # self.logger.info("Adding %s to list" % limited_upgrade)
+                    upgrade_limited_all += limited_upgrade
+                    # self.logger.info("List is now: %s" % upgrade_limited_all)
 
             if not self.config_may_evolve_favorites:
                 self.logger.info("Removing favorites from evolve list.")
@@ -671,6 +674,10 @@ class PokemonOptimizer(BaseTask):
             try_upgrade.sort(key=lambda p: (p.cp), reverse=True)
 
         if max_cp_upgrade and int(max_cp_upgrade) > 0:
+            if not self.config_may_upgrade_favorites:
+                self.logger.info("Removing favorites from limited upgrade list.")
+                try_upgrade = [p for p in try_upgrade if not p.is_favorite]
+
             for pokemon in try_upgrade:
                 if pokemon.in_fort:
                     # Can't upgrade a Pokemon in a fort!
@@ -685,30 +692,39 @@ class PokemonOptimizer(BaseTask):
                 upgrade_stardust_cost = 0
                 pokemon_level = pokemon.level
                 number_of_powerups = 0
+                previous_cp = 0
                 for i in range(int(pokemon.level * 2), int(upgrade_level * 2)):
                     pokemon_level += 0.5
                     new_cp = self.pokemon_cp_at_level(pokemon, pokemon_level)
                     if new_cp < max_cp_upgrade:
+                        previous_cp = new_cp
                         number_of_powerups += 1
                         upgrade_cost = self.pokemon_upgrade_cost[i - 2]
                         upgrade_candy_cost += upgrade_cost[0]
                         upgrade_stardust_cost += upgrade_cost[1]
                     else:
+                        pokemon_level -= 0.5 # undo previous and invalid up
+                        # self.logger.info("Can get %s to %s" % (pokemon.name, previous_cp))
                         # That is the max now!
                         break
                 candies -= upgrade_candy_cost
                 self.ongoing_stardust_count -= upgrade_stardust_cost
 
                 if (candies < 0) or (self.ongoing_stardust_count < 0):
+                    # self.logger.info("No enough candy or stardust!")
                     self.ongoing_stardust_count += upgrade_stardust_cost
+                    candies += upgrade_candy_cost
                     continue
+
                 if number_of_powerups == 0:
                     continue
                 else:
-                    upgrade = dict()
-                    upgrade["level"] = pokemon_level
-                    upgrade["pokemon"] = pokemon
-                    limited_upgrade.append(upgrade)
+                    to_up = {}
+                    to_up['level'] = pokemon_level
+                    to_up['pokemon'] = pokemon
+                    self.logger.info("Up a %s to level %s to get a CP of %s" % (pokemon.name, pokemon_level, int(previous_cp)))
+                    # self.logger.info("ToUp: %s" % [to_up])
+                    limited_upgrade += [to_up]
 
         for pokemon in try_upgrade:
             if pokemon.in_fort:
@@ -791,8 +807,9 @@ class PokemonOptimizer(BaseTask):
 
             if upgrade_limited_count > 0:
                 self.logger.info("Upgrading %s Pokemon to a max of a certain CP [%s stardust]", upgrade_limited_count, self.bot.stardust)
+                # self.logger.info("List: %s" % upgrade_limited_all)
                 for upgrade in upgrade_limited_all:
-                    self.logger.info("Upgrade: %s" % upgrade)
+                    # self.logger.info("Upgrade: %s" % upgrade)
                     self.upgrade_pokemon(upgrade["pokemon"], upgrade["level"])
 
         if self.config_evolve or self.bot.config.test:
@@ -1083,11 +1100,13 @@ class PokemonOptimizer(BaseTask):
 
             new_pokemon = inventory.Pokemon(upgrade)
             self.emit_event("pokemon_upgraded",
-                            formatted="Upgraded {pokemon} [IV {iv}] [CP {cp} -> {new_cp}] [{candy} candies] [{stardust} stardust]",
+                            formatted="Upgraded {pokemon} [IV {iv}] [CP {cp} -> {new_cp}] [Lvl {lvl} -> {lvl_new}] [{candy} candies] [{stardust} stardust]",
                             data={"pokemon": pokemon.name,
                                   "iv": pokemon.iv,
                                   "cp": pokemon.cp,
                                   "new_cp": new_pokemon.cp,
+                                  "lvl": pokemon.level,
+                                  "lvl_new": new_pokemon.level,
                                   "candy": candy.quantity,
                                   "stardust": self.bot.stardust})
 

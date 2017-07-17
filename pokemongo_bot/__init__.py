@@ -577,7 +577,7 @@ class PokemonGoBot(object):
         )
         self.event_manager.register_event(
             'pokemon_upgraded',
-            parameters=('pokemon', 'iv', 'cp', 'new_cp', 'candy', 'stardust')
+            parameters=('pokemon', 'iv', 'cp', 'new_cp', 'lvl', 'lvl_new', 'candy', 'stardust')
         )
         self.event_manager.register_event('skip_evolve')
         self.event_manager.register_event('threw_berry_failed', parameters=('status_code',))
