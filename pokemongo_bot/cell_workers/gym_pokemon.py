@@ -55,6 +55,14 @@ class GymPokemon(BaseTask):
         self.min_interval = self.config.get('min_interval', 60)
         self.min_recheck = self.config.get('min_recheck', 30)
         self.max_recheck = self.config.get('max_recheck', 120)
+        self.take_at_most = self.config.get('take_at_most', 20)
+        if self.take_at_most > 20:
+            self.logger.warning("We can take more than 20 gyms!")
+            self.take_at_most = 20
+        self.leave_at_least_spots = self.config.get('leave_at_least_spots', 0)
+        if self.leave_at_least_spots > 4:
+            self.logger.warning("There are only 6 spots in a gym, when we drop a Pokemon in that would leave 5 spots! Setting leave open spots to 4!")
+            self.leave_at_least_spots = 4
         self.recheck = datetime.now()
         self.walker = self.config.get('walker', 'StepWalker')
         self.destination = None
@@ -103,9 +111,9 @@ class GymPokemon(BaseTask):
         if self.bot.softban:
             return WorkerResult.SUCCESS
 
-        if len(self.fort_pokemons) >= 20:
+        if len(self.fort_pokemons) >= self.take_at_most:
             if self._should_print():
-                self.logger.info("We have a max of 20 Pokemon in gyms.")
+                self.logger.info("We have a max of %s Pokemon in gyms." % self.take_at_most)
             return WorkerResult.SUCCESS
 
         if hasattr(self.bot, "hunter_locked_target") and self.bot.hunter_locked_target is not None:
@@ -211,9 +219,17 @@ class GymPokemon(BaseTask):
                     if 'gym_display' in gym:
                         display = gym['gym_display']
                         if 'slots_available' in display:
-                            self.logger.info("Gym has %s open spots!" % display['slots_available'])
-                            self.destination = gym
-                            break
+                            if self.leave_at_least_spots > 0:
+                                if display['slots_available'] > self.leave_at_least_spots:
+                                    self.logger.info("Gym has %s open spots!" % display['slots_available'])
+                                    self.destination = gym
+                                    break
+                                else:
+                                    self.logger.info("Gym has %s open spots, but we dont drop Pokemon in it because that would leave less than %s open spots" % (display['slots_available'], self.leave_at_least_spots))
+                            else:
+                                self.logger.info("Gym has %s open spots!" % display['slots_available'])
+                                self.destination = gym
+                                break
             else:
                 # self.logger.info("Found a Neutral gym?")
                 # self.logger.info("Info: %s" % gym)
