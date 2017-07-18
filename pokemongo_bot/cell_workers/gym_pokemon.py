@@ -63,6 +63,7 @@ class GymPokemon(BaseTask):
         if self.leave_at_least_spots > 4:
             self.logger.warning("There are only 6 spots in a gym, when we drop a Pokemon in that would leave 5 spots! Setting leave open spots to 4!")
             self.leave_at_least_spots = 4
+        self.chain_fill_gyms = self.config.get('chain_fill_gyms', True)
         self.recheck = datetime.now()
         self.walker = self.config.get('walker', 'StepWalker')
         self.destination = None
@@ -105,15 +106,14 @@ class GymPokemon(BaseTask):
         if self._should_print():
             self.display_fort_pokemon()
             self._compute_next_update()
-        # Do display teh stats about Pokemon in Gym and collection time [please]
-        if not self.enabled:
-            return WorkerResult.SUCCESS
+            if len(self.fort_pokemons) >= self.take_at_most:
+                self.logger.info("We have a max of %s Pokemon in gyms." % self.take_at_most)
+                return WorkerResult.SUCCESS
+
         if self.bot.softban:
             return WorkerResult.SUCCESS
 
         if len(self.fort_pokemons) >= self.take_at_most:
-            if self._should_print():
-                self.logger.info("We have a max of %s Pokemon in gyms." % self.take_at_most)
             return WorkerResult.SUCCESS
 
         if hasattr(self.bot, "hunter_locked_target") and self.bot.hunter_locked_target is not None:
@@ -303,13 +303,19 @@ class GymPokemon(BaseTask):
                 # Feed the Pokemon now we're here...
                 self.feed_pokemons_in_gym(self.destination)
             self.destination = None
-            # Look around if there are more gyms to fill
-            self.determin_new_destination()
-            # If there is none, we're done, else we go to the next!
-            if self.destination is None:
+            if len(self.fort_pokemon) >= self.take_at_most:
+                self.logger.info("We have a max of %s Pokemon in gyms." % self.take_at_most)
                 return WorkerResult.SUCCESS
+            elif self.chain_fill_gyms:
+                # Look around if there are more gyms to fill
+                self.determin_new_destination()
+                # If there is none, we're done, else we go to the next!
+                if self.destination is None:
+                    return WorkerResult.SUCCESS
+                else:
+                    return WorkerResult.RUNNING
             else:
-                return WorkerResult.RUNNING
+                return WorkerResult.SUCCESS
     
     def get_gym_details(self, gym):
         lat = gym['latitude']
@@ -568,6 +574,7 @@ class GymPokemon(BaseTask):
             # self.logger.info("Status: %s" % result)
             if result == 1:
                 self.dropped_gyms.append(gym["id"])
+                self.fort_pokemon.append(fort_pokemon)
                 gym_details = self.get_gym_details(gym)
                 # SUCCES
                 self.logger.info("We deployed %s (%s CP) in the gym! We now have %s Pokemon in gyms!" % (fort_pokemon.name, fort_pokemon.cp, len(self.dropped_gyms)))
