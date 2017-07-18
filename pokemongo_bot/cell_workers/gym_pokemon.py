@@ -64,6 +64,8 @@ class GymPokemon(BaseTask):
             self.logger.warning("There are only 6 spots in a gym, when we drop a Pokemon in that would leave 5 spots! Setting leave open spots to 4!")
             self.leave_at_least_spots = 4
         self.chain_fill_gyms = self.config.get('chain_fill_gyms', True)
+        self.ignore_max_cp_pokemon = self.config.get('allow_above_cp', ["Blissey"])
+        self.never_place = self.config.get('never_place', [])
         self.recheck = datetime.now()
         self.walker = self.config.get('walker', 'StepWalker')
         self.destination = None
@@ -721,7 +723,10 @@ class GymPokemon(BaseTask):
         # Don't place a Pokemon which is already in the gym (prevent ALL Blissey etc)
         possible_pokemons = [p for p in self.pokemons if not p.name in current_pokemons]
         # Don't put in Pokemon above 3000 cp (morale drops too fast)
-        possible_pokemons = [p for p in possible_pokemons if p.cp < 3000]
+        # Except for a user set of mons (like Blissey)
+        possible_pokemons = [p for p in possible_pokemons if p.cp < 3000 and not p.name in self.ignore_max_cp_pokemon]
+        # filter out Pokemon never to be placed in gyms
+        possible_pokemons = [p for p in possible_pokemons if not p.name in self.never_place]
         # Filter out "bad" Pokemon
         possible_pokemons = [p for p in possible_pokemons if not p.is_bad]
         # HP Must be max

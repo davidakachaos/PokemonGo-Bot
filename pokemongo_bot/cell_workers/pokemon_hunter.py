@@ -500,8 +500,19 @@ class PokemonHunter(BaseTask):
             if self.distance_counter is 3:
                 # Try another walker
                 self.logger.info("Having difficulty walking to target, changing walker!")
-                self.walker = StepWalker(self.bot, self.search_points[0][0], self.search_points[0][1])
-                self.distance_counter += 1
+                if self.search_points == []:
+                    self.logger.info("I cant move toward %(name)s! Aborting search.", self.destination)
+                    self.hunting_trash = False
+                    self.bot.hunter_locked_target = None
+                    self.destination = None
+                    if self.config_enable_cooldown:
+                        wait = uniform(120, 600)
+                        self.no_hunt_until = time.time() + wait
+                        self.logger.info("Hunting on cooldown until {}.".format((datetime.now() + timedelta(seconds=wait)).strftime("%H:%M:%S")))
+                    return WorkerResult.ERROR
+                else:
+                    self.walker = StepWalker(self.bot, self.search_points[0][0], self.search_points[0][1])
+                    self.distance_counter += 1
 
             if self.distance_counter >= 6:
                 # Ignore last 3
