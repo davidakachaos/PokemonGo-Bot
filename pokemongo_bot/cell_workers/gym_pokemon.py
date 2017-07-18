@@ -303,7 +303,7 @@ class GymPokemon(BaseTask):
                 # Feed the Pokemon now we're here...
                 self.feed_pokemons_in_gym(self.destination)
             self.destination = None
-            if len(self.fort_pokemon) >= self.take_at_most:
+            if len(self.fort_pokemons) >= self.take_at_most:
                 self.logger.info("We have a max of %s Pokemon in gyms." % self.take_at_most)
                 return WorkerResult.SUCCESS
             elif self.chain_fill_gyms:
@@ -358,6 +358,7 @@ class GymPokemon(BaseTask):
         return pokemon_names
 
     def feed_pokemons_in_gym(self, gym):
+        return True
         berries = inventory.items().get(ITEM_RAZZBERRY).count + (inventory.items().get(ITEM_PINAPBERRY).count - 10) + inventory.items().get(ITEM_NANABBERRY).count
         if berries < 1:
             self.logger.info("No berries left to feed Pokemon.")
@@ -372,7 +373,6 @@ class GymPokemon(BaseTask):
             t = datetime.today()
 
             if raid_starts < datetime.now():
-                self.logger.info("Active raid?")
                 if raid_ends < datetime.now():
                     pass
                 else:
@@ -521,7 +521,9 @@ class GymPokemon(BaseTask):
                         sleep_h, sleep_m = divmod(sleep_m, 60)
                         sleep_hms = '%02d:%02d:%02d' % (sleep_h, sleep_m, sleep_s)
                         self.logger.info("Waiting for %s for raid to end..." % sleep_hms)
-                        if sleep_s > 20:
+                        if sleep_s > 20 and sleep_m > 0:
+                            sleep(20)
+                        elif sleep_s > 20:
                             sleep(20)
                         else:
                             sleep(5)
@@ -542,7 +544,9 @@ class GymPokemon(BaseTask):
                     sleep_h, sleep_m = divmod(sleep_m, 60)
                     sleep_hms = '%02d:%02d:%02d' % (sleep_h, sleep_m, sleep_s)
                     self.logger.info("Waiting for %s deployment lockout to end..." % sleep_hms)
-                    if sleep_s > 20:
+                    if sleep_s > 20 and sleep_m > 0:
+                        sleep(20)
+                    elif sleep_s > 20:
                         sleep(20)
                     else:
                         sleep(5)
