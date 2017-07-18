@@ -574,7 +574,7 @@ class GymPokemon(BaseTask):
             # self.logger.info("Status: %s" % result)
             if result == 1:
                 self.dropped_gyms.append(gym["id"])
-                self.fort_pokemon.append(fort_pokemon)
+                self.fort_pokemons.append(fort_pokemon)
                 gym_details = self.get_gym_details(gym)
                 # SUCCES
                 self.logger.info("We deployed %s (%s CP) in the gym! We now have %s Pokemon in gyms!" % (fort_pokemon.name, fort_pokemon.cp, len(self.dropped_gyms)))
