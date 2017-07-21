@@ -991,6 +991,12 @@ class PokemonOptimizer(BaseTask):
         while pokemon.unique_id in self.evolution_map:
             pokemon = self.evolution_map[pokemon.unique_id]
 
+        if pokemon.is_bad:
+            self.logger.info("This %s is a bad/slashed Pokemon! Can't evolve!" % pokemon.name)
+
+        if pokemon.in_fort:
+            self.logger.info("This %s is in a gym! Can't evolve!" % pokemon.name)
+
         if self.config_evolve and (not self.bot.config.test):
             needed_evolution_item = inventory.pokemons().evolution_item_for(pokemon.pokemon_id)
             if needed_evolution_item is not None:
