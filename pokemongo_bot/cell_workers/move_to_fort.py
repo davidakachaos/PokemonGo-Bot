@@ -78,11 +78,13 @@ class MoveToFort(BaseTask):
 
         distance_to_target = int(noised_dist if self.bot.config.replicate_gps_xy_noise else dist)
         if len(self.previous_distance) == 0:
+            error_moving = False
             self.previous_distance.append(distance_to_target)
         elif self.target_id is not fort_name:
             # self.logger.info("Changed target from %s to %s" % (self.target_id, fort_name))
             self.previous_distance = [distance_to_target]
             self.target_id = fort_name
+            error_moving = False
             if self.walker is not self.config.get('walker', 'StepWalker'):
                 self.walker = self.config.get('walker', 'StepWalker')
         else:
@@ -93,10 +95,14 @@ class MoveToFort(BaseTask):
             times_found = 0
             for prev_distance in self.previous_distance:
                 if prev_distance == distance_to_target:
-                    error_moving = True
-                    break
+                    # error out if we have that distance 2 times in the last 5 tries...
+                    times_found += 1
+                    if times_found > 1:
+                        error_moving = True
+                        break
 
             if error_moving:
+                self.logger.info("Fort Timeouts: %s" % len(self.bot.fort_timeouts))
                 if self.walker == 'StepWalker':
                     self.logger.info("Having difficulty walking to %s" % fort_name)
                     self.bot.recent_forts = self.bot.recent_forts[1:] + [fortID]

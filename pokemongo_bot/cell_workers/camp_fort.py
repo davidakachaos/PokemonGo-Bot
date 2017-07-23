@@ -44,6 +44,9 @@ class CampFort(BaseTask):
         self.config_camping_time = self.config.get("camping_time", 1800)
         self.config_moving_time = self.config.get("moving_time", 600)
 
+        # Notify other workers of finding a cluster (hunter)
+        self.bot.found_camping_cluster = False
+
     def work(self):
         if not self.enabled:
             return WorkerResult.SUCCESS
@@ -117,12 +120,14 @@ class CampFort(BaseTask):
 
                 self.no_log_until = now + LOG_TIME_INTERVAL
                 self.no_recheck_cluster_until = now + NO_BALLS_MOVING_TIME
+                self.bot.found_camping_cluster = True
                 self.emit_event("new_destination",
                                 formatted='New destination at {distance:.2f} meters: {size} forts, {lured} lured'.format(**self.cluster))
             else:
                 # self.logger.info("No clusters found.")
                 self.cluster = None
                 self.clusters = None
+                self.bot.found_camping_cluster = False
                 return WorkerResult.SUCCESS
 
         # We can check if the cluster is still the best
@@ -143,6 +148,7 @@ class CampFort(BaseTask):
                     else:
                         self.cluster = available_clusters[0]
                         self.stay_until = 0
+                        self.bot.found_camping_cluster = True
                         self.emit_event("new_destination",
                                         formatted='Better destination found at {distance:.2f} meters: {size} forts, {lured} lured'.format(**self.cluster))
             self.no_recheck_cluster_until = now + NO_BALLS_MOVING_TIME
@@ -168,6 +174,7 @@ class CampFort(BaseTask):
         elif self.walker.step():
             self.stay_until = now + self.config_camping_time
             self.bot.camping_forts = True
+            self.bot.found_camping_cluster = True
             self.distance_counter = 0
             self.emit_event("arrived_at_destination",
                             formatted="Arrived at destination: {size} forts, {lured} lured.".format(**self.cluster))
@@ -175,6 +182,7 @@ class CampFort(BaseTask):
             if self.cluster["lured"] == 0:
                 self.cluster = None
                 self.bot.camping_forts = False
+                self.bot.found_camping_cluster = False
                 self.distance_counter = 0
                 self.emit_event("reset_destination",
                                 formatted="Lures gone! Resetting destination!")

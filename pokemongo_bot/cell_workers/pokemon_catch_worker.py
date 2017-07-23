@@ -91,6 +91,8 @@ class PokemonCatchWorker(BaseTask):
         # nanab
         self.use_nanab = self.config.get('use_nanab', False)
         self.nanab_on_level_below = self.config.get('nanab_on_level_below', 0)
+        # Always throw pinap on trash
+        self.always_throw_pinap_on_trash = self.config.get('always_throw_pinap_on_trash', False)
 
         self.vanish_settings = self.config.get('vanish_settings', {})
         self.consecutive_vanish_limit = self.vanish_settings.get('consecutive_vanish_limit', 10)
@@ -571,6 +573,12 @@ class PokemonCatchWorker(BaseTask):
                     # self.logger.info("Current candies ({}) lower then threshold ({})".format(candies, self.pinap_on_candy_below))
                     berry_id = ITEM_PINAPBERRY
                     catch_for_candy = True
+
+        # if trash and self.always_throw_pinap_on_trash then use pinap
+        trash_mons = ["Caterpie", "Weedle", "Pidgey", "Pidgeotto", "Pidgeot", "Kakuna", "Beedrill", "Metapod", "Butterfree"]
+        if self.always_throw_pinap_on_trash and pokemon.name in trash_mons:
+            berry_id = ITEM_PINAPBERRY
+            catch_for_candy = True
 
         berry_count = self.inventory.get(berry_id).count
 

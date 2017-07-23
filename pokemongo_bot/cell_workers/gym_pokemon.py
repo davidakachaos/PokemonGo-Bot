@@ -4,6 +4,7 @@ from __future__ import absolute_import
 
 from datetime import datetime, timedelta
 import sys
+from sys import stdout
 import time
 import random
 from random import uniform
@@ -120,6 +121,10 @@ class GymPokemon(BaseTask):
 
         if hasattr(self.bot, "hunter_locked_target") and self.bot.hunter_locked_target is not None:
             # Don't move to a gym when hunting for a Pokemon
+            return WorkerResult.SUCCESS
+
+        if hasattr(self.bot, "found_camping_cluster") and self.bot.found_camping_cluster:
+            # Don't move to a gym when camping at forts!
             return WorkerResult.SUCCESS
 
         if self.destination is None:
@@ -482,7 +487,7 @@ class GymPokemon(BaseTask):
         for g in close_gyms:
             if g["id"] == gym["id"]:
                 if 'owned_by_team' in g:
-                    self.logger.info("Expecting team: %s it is: %s" % (self.bot.player_data['team'], g["owned_by_team"]) )
+                    # self.logger.info("Expecting team: %s it is: %s" % (self.bot.player_data['team'], g["owned_by_team"]) )
                     if g["owned_by_team"] is not self.team:
                         self.logger.info("Can't drop in a enemy gym!")
                         self.recent_gyms.append(gym["id"])
@@ -517,11 +522,17 @@ class GymPokemon(BaseTask):
                     self.raid_gyms[gym["id"]] = raid_ends
                     return False
                 else:
+                    first_time = True
                     while raid_ends > datetime.now():
                         raid_ending = (raid_ends-datetime.today()).seconds
                         sleep_m, sleep_s = divmod(raid_ending, 60)
                         sleep_h, sleep_m = divmod(sleep_m, 60)
                         sleep_hms = '%02d:%02d:%02d' % (sleep_h, sleep_m, sleep_s)
+                        if not first_time:
+                            # Clear the last log line!
+                            stdout.write("\033[1A\033[0K\r")
+                            stdout.flush()
+                        first_time = True
                         self.logger.info("Waiting for %s for raid to end..." % sleep_hms)
                         if sleep_s > 20 and sleep_m > 0:
                             sleep(20)
@@ -540,11 +551,17 @@ class GymPokemon(BaseTask):
 
             if lockout_time > datetime.now():
                 self.logger.info("Lockout time: %s" % lockout_time.strftime('%Y-%m-%d %H:%M:%S.%f'))
+                first_time = True
                 while lockout_time > datetime.now():
                     lockout_ending = (lockout_time-datetime.today()).seconds
                     sleep_m, sleep_s = divmod(lockout_ending, 60)
                     sleep_h, sleep_m = divmod(sleep_m, 60)
                     sleep_hms = '%02d:%02d:%02d' % (sleep_h, sleep_m, sleep_s)
+                    if not first_time:
+                        # Clear the last log line!
+                        stdout.write("\033[1A\033[0K\r")
+                        stdout.flush()
+                    first_time = False
                     self.logger.info("Waiting for %s deployment lockout to end..." % sleep_hms)
                     if sleep_s > 20 and sleep_m > 0:
                         sleep(20)

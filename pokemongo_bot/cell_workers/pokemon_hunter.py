@@ -170,7 +170,15 @@ class PokemonHunter(BaseTask):
         pokemons = filter(lambda x: x["pokemon_id"] not in self.recent_tries, pokemons)
         trash_mons = ["Caterpie", "Weedle", "Pidgey", "Pidgeotto", "Pidgeot", "Kakuna", "Beedrill", "Metapod", "Butterfree"]
 
-        if self.destination is not None:
+        # When camp_fort found a cluster, don't hun trash or family of VIPs
+        if hasattr(self.bot, "found_camping_cluster") and self.bot.found_camping_cluster:
+            self.config_hunt_for_trash = False
+            self.config_target_family_of_vip = False
+        else:
+            self.config_hunt_for_trash = self.config.get("hunt_for_trash_to_fill_bag", False)
+            self.config_target_family_of_vip = self.config.get("target_family_of_vip", True)
+
+        if self.destination is not None and self.config_hunt_for_trash:
             target_mons = filter(lambda x: x["name"] is self.destination["name"], pokemons)
             if self.no_log_until < now:
                 # self.logger.info("Targets on sightings: %s" % len(target_mons))

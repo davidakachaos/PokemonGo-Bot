@@ -36,3 +36,4 @@ from .update_hash_stats import UpdateHashStats
 from .heal_pokemon import HealPokemon
 from .gym_pokemon import GymPokemon
 from .bad_pokemon import BadPokemon
+from .ball_collector import BallCollector

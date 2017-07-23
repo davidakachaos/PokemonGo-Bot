@@ -1611,7 +1611,7 @@ class PokemonGoBot(object):
             request = self.api.create_request()
             request.get_player()
             request.check_awarded_badges()
-            request.get_inbox()
+            request.get_inbox(is_history=False, is_reverse=False,not_before_ms=0)
             responses = None
             try:
                 responses = request.call()

@@ -61,7 +61,7 @@ class CatchLimiter(BaseTask):
 
         if self.bot.catch_disabled and self.no_log_until <= now:
             if now >= self.bot.catch_resume_at:
-                self.logger.info("All catch tasks disabled until balls on hand ({}) > threshold." % balls_on_hand)
+                self.logger.info("All catch tasks disabled until balls on hand (%s) > threshold." % balls_on_hand)
             else:
                 self.logger.info("All catch tasks disabled until %s or balls on hand (%s) >= %s" % (self.bot.catch_resume_at.strftime("%H:%M:%S"), balls_on_hand, self.resume_balls))
             self.no_log_until = now + timedelta(minutes = 2)
