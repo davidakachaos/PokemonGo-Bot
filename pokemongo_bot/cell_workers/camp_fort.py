@@ -51,6 +51,9 @@ class CampFort(BaseTask):
         if not self.enabled:
             return WorkerResult.SUCCESS
 
+        if hasattr(self.bot, "catch_limit_reached") and self.bot.catch_limit_reached:
+            return WorkerResult.SUCCESS
+
         if hasattr(self.bot, "hunter_locked_target") and self.bot.hunter_locked_target is not None:
             if not hasattr(self.bot,"no_camper_while_hunting_global_warning") or \
                         (hasattr(self.bot,"no_camper_while_hunting_global_warning") and not self.bot.no_camper_while_hunting_global_warning):

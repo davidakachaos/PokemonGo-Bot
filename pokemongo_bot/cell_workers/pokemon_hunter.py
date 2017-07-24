@@ -89,6 +89,9 @@ class PokemonHunter(BaseTask):
         else:
             self.bot.hunter_disabled_global_warning = False
 
+        if hasattr(self.bot, "catch_limit_reached") and self.bot.catch_limit_reached:
+            return WorkerResult.SUCCESS
+
         if self.bot.softban:
             # At softban, drop target
             if self.destination is not None:

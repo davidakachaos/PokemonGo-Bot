@@ -74,6 +74,8 @@ class PokemonCatchWorker(BaseTask):
         self.response_status_key = ''
         self.rest_completed = False
         self.caught_last_24 = 0
+        self.bot.catch_limit_reached = False
+        self.bot.warned_about_catch_limit = False
 
         #Config
         self.exit_on_limit_reached = self.config.get("exit_on_limit_reached", True)
@@ -224,6 +226,8 @@ class PokemonCatchWorker(BaseTask):
 
         while True:
             if result[0] < self.daily_catch_limit:
+                self.bot.catch_limit_reached = False
+                self.bot.warned_about_catch_limit = False
             # catch that pokemon!
                 # self.logger.info("Encounter id: %s" % self.pokemon['encounter_id'])
                 # self.logger.info("Pokemon: %s" % self.pokemon)
@@ -232,9 +236,14 @@ class PokemonCatchWorker(BaseTask):
                 self._do_catch(pokemon, encounter_id, catch_rate_by_ball, is_vip=is_vip)
                 break
             else:
-                self.emit_event('catch_limit', formatted='WARNING! You have reached your daily catch limit. Not catching')
+                if not self.bot.warned_about_catch_limit:
+                    self.emit_event('catch_limit', formatted='WARNING! You have reached (%s / %s) your daily catch limit. Not catching' % (result[0], self.daily_catch_limit) )
+                    self.bot.warned_about_catch_limit = True
                 if self.exit_on_limit_reached:
                     sys.exit(2)
+                self.bot.catch_limit_reached = True
+                # self.logger.info("Sleeping an hour to let the limit fall off...")
+                # sleep(60 * 60)
                 break
 
         # simulate app
