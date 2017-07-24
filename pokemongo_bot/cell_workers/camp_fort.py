@@ -161,7 +161,6 @@ class CampFort(BaseTask):
 
         if self.stay_until >= now:
             if self.no_log_until < now:
-                self.no_log_until = now + LOG_TIME_INTERVAL
                 self.bot.camping_forts = True
                 self.emit_event("staying_at_destination",
                                 formatted='Staying at destination: {size} forts, {lured} lured'.format(**self.cluster))
@@ -173,6 +172,7 @@ class CampFort(BaseTask):
                     until = datetime.datetime.fromtimestamp(self.stay_until)
                     self.logger.info("Lures gone, waiting for forts to be lured again until %s" % until.strftime("%H:%M"))
 
+            self.no_log_until = now + LOG_TIME_INTERVAL
             self.walker.step(speed=0)
         elif self.walker.step():
             self.stay_until = now + self.config_camping_time

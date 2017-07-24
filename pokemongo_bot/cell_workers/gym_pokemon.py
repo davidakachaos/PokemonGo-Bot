@@ -68,6 +68,7 @@ class GymPokemon(BaseTask):
         self.ignore_max_cp_pokemon = self.config.get('allow_above_cp', ["Blissey"])
         self.never_place = self.config.get('never_place', [])
         self.randomize_drop = self.config.get('randomize_drop', True)
+        self.top_pics_drop = self.config.get('top_pics_drop', 20)
 
         self.recheck = datetime.now()
         self.walker = self.config.get('walker', 'StepWalker')
@@ -82,6 +83,7 @@ class GymPokemon(BaseTask):
         self.check_interval = 0
         self.gyms = []
         self.raid_gyms = dict()
+        self.timeout_gyms = dict()
         self.team = self.bot.player_data['team']
 
     def should_run(self):
@@ -204,6 +206,7 @@ class GymPokemon(BaseTask):
         self.logger.info("Inspecting %s gyms." % len(gyms))
         self.logger.info("Recent gyms: %s" % len(self.recent_gyms))
         self.logger.info("Active raid gyms: %s" % len(self.raid_gyms))
+        self.logger.info("Gyms on timeout: %s" % len(self.timeout_gyms))
         teams = []
         for gym in gyms:
             # Ignore after done for 5 mins
@@ -553,24 +556,33 @@ class GymPokemon(BaseTask):
 
             if lockout_time > datetime.now():
                 self.logger.info("Lockout time: %s" % lockout_time.strftime('%Y-%m-%d %H:%M:%S.%f'))
-                first_time = True
-                while lockout_time > datetime.now():
-                    lockout_ending = (lockout_time-datetime.today()).seconds
-                    sleep_m, sleep_s = divmod(lockout_ending, 60)
-                    sleep_h, sleep_m = divmod(sleep_m, 60)
-                    sleep_hms = '%02d:%02d:%02d' % (sleep_h, sleep_m, sleep_s)
-                    if not first_time:
-                        # Clear the last log line!
-                        stdout.write("\033[1A\033[0K\r")
-                        stdout.flush()
-                    first_time = False
-                    self.logger.info("Waiting for %s deployment lockout to end..." % sleep_hms)
-                    if sleep_s > 20 and sleep_m > 0:
-                        sleep(20)
-                    elif sleep_s > 20:
-                        sleep(20)
-                    else:
-                        sleep(5)
+                if lockout_time < datetime.now():
+                    self.logger.info("No need to wait.")
+                elif (lockout_time-t).seconds > 120:
+                    self.logger.info("Need to wait long than 2 minutes, skipping")
+                    self.destination = None
+                    self.recent_gyms.append(gym["id"])
+                    self.timeout_gyms[gym["id"]] = raid_ends
+                    return False
+                else:
+                    first_time = True
+                    while lockout_time > datetime.now():
+                        lockout_ending = (lockout_time-datetime.today()).seconds
+                        sleep_m, sleep_s = divmod(lockout_ending, 60)
+                        sleep_h, sleep_m = divmod(sleep_m, 60)
+                        sleep_hms = '%02d:%02d:%02d' % (sleep_h, sleep_m, sleep_s)
+                        if not first_time:
+                            # Clear the last log line!
+                            stdout.write("\033[1A\033[0K\r")
+                            stdout.flush()
+                        first_time = False
+                        self.logger.info("Waiting for %s deployment lockout to end..." % sleep_hms)
+                        if sleep_s > 20 and sleep_m > 0:
+                            sleep(20)
+                        elif sleep_s > 20:
+                            sleep(20)
+                        else:
+                            sleep(5)
 
         #FortDeployPokemon
         # self.logger.info("Trying to deploy Pokemon in gym: %s" % gym)
@@ -659,6 +671,14 @@ class GymPokemon(BaseTask):
             if self.raid_gyms[gym_id] < datetime.now():
                 self.logger.info("Raid at %s ended (%s)" % (gym_id, self.raid_gyms[gym_id]))
                 del(self.raid_gyms[gym_id])
+                self.recent_gyms.remove(gym_id)
+
+        # Check timeout gyms for timeouts that ended
+        for gym_id in list(self.timeout_gyms.keys()):
+            if self.timeout_gyms[gym_id] < datetime.now():
+                self.logger.info("Timeout ended at %s ended (%s)" % (gym_id, self.timeout_gyms[gym_id]))
+                del(self.timeout_gyms[gym_id])
+                self.recent_gyms.remove(gym_id)
 
         gyms = []
         # if not skip_recent_filter:
@@ -757,8 +777,8 @@ class GymPokemon(BaseTask):
         # Sort them
         pokemons_ordered = sorted(possible_pokemons, key=lambda x: get_poke_info(self.order_by, x), reverse=True)
         if self.randomize_drop:
-            # Top 20 picks
-            pokemons_ordered = pokemons_ordered[0:20]   
+            # Top X picks
+            pokemons_ordered = pokemons_ordered[0:self.top_pics_drop]   
             # Pick a random one!
             random.shuffle(pokemons_ordered)
         # Retun the top one!

@@ -74,6 +74,7 @@ class BallCollector(BaseTask):
                 format(balls_on_hand,self.min_balls)
         )
         self.bot.catch_disabled = False
+        return WorkerResult.SUCCESS
 
     # If balls_on_hand less than threshold, pause catching tasks for duration minutes
     if not self.bot.catch_disabled and balls_on_hand <= self.min_balls:
@@ -129,6 +130,7 @@ class BallCollector(BaseTask):
                         formatted="Arrived at destination: {size} forts.".format(**self.cluster))
         self.cluster = None
         self.previous_distance = 0
+        return WorkerResult.SUCCESS
 
       elif self.no_log_until < now:
         if self.previous_distance == self.cluster["distance"]:
@@ -147,13 +149,14 @@ class BallCollector(BaseTask):
 
         self.previous_distance = self.cluster["distance"]
 
-        self.no_log_until = now + timedelta(seconds = LOG_TIME_INTERVAL)
-        # self.no_log_until = now + LOG_TIME_INTERVAL
+        self.no_log_until = now + timedelta(seconds = 10)
         self.emit_event("moving_to_destination",
                       formatted="Moving to destination at {distance:.2f} meters: {size} forts.".format(**self.cluster))
+        return WorkerResult.RUNNING
 
     if self.cluster is None:
       # get the nearest fort and move there!
+      self.logger.info("Getting nearest fort....")
       forts = self.bot.get_forts(order_by_distance=True)
       forts = filter(lambda x: x["id"] not in self.bot.fort_timeouts, forts)
       if len(forts) == 0:
@@ -210,6 +213,7 @@ class BallCollector(BaseTask):
               'arrived_at_fort',
               formatted='Arrived at fort %s.' % fort_name
             )
+            return WorkerResult.SUCCESS
 
         return WorkerResult.SUCCESS
 
@@ -220,12 +224,15 @@ class BallCollector(BaseTask):
     return sum([inventory.items().get(ball.value).count for ball in [Item.ITEM_POKE_BALL, Item.ITEM_GREAT_BALL, Item.ITEM_ULTRA_BALL]])
 
   def get_forts(self):
+    self.logger.info("Getting forts....")
     radius = self.config_max_distance + Constants.MAX_DISTANCE_FORT_IS_REACHABLE
 
+    forts = self.bot.get_forts(order_by_distance=True)
     # Get all the Pokestops and Gyms in range that are not on cooldown
-    forts = [f for f in self.bot.cell["forts"] if f["id"] not in self.bot.fort_timeouts]
+    forts = [f for f in forts if f["id"] not in self.bot.fort_timeouts]
     # Filter out those not in range
     forts = [f for f in forts if self.get_distance(self.bot.start_position, f) <= radius]
+    self.logger.info("I got %s forts..." % len(forts))
 
     return {f["id"]: f for f in forts}
 
@@ -240,6 +247,7 @@ class BallCollector(BaseTask):
     return available_clusters
 
   def get_clusters(self, forts):
+    #self.logger.info("Getting clusters....")
     clusters = []
     points = self.get_all_snap_points(forts)
 
@@ -260,35 +268,38 @@ class BallCollector(BaseTask):
 
         while True:
           new_circle, _ = self.get_enclosing_circles(fort1, fort2, radius - 1)
+          #self.logger.info("New cluster? %s" % new_circle)
+          if not new_circle:
+            break
+
+          new_cluster = self.get_cluster(cluster["forts"], new_circle)
+
+          if len(new_cluster["forts"]) < len(cluster["forts"]):
+            break
+
+          cluster = new_cluster
+          radius -= 1
+      else:
+        cluster = cluster_2
+
+        while True:
+          _, new_circle = self.get_enclosing_circles(fort1, fort2, radius - 1)
 
           if not new_circle:
             break
 
-            new_cluster = self.get_cluster(cluster["forts"], new_circle)
+          new_cluster = self.get_cluster(cluster["forts"], new_circle)
 
-            if len(new_cluster["forts"]) < len(cluster["forts"]):
-              break
+          if len(new_cluster["forts"]) < len(cluster["forts"]):
+            break
 
-            cluster = new_cluster
-            radius -= 1
-          else:
-            cluster = cluster_2
+          cluster = new_cluster
+          radius -= 1
 
-            while True:
-              _, new_circle = self.get_enclosing_circles(fort1, fort2, radius - 1)
+      #self.logger.info("Appending cluster...")
+      clusters.append(cluster)
 
-              if not new_circle:
-                break
-
-              new_cluster = self.get_cluster(cluster["forts"], new_circle)
-
-              if len(new_cluster["forts"]) < len(cluster["forts"]):
-                break
-
-              cluster = new_cluster
-              radius -= 1
-
-          clusters.append(cluster)
+    #self.logger.info("Done with finding clusters. We got %s clusters" % len(clusters))
     return clusters
 
   def get_all_snap_points(self, forts):
