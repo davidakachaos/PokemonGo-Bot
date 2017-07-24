@@ -67,6 +67,8 @@ class GymPokemon(BaseTask):
         self.chain_fill_gyms = self.config.get('chain_fill_gyms', True)
         self.ignore_max_cp_pokemon = self.config.get('allow_above_cp', ["Blissey"])
         self.never_place = self.config.get('never_place', [])
+        self.randomize_drop = self.config.get('randomize_drop', True)
+
         self.recheck = datetime.now()
         self.walker = self.config.get('walker', 'StepWalker')
         self.destination = None
@@ -754,8 +756,10 @@ class GymPokemon(BaseTask):
         possible_pokemons = [p for p in possible_pokemons if not p.in_fort]
         # Sort them
         pokemons_ordered = sorted(possible_pokemons, key=lambda x: get_poke_info(self.order_by, x), reverse=True)
-        # Top 10 picks
-        pokemons_ordered = pokemons_ordered[0:20]
-        # Pick a random one!
-        random.shuffle(pokemons_ordered)
+        if self.randomize_drop:
+            # Top 20 picks
+            pokemons_ordered = pokemons_ordered[0:20]   
+            # Pick a random one!
+            random.shuffle(pokemons_ordered)
+        # Retun the top one!
         return pokemons_ordered[0]

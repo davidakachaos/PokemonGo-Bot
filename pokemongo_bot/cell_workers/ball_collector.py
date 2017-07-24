@@ -14,6 +14,7 @@ from pokemongo_bot.walkers.step_walker import StepWalker
 from pokemongo_bot.worker_result import WorkerResult
 from pokemongo_bot.item_list import Item
 from pokemongo_bot import inventory
+from .utils import distance, format_dist, fort_details
 
 LOG_TIME_INTERVAL = 30
 NO_BALLS_MOVING_TIME = 5 * 60
@@ -95,7 +96,6 @@ class BallCollector(BaseTask):
         self.logger.info("All catch tasks disabled until balls on hand (%s) > threshold." % balls_on_hand)
       else:
         self.logger.info("All catch tasks disabled until %s or balls on hand (%s) >= %s" % (self.bot.catch_resume_at.strftime("%H:%M:%S"), balls_on_hand, self.resume_balls))
-      self.no_log_until = now + timedelta(seconds = LOG_TIME_INTERVAL)
 
     # Let's get our clusters
     # self.logger.info("Looking for ball cluster...")
@@ -117,40 +117,103 @@ class BallCollector(BaseTask):
         # No cluster found to move to...
         self.cluster = None
         self.clusters = None
+
+    if self.cluster is not None:
+      # Update the distance to the current cluster
+      self.update_cluster_distance(self.cluster)
+
+      # Move to the cluster or arrive
+      if self.walker.step():
+        self.distance_counter = 0
+        self.emit_event("arrived_at_destination",
+                        formatted="Arrived at destination: {size} forts.".format(**self.cluster))
+        self.cluster = None
+        self.previous_distance = 0
+
+      elif self.no_log_until < now:
+        if self.previous_distance == self.cluster["distance"]:
+          self.distance_counter += 1
+          if self.distance_counter == 3:
+              self.logger.info("Having difficulty walking to the cluster, changing walker!")
+              self.walker = StepWalker(self.bot, self.cluster["center"][0], self.cluster["center"][1])
+          elif self.distance_counter > 6:
+              self.logger.info("Can't walk to the cluster!")
+              self.distance_counter = 0
+              self.cluster = None
+              self.clusters = None
+              return WorkerResult.ERROR
+        elif self.distance_counter > 0:
+          self.distance_counter -= 1
+
+        self.previous_distance = self.cluster["distance"]
+
+        self.no_log_until = now + timedelta(seconds = LOG_TIME_INTERVAL)
+        # self.no_log_until = now + LOG_TIME_INTERVAL
+        self.emit_event("moving_to_destination",
+                      formatted="Moving to destination at {distance:.2f} meters: {size} forts.".format(**self.cluster))
+
+    if self.cluster is None:
+      # get the nearest fort and move there!
+      forts = self.bot.get_forts(order_by_distance=True)
+      forts = filter(lambda x: x["id"] not in self.bot.fort_timeouts, forts)
+      if len(forts) == 0:
+        self.logger.info("No forts around?")
         return WorkerResult.SUCCESS
-    # Update the distance to the current cluster
-    self.update_cluster_distance(self.cluster)
-    # Move to the cluster or arrive
-    if self.walker.step():
-      self.distance_counter = 0
-      self.emit_event("arrived_at_destination",
-                      formatted="Arrived at destination: {size} forts.".format(**self.cluster))
-      self.cluster = None
-      self.previous_distance = 0
-      return WorkerResult.SUCCESS
 
-    elif self.no_log_until < now:
-      if self.previous_distance == self.cluster["distance"]:
-        self.distance_counter += 1
-        if self.distance_counter == 3:
-            self.logger.info("Having difficulty walking to the cluster, changing walker!")
-            self.walker = StepWalker(self.bot, self.cluster["center"][0], self.cluster["center"][1])
-        elif self.distance_counter > 6:
-            self.logger.info("Can't walk to the cluster!")
-            self.distance_counter = 0
-            self.cluster = None
-            self.clusters = None
-            return WorkerResult.ERROR
-      elif self.distance_counter > 0:
-        self.distance_counter -= 1
+      nearest_fort = forts[0]
+      lat = nearest_fort['latitude']
+      lng = nearest_fort['longitude']
+      fortID = nearest_fort['id']
+      details = fort_details(self.bot, fortID, lat, lng)
+      fort_name = details.get('name', 'Unknown')
 
-      self.previous_distance = self.cluster["distance"]
+      unit = self.bot.config.distance_unit  # Unit to use when printing formatted distance
 
-      self.no_log_until = now + timedelta(seconds = LOG_TIME_INTERVAL)
-      # self.no_log_until = now + LOG_TIME_INTERVAL
-      self.emit_event("moving_to_destination",
-                    formatted="Moving to destination at {distance:.2f} meters: {size} forts.".format(**self.cluster))
+      dist = distance(
+              self.bot.position[0],
+              self.bot.position[1],
+              lat,
+              lng
+          )
+      moving = dist > Constants.MAX_DISTANCE_FORT_IS_REACHABLE
 
+      if moving:
+        self.walker = StepWalker(self.bot, lat, lng)
+        if "type" in nearest_fort and nearest_fort["type"] == 1:
+          # It's a Pokestop
+          target_type = "pokestop"
+        else:
+          # It's a gym
+          target_type = "gym"
+        while not self.walker.step():
+          dist = distance(
+              self.bot.position[0],
+              self.bot.position[1],
+              lat,
+              lng
+          )
+          moving = dist > Constants.MAX_DISTANCE_FORT_IS_REACHABLE
+          if moving:
+            fort_event_data = {
+              'fort_name': u"{}".format(fort_name),
+              'distance': format_dist(dist, unit),
+              'target_type': target_type,
+            }
+            self.emit_event(
+              'moving_to_fort',
+              formatted="Moving towards {target_type} {fort_name} - {distance}",
+              data=fort_event_data
+            )
+            return WorkerResult.RUNNING
+          else:
+            self.emit_event(
+              'arrived_at_fort',
+              formatted='Arrived at fort %s.' % fort_name
+            )
+
+        return WorkerResult.SUCCESS
+
+    self.no_log_until = now + timedelta(seconds = LOG_TIME_INTERVAL)
     return WorkerResult.RUNNING
 
   def get_pokeball_count(self):

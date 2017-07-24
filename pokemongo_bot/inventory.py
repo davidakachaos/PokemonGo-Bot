@@ -111,7 +111,7 @@ class Player(_BaseInventoryComponent):
     @exp.setter
     def exp(self, value):
         # if new exp is larger than or equal to next_level_xp
-        if value >= self.next_level_xp:
+        if self._level is not None and value >= self.next_level_xp:
             self.level = self._level + 1
             # increase next_level_xp to a big amount
             # will be fix on the next heartbeat
