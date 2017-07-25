@@ -45,7 +45,7 @@ class BallCollector(BaseTask):
     self.cluster = None
     self.walker = None
     self.previous_distance = 0
-
+    self.distance_counter = 0
 
   def work(self):
     # Don't do anything when softbanned!!!
