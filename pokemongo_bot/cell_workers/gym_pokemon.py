@@ -688,6 +688,8 @@ class GymPokemon(BaseTask):
         gyms = filter(lambda gym: gym["id"] not in self.dropped_gyms, gyms)
         # Filter ongoing raids
         gyms = filter(lambda gym: gym["id"] not in self.raid_gyms, gyms)
+        # Filter gyms on time out
+        gyms = filter(lambda gym: gym["id"] not in self.timeout_gyms, gyms)
         # filter fake gyms
         # self.gyms = filter(lambda gym: "type" not in gym or gym["type"] != 1, self.gyms)
         # sort by current distance
