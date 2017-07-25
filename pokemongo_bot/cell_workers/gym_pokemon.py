@@ -555,14 +555,13 @@ class GymPokemon(BaseTask):
             t = datetime.today()
 
             if lockout_time > datetime.now():
-                self.logger.info("Lockout time: %s" % lockout_time.strftime('%Y-%m-%d %H:%M:%S.%f'))
-                if lockout_time < datetime.now():
-                    self.logger.info("No need to wait.")
-                elif (lockout_time-t).seconds > 120:
+                self.logger.info("Lockout time: %s (%s seconds)" % (lockout_time.strftime('%Y-%m-%d %H:%M:%S.%f'), (lockout_time-t).seconds))
+
+                if (lockout_time-t).seconds > 120:
                     self.logger.info("Need to wait long than 2 minutes, skipping")
                     self.destination = None
                     self.recent_gyms.append(gym["id"])
-                    self.timeout_gyms[gym["id"]] = raid_ends
+                    self.timeout_gyms[gym["id"]] = lockout_time
                     return False
                 else:
                     first_time = True
