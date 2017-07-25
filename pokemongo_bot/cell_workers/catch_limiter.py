@@ -52,9 +52,9 @@ class CatchLimiter(BaseTask):
         # If balls_on_hand is more than resume_at_balls,
         # resume catch tasks, if not softbanned
         if (
-            self.bot.softban is False and
-            self.bot.catch_disabled and
-            balls_on_hand >= self.resume_at_balls
+                self.bot.softban is False and
+                self.bot.catch_disabled and
+                balls_on_hand >= self.resume_at_balls
         ):
             self.emit_event(
                 'catch_limit_off',
