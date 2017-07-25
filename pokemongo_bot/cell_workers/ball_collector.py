@@ -46,6 +46,7 @@ class BallCollector(BaseTask):
     self.walker = None
     self.previous_distance = 0
     self.distance_counter = 0
+    self.destination = None
 
   def work(self):
     # Don't do anything when softbanned!!!
@@ -154,7 +155,7 @@ class BallCollector(BaseTask):
                       formatted="Moving to destination at {distance:.2f} meters: {size} forts.".format(**self.cluster))
         return WorkerResult.RUNNING
 
-    if self.cluster is None:
+    if self.cluster is None and self.destination is None:
       # get the nearest fort and move there!
       self.logger.info("Getting nearest fort....")
       forts = self.bot.get_forts(order_by_distance=True)
@@ -164,9 +165,12 @@ class BallCollector(BaseTask):
         return WorkerResult.SUCCESS
 
       nearest_fort = forts[0]
-      lat = nearest_fort['latitude']
-      lng = nearest_fort['longitude']
-      fortID = nearest_fort['id']
+      self.destination = nearest_fort
+
+    if not self.destination is None:
+      lat = self.destination['latitude']
+      lng = self.destination['longitude']
+      fortID = self.destination['id']
       details = fort_details(self.bot, fortID, lat, lng)
       fort_name = details.get('name', 'Unknown')
 
@@ -182,7 +186,7 @@ class BallCollector(BaseTask):
 
       if moving:
         self.walker = StepWalker(self.bot, lat, lng)
-        if "type" in nearest_fort and nearest_fort["type"] == 1:
+        if "type" in self.destination and self.destination["type"] == 1:
           # It's a Pokestop
           target_type = "pokestop"
         else:
@@ -213,9 +217,14 @@ class BallCollector(BaseTask):
               'arrived_at_fort',
               formatted='Arrived at fort %s.' % fort_name
             )
+            self.destination = None
             return WorkerResult.SUCCESS
 
+        self.destination = None
         return WorkerResult.SUCCESS
+      else:
+        # We are there
+        self.destination = None
 
     self.no_log_until = now + timedelta(seconds = LOG_TIME_INTERVAL)
     return WorkerResult.RUNNING
