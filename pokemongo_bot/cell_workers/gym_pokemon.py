@@ -791,7 +791,7 @@ class GymPokemon(BaseTask):
         possible_pokemons = [p for p in possible_pokemons if not p.in_fort]
         # Sort them
         pokemons_ordered = sorted(possible_pokemons, key=lambda x: get_poke_info(self.order_by, x), reverse=True)
-        if self.randomize_drop:
+        if self.pick_random_pokemon:
             # Top X picks
             pokemons_ordered = pokemons_ordered[0:self.top_pics_drop]   
             # Pick a random one!
