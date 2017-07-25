@@ -147,3 +147,7 @@ pip-selfcheck.json
 # Mac Gargage
 .DS_Store
 data/mqtt_client_id
+# Locals
+.overcommit.yml
+./backup
+backup/
