@@ -4,10 +4,7 @@ from __future__ import absolute_import
 
 from datetime import datetime, timedelta
 import sys
-<<<<<<< HEAD
 from sys import stdout
-=======
->>>>>>> dev
 import time
 import random
 from random import uniform
@@ -27,28 +24,18 @@ from pokemongo_bot.tree_config_builder import ConfigException
 from pokemongo_bot.walkers.walker_factory import walker_factory
 from pokemongo_bot.inventory import Pokemons
 
-<<<<<<< HEAD
-=======
-from sys import stdout
-
->>>>>>> dev
 GYM_DETAIL_RESULT_SUCCESS = 1
 GYM_DETAIL_RESULT_OUT_OF_RANGE = 2
 GYM_DETAIL_RESULT_UNSET = 0
 
-<<<<<<< HEAD
-=======
+
 TEAM_NOT_SET = 0
->>>>>>> dev
 TEAM_BLUE = 1
 TEAM_RED = 2
 TEAM_YELLOW = 3
 
 TEAMS = {
-<<<<<<< HEAD
-=======
     0: "Not Set",
->>>>>>> dev
     1: "Mystic",
     2: "Valor",
     3: "Instinct"
@@ -59,10 +46,6 @@ ITEM_NANABBERRY = 703
 ITEM_PINAPBERRY = 705
 
 
-<<<<<<< HEAD
-=======
-
->>>>>>> dev
 class GymPokemon(BaseTask):
     SUPPORTED_TASK_API_VERSION = 1
 
@@ -73,17 +56,9 @@ class GymPokemon(BaseTask):
         # 10 seconds from current time
         self.next_update = datetime.now() + timedelta(0, 10)
         self.order_by = self.config.get('order_by', 'cp')
-<<<<<<< HEAD
         self.min_interval = self.config.get('min_interval', 60)
         self.min_recheck = self.config.get('min_recheck', 30)
         self.max_recheck = self.config.get('max_recheck', 120)
-=======
-        self.enabled = self.config.get('enabled', False)
-        self.min_interval = self.config.get('min_interval', 360)
-        self.min_recheck = self.config.get('min_recheck', 30)
-        self.max_recheck = self.config.get('max_recheck', 120)
-        
->>>>>>> dev
         self.take_at_most = self.config.get('take_at_most', 20)
         if self.take_at_most > 20:
             self.logger.warning("We can take more than 20 gyms!")
@@ -95,13 +70,8 @@ class GymPokemon(BaseTask):
         self.chain_fill_gyms = self.config.get('chain_fill_gyms', True)
         self.ignore_max_cp_pokemon = self.config.get('allow_above_cp', ["Blissey"])
         self.never_place = self.config.get('never_place', [])
-<<<<<<< HEAD
-        self.randomize_drop = self.config.get('randomize_drop', True)
         self.top_pics_drop = self.config.get('top_pics_drop', 20)
-=======
-
         self.pick_random_pokemon = self.config.get('pick_random_pokemon', True)
->>>>>>> dev
 
         self.recheck = datetime.now()
         self.walker = self.config.get('walker', 'StepWalker')
@@ -116,14 +86,7 @@ class GymPokemon(BaseTask):
         self.check_interval = 0
         self.gyms = []
         self.raid_gyms = dict()
-<<<<<<< HEAD
         self.timeout_gyms = dict()
-        self.team = self.bot.player_data['team']
-
-    def should_run(self):
-        # Check if we have any Pokemons and are level > 5
-        return player()._level >= 5 and len(self.pokemons) > 0
-=======
 
         self.bot.event_manager.register_event('gym_error')
         self.bot.event_manager.register_event('fed_pokemon')
@@ -145,26 +108,16 @@ class GymPokemon(BaseTask):
     def should_run(self):
         # Check if we have any Pokemons and are level > 5 and have selected a team
         return player()._level >= 5 and len(self.pokemons) > 0 and self.team > TEAM_NOT_SET
->>>>>>> dev
 
     def display_fort_pokemon(self):
         if len(self.fort_pokemons) == 0:
             return
-<<<<<<< HEAD
-        self.logger.info("We currently have %s Pokemon in Gym(s)" % len(self.fort_pokemons) )
-        for pokemon in self.fort_pokemons:
-            lat = self.bot.position[0:2][0]
-            lng = self.bot.position[0:2][1]
-            details = fort_details(self.bot, pokemon.fort_id, lat, lng)
-            fort_name = details.get('name', 'Unknown')
-            self.logger.info("%s: %s (%s CP)" % (fort_name, pokemon.name, pokemon.cp))
-=======
+
         self.logger.info("We currently have %s Pokemon in Gym(s):" % len(self.fort_pokemons) )
         for pokemon in self.fort_pokemons:
             lat = self.bot.position[0:2][0]
             lng = self.bot.position[0:2][1]
             self.logger.info("%s (%s CP)" % (pokemon.name, pokemon.cp))
->>>>>>> dev
 
     def work(self):
         self.pokemons = inventory.pokemons().all()
@@ -178,21 +131,14 @@ class GymPokemon(BaseTask):
         if self._should_print():
             self.display_fort_pokemon()
             self._compute_next_update()
-<<<<<<< HEAD
             if len(self.fort_pokemons) >= self.take_at_most:
                 self.logger.info("We have a max of %s Pokemon in gyms." % self.take_at_most)
                 return WorkerResult.SUCCESS
 
-=======
-        # Do display the stats about Pokemon in Gym and collection time [please]
-        if not self.enabled:
-            return WorkerResult.SUCCESS
->>>>>>> dev
         if self.bot.softban:
             return WorkerResult.SUCCESS
 
         if len(self.fort_pokemons) >= self.take_at_most:
-<<<<<<< HEAD
             return WorkerResult.SUCCESS
 
         if hasattr(self.bot, "hunter_locked_target") and self.bot.hunter_locked_target is not None:
@@ -209,18 +155,6 @@ class GymPokemon(BaseTask):
         if not self.should_run():
             return WorkerResult.SUCCESS
 
-=======
-            if self._should_print():
-                self.logger.info("We have a max of %s Pokemon in gyms." % self.take_at_most)
-            return WorkerResult.SUCCESS
-
-        if not self.should_run():
-            return WorkerResult.SUCCESS
-            
-        if self.destination is None:
-            self.check_close_gym()
-
->>>>>>> dev
         if self.destination is None:
             self.determin_new_destination()
 
@@ -228,13 +162,6 @@ class GymPokemon(BaseTask):
             result = self.move_to_destination()
             # Can return RUNNING to move to a gym
             return result
-
-<<<<<<< HEAD
-=======
-        if hasattr(self.bot, "hunter_locked_target") and self.bot.hunter_locked_target is not None:
-            # Don't move to a gym when hunting for a Pokemon
-            return WorkerResult.SUCCESS
->>>>>>> dev
 
         return WorkerResult.SUCCESS
 
