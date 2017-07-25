@@ -20,6 +20,12 @@ class CatchLimiter(BaseTask):
         self.resume_balls = self.config.get("resume_balls",100)
         self.duration = self.config.get("duration",15)
         self.no_log_until = datetime.now()
+        self.min_ultraball_to_keep = 0
+        for subVal in self.bot.config.raw_tasks:
+            if "type" in subVal:
+                if subVal["type"] == "CatchPokemon":
+                    self.min_ultraball_to_keep = subVal["config"]["min_ultraball_to_keep"]
+                    
         if not hasattr(self.bot, "catch_resume_at"): self.bot.catch_resume_at = None
 
     def work(self):
@@ -27,8 +33,8 @@ class CatchLimiter(BaseTask):
             return WorkerResult.SUCCESS
 
         now = datetime.now()
-        balls_on_hand = self.get_pokeball_count()
-
+        balls_on_hand = self.get_pokeball_count() - self.min_ultraball_to_keep
+        
         # If resume time has passed, resume catching tasks
         if self.bot.catch_disabled and now >= self.bot.catch_resume_at:
             if balls_on_hand > self.min_balls:
@@ -43,8 +49,8 @@ class CatchLimiter(BaseTask):
         if self.bot.softban is False and self.bot.catch_disabled and balls_on_hand >= self.resume_balls:
             self.emit_event(
                 'catch_limit_off',
-                formatted="Balls on hand ({}) exceeds threshold {}. Re-enabling catch tasks.".
-                    format(balls_on_hand, self.resume_balls)
+                formatted="Resume time hasn't passed yet, but balls on hand ({}) exceeds threshold {}. Re-enabling catch tasks.".
+                    format(balls_on_hand, self.resume_at_balls)
             )
             self.bot.catch_disabled = False
 
