@@ -153,9 +153,9 @@ class InventoryTest(unittest.TestCase):
         self.assertEqual(poke.nickname, poke.name)
         self.assertEqual(poke.nickname_raw, '')
         self.assertAlmostEqual(poke.moveset.dps, 17.333333333333332 )
-        self.assertAlmostEqual(poke.moveset.dps_attack, 21.666666666666668)
+        self.assertAlmostEqual(poke.moveset.dps_attack, 20.8)
         self.assertAlmostEqual(poke.moveset.dps_defense, 4.814814814814815)
-        self.assertAlmostEqual(poke.moveset.attack_perfection, 0.777011494252873)
+        self.assertAlmostEqual(poke.moveset.attack_perfection, 0.7607623318385653)
         self.assertAlmostEqual(poke.moveset.defense_perfection, 0.08099928856783224)
 
     def test_levels_to_cpm(self):
