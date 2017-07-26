@@ -27,9 +27,16 @@ class CatchLimiter(BaseTask):
         for catch_cfg in self.bot.config.raw_tasks:
             if "type" in catch_cfg:
                 if catch_cfg["type"] == "CatchPokemon":
-                    self.min_ultraball_to_keep = catch_cfg["config"]["min_ultraball_to_keep"]
-                    self.daily_catch_limit = catch_cfg["config"]["daily_catch_limit"]
-                    self.exit_on_limit_reached = catch_cfg["config"]["exit_on_limit_reached"]
+                    if hasattr(catch_cfg["config"], "min_ultraball_to_keep"):
+                        self.min_ultraball_to_keep = catch_cfg["config"]["min_ultraball_to_keep"]
+                    if hasattr(catch_cfg["config"], "daily_catch_limit"):
+                        self.daily_catch_limit = catch_cfg["config"]["daily_catch_limit"]
+                    else:
+                        self.daily_catch_limit = 500
+                    if hasattr(catch_cfg["config"], "exit_on_limit_reached"):
+                        self.exit_on_limit_reached = catch_cfg["config"]["exit_on_limit_reached"]
+                    else:
+                        self.exit_on_limit_reached = True
 
         if not hasattr(self.bot, "catch_resume_at"):
             self.bot.catch_resume_at = None
