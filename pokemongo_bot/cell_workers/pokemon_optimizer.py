@@ -51,7 +51,8 @@ class PokemonOptimizer(BaseTask):
 
         if self.config.get("keep", None) is not None:
             raise ConfigException(
-                "Pokemon Optimizer configuration has changed. See docs/pokemon_optimized.md or configs/config.json.optimizer.example")
+                "Pokemon Optimizer configuration has changed. See docs/"
+                "pokemon_optimized.md or configs/config.json.optimizer.example")
 
         if self.debug:
             log_file_path = os.path.join(

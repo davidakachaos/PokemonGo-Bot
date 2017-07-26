@@ -55,7 +55,9 @@ class SpinFort(BaseTask):
         if not has_space_for_loot and not self.ignore_item_count:
             self.emit_event(
                 'inventory_full',
-                formatted="Inventory is full. You might want to change your config to recycle more items if this message appears consistently."
+                formatted=("Inventory is full. You might want to change"
+                           " your config to recycle more items if this message"
+                           " appears consistently.")
             )
         return self.ignore_item_count or has_space_for_loot
 
