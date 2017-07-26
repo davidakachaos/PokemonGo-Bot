@@ -6381,7 +6381,7 @@
     "BaseAttack": 192,
     "BaseDefense": 249,
     "BaseStamina": 180,
-    "CaptureRate": 0.0,
+    "CaptureRate": 0.03,
     "FleeRate": 0.1,
     "BuddyDistanceNeeded": 20
   },
@@ -6417,7 +6417,7 @@
     "BaseAttack": 253,
     "BaseDefense": 188,
     "BaseStamina": 180,
-    "CaptureRate": 0.0,
+    "CaptureRate": 0.03,
     "FleeRate": 0.1,
     "BuddyDistanceNeeded": 20
   },
@@ -6453,7 +6453,7 @@
     "BaseAttack": 251,
     "BaseDefense": 184,
     "BaseStamina": 180,
-    "CaptureRate": 0.0,
+    "CaptureRate": 0.03,
     "FleeRate": 0.1,
     "BuddyDistanceNeeded": 20
   },
