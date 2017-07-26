@@ -24,9 +24,6 @@ class CatchPokemon(BaseTask):
     def initialize(self):
         self.pokemon = []
         self.ignored_while_looking = []
-        self.exit_on_limit_reached = self.config.get(
-            "exit_on_limit_reached", True)
-        self.daily_catch_limit = self.config.get('daily_catch_limit', 800)
 
     def work(self):
         # make sure we have SOME balls
@@ -43,28 +40,6 @@ class CatchPokemon(BaseTask):
             return WorkerResult.SUCCESS
         else:
             self.bot.softban_global_warning = False
-
-        # check catch limits before catch
-        with self.bot.database as conn:
-            c = conn.cursor()
-            c.execute(
-                "SELECT DISTINCT COUNT(encounter_id) FROM catch_log WHERE dated >= datetime('now','-1 day')")
-
-        result = c.fetchone()
-        if result[0] > (self.daily_catch_limit - 5):
-            self.logger.info("Catch limit? %s / %s" %
-                             (result[0], self.daily_catch_limit))
-        if result[0] >= self.daily_catch_limit:
-            if hasattr(self.bot, "warned_about_catch_limit") and not self.bot.warned_about_catch_limit:
-                self.emit_event('catch_limit', formatted='WARNING! You have reached (%s / %s) your daily catch limit. Not catching' %
-                                (result[0], self.daily_catch_limit))
-                self.bot.warned_about_catch_limit = True
-            if self.exit_on_limit_reached:
-                sys.exit(2)
-            self.bot.catch_limit_reached = True
-            return WorkerResult.SUCCESS
-        else:
-            self.bot.warned_about_catch_limit = False
 
         # Don't try to catch a Pokemon when catching is disabled.
         if self.bot.catch_disabled:
@@ -91,7 +66,7 @@ class CatchPokemon(BaseTask):
 
         # Filter out already ignored mons
         if hasattr(self.bot, "hunter_locked_target"):
-            if self.bot.hunter_locked_target != None:
+            if self.bot.hunter_locked_target is not None:
                 self.pokemon = filter(
                     lambda x: x["pokemon_id"] not in self.ignored_while_looking, self.pokemon)
             elif len(self.ignored_while_looking) > 0:
@@ -115,7 +90,6 @@ class CatchPokemon(BaseTask):
         if num_pokemon > 0:
             # try catching
             mon_to_catch = self.pokemon.pop()
-            # hasattr(mon_to_catch, "pokemon_id") and self._is_vip_pokemon(mon_to_catch['pokemon_id'])
             is_vip = self._is_vip_pokemon(mon_to_catch)
             # Always catch VIP Pokemons!
             if hasattr(self.bot, "hunter_locked_target") and self.bot.hunter_locked_target is not None:
@@ -191,7 +165,6 @@ class CatchPokemon(BaseTask):
                 return True
         # If we need the Pokemon for an evolution, catch it.
         if any(not inventory.pokedex().seen(fid) for fid in self.get_family_ids(pokemon['pokemon_id'])):
-            # self.logger.info('Found a Pokemon whoes family is not yet complete in Pokedex!')
             return True
 
         return False
@@ -231,7 +204,6 @@ class CatchPokemon(BaseTask):
 
     def get_lured_pokemon(self):
         if hasattr(self.bot, "hunter_locked_target") and self.bot.hunter_locked_target is not None:
-            # self.logger.info('Hunting Pokemon, ignoring lured Pokemons')
             return True
 
         forts_in_range = []
