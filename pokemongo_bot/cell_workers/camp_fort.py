@@ -40,7 +40,8 @@ class CampFort(BaseTask):
 
         self.config_max_distance = self.config.get("max_distance", 2000)
         self.config_min_forts_count = self.config.get("min_forts_count", 2)
-        self.config_min_lured_forts_count = self.config.get("min_lured_forts_count", 1)
+        self.config_min_lured_forts_count = self.config.get(
+            "min_lured_forts_count", 1)
         self.config_camping_time = self.config.get("camping_time", 1800)
         self.config_moving_time = self.config.get("moving_time", 600)
 
@@ -55,18 +56,20 @@ class CampFort(BaseTask):
             return WorkerResult.SUCCESS
 
         if hasattr(self.bot, "hunter_locked_target") and self.bot.hunter_locked_target is not None:
-            if not hasattr(self.bot,"no_camper_while_hunting_global_warning") or \
-                        (hasattr(self.bot,"no_camper_while_hunting_global_warning") and not self.bot.no_camper_while_hunting_global_warning):
-                        self.logger.info("Pokemon hunter locked a target. Not camping right now...")
+            if not hasattr(self.bot, "no_camper_while_hunting_global_warning") or \
+                    (hasattr(self.bot, "no_camper_while_hunting_global_warning") and not self.bot.no_camper_while_hunting_global_warning):
+                self.logger.info(
+                    "Pokemon hunter locked a target. Not camping right now...")
             self.bot.no_camper_while_hunting_global_warning = True
             return WorkerResult.SUCCESS
         else:
             self.bot.no_camper_while_hunting_global_warning = False
 
         if self.bot.catch_disabled:
-            if not hasattr(self.bot,"camper_disabled_global_warning") or \
-                        (hasattr(self.bot,"camper_disabled_global_warning") and not self.bot.camper_disabled_global_warning):
-                self.logger.info("All catching tasks are currently disabled until {}. Camping of lured forts disabled till then.".format(self.bot.catch_resume_at.strftime("%H:%M:%S")))
+            if not hasattr(self.bot, "camper_disabled_global_warning") or \
+                    (hasattr(self.bot, "camper_disabled_global_warning") and not self.bot.camper_disabled_global_warning):
+                self.logger.info("All catching tasks are currently disabled until {}. Camping of lured forts disabled till then.".format(
+                    self.bot.catch_resume_at.strftime("%H:%M:%S")))
             self.bot.camper_disabled_global_warning = True
             return WorkerResult.SUCCESS
         else:
@@ -74,8 +77,9 @@ class CampFort(BaseTask):
 
         if self.bot.softban:
             if not hasattr(self.bot, "camper_softban_global_warning") or \
-                        (hasattr(self.bot, "camper_softban_global_warning") and not self.bot.camper_softban_global_warning):
-                self.logger.info("Possible softban! Not camping forts till fixed.")
+                    (hasattr(self.bot, "camper_softban_global_warning") and not self.bot.camper_softban_global_warning):
+                self.logger.info(
+                    "Possible softban! Not camping forts till fixed.")
             self.bot.camper_softban_global_warning = True
             return WorkerResult.SUCCESS
         else:
@@ -104,7 +108,8 @@ class CampFort(BaseTask):
             # Move away from lures for a time
             self.cluster = None
             self.stay_until = 0
-            self.move_until = now + max(self.config_moving_time, NO_BALLS_MOVING_TIME)
+            self.move_until = now + \
+                max(self.config_moving_time, NO_BALLS_MOVING_TIME)
 
             return WorkerResult.SUCCESS
 
@@ -119,7 +124,8 @@ class CampFort(BaseTask):
 
             if len(available_clusters) > 0:
                 self.cluster = available_clusters[0]
-                self.walker = PolylineWalker(self.bot, self.cluster["center"][0], self.cluster["center"][1])
+                self.walker = StepWalker(self.bot, self.cluster["center"][
+                                         0], self.cluster["center"][1])
 
                 self.no_log_until = now + LOG_TIME_INTERVAL
                 self.no_recheck_cluster_until = now + NO_BALLS_MOVING_TIME
@@ -166,11 +172,12 @@ class CampFort(BaseTask):
                                 formatted='Staying at destination: {size} forts, {lured} lured'.format(**self.cluster))
 
             if self.cluster["lured"] == 0:
-                self.bot.camping_forts = False # Allow hunter to move
+                self.bot.camping_forts = False  # Allow hunter to move
                 self.stay_until -= NO_LURED_TIME_MALUS
                 if self.no_log_until < now:
                     until = datetime.datetime.fromtimestamp(self.stay_until)
-                    self.logger.info("Lures gone, waiting for forts to be lured again until %s" % until.strftime("%H:%M"))
+                    self.logger.info(
+                        "Lures gone, waiting for forts to be lured again until %s" % until.strftime("%H:%M"))
 
             self.no_log_until = now + LOG_TIME_INTERVAL
             self.walker.step(speed=0)
@@ -193,8 +200,10 @@ class CampFort(BaseTask):
                 if self.previous_distance == self.cluster["distance"]:
                     self.distance_counter += 1
                     if self.distance_counter == 3:
-                        self.logger.info("Having difficulty walking to lures, changing walker!")
-                        self.walker = StepWalker(self.bot, self.cluster["center"][0], self.cluster["center"][1])
+                        self.logger.info(
+                            "Having difficulty walking to lures, changing walker!")
+                        self.walker = StepWalker(self.bot, self.cluster["center"][
+                                                 0], self.cluster["center"][1])
                     elif self.distance_counter > 6:
                         self.logger.info("Can't walk to the lures!")
                         self.distance_counter = 0
@@ -214,8 +223,10 @@ class CampFort(BaseTask):
     def get_forts(self):
         radius = self.config_max_distance + Constants.MAX_DISTANCE_FORT_IS_REACHABLE
 
-        forts = [f for f in self.bot.cell["forts"] if ("latitude" in f) and ("type" in f)]
-        forts = [f for f in forts if self.get_distance(self.bot.start_position, f) <= radius]
+        forts = [f for f in self.bot.cell["forts"]
+                 if ("latitude" in f) and ("type" in f)]
+        forts = [f for f in forts if self.get_distance(
+            self.bot.start_position, f) <= radius]
 
         return {f["id"]: f for f in forts}
 
@@ -224,9 +235,12 @@ class CampFort(BaseTask):
             self.update_cluster_distance(cluster)
             self.update_cluster_lured(cluster, forts)
 
-        available_clusters = [c for c in self.clusters if c["lured"] >= self.config_min_lured_forts_count]
-        available_clusters = [c for c in available_clusters if c["size"] >= self.config_min_forts_count]
-        available_clusters.sort(key=lambda c: self.get_cluster_key(c), reverse=True)
+        available_clusters = [c for c in self.clusters if c[
+            "lured"] >= self.config_min_lured_forts_count]
+        available_clusters = [c for c in available_clusters if c[
+            "size"] >= self.config_min_forts_count]
+        available_clusters.sort(
+            key=lambda c: self.get_cluster_key(c), reverse=True)
 
         return available_clusters
 
@@ -250,12 +264,14 @@ class CampFort(BaseTask):
                 cluster = cluster_1
 
                 while True:
-                    new_circle, _ = self.get_enclosing_circles(fort1, fort2, radius - 1)
+                    new_circle, _ = self.get_enclosing_circles(
+                        fort1, fort2, radius - 1)
 
                     if not new_circle:
                         break
 
-                    new_cluster = self.get_cluster(cluster["forts"], new_circle)
+                    new_cluster = self.get_cluster(
+                        cluster["forts"], new_circle)
 
                     if len(new_cluster["forts"]) < len(cluster["forts"]):
                         break
@@ -266,12 +282,14 @@ class CampFort(BaseTask):
                 cluster = cluster_2
 
                 while True:
-                    _, new_circle = self.get_enclosing_circles(fort1, fort2, radius - 1)
+                    _, new_circle = self.get_enclosing_circles(
+                        fort1, fort2, radius - 1)
 
                     if not new_circle:
                         break
 
-                    new_cluster = self.get_cluster(cluster["forts"], new_circle)
+                    new_cluster = self.get_cluster(
+                        cluster["forts"], new_circle)
 
                     if len(new_cluster["forts"]) < len(cluster["forts"]):
                         break
@@ -315,7 +333,8 @@ class CampFort(BaseTask):
         return c1, c2
 
     def get_cluster(self, forts, circle):
-        forts_in_circle = [f for f in forts if self.get_distance(circle, f) <= circle[2]]
+        forts_in_circle = [f for f in forts if self.get_distance(circle, f) <= circle[
+            2]]
 
         cluster = {"center": (circle[0], circle[1]),
                    "distance": 0,
@@ -329,10 +348,12 @@ class CampFort(BaseTask):
         return (cluster["lured"], cluster["size"], -cluster["distance"])
 
     def update_cluster_distance(self, cluster):
-        cluster["distance"] = great_circle(self.bot.position, cluster["center"]).meters
+        cluster["distance"] = great_circle(
+            self.bot.position, cluster["center"]).meters
 
     def update_cluster_lured(self, cluster, forts):
-        cluster["lured"] = sum(1 for f in cluster["forts"] if forts.get(f["id"], {}).get("active_fort_modifier", None) is not None)
+        cluster["lured"] = sum(1 for f in cluster["forts"] if forts.get(
+            f["id"], {}).get("active_fort_modifier", None) is not None)
 
     def get_distance(self, location, fort):
         return great_circle(location, (fort["latitude"], fort["longitude"])).meters

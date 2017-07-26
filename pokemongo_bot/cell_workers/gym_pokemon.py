@@ -624,9 +624,9 @@ class GymPokemon(BaseTask):
                 self.logger.info("Active raid?")
                 if raid_ends < datetime.now():
                     self.logger.info("No need to wait.")
-                elif (raid_ends - t).seconds > 600:
+                elif (raid_ends - t).seconds > 120:
                     self.logger.info(
-                        "Need to wait long than 10 minutes, skipping")
+                        "Need to wait long than 2 minutes, skipping")
                     self.destination = None
                     self.recent_gyms.append(gym["id"])
                     self.raid_gyms[gym["id"]] = raid_ends
@@ -791,7 +791,8 @@ class GymPokemon(BaseTask):
                     "Raid at %s ended (%s)" %
                     (gym_id, self.raid_gyms[gym_id]))
                 del(self.raid_gyms[gym_id])
-                self.recent_gyms.remove(gym_id)
+                if gym_id in self.recent_gyms:
+                    self.recent_gyms.remove(gym_id)
 
         # Check timeout gyms for timeouts that ended
         for gym_id in list(self.timeout_gyms.keys()):
@@ -800,7 +801,8 @@ class GymPokemon(BaseTask):
                     "Timeout ended at %s ended (%s)" %
                     (gym_id, self.timeout_gyms[gym_id]))
                 del(self.timeout_gyms[gym_id])
-                self.recent_gyms.remove(gym_id)
+                if gym_id in self.recent_gyms:
+                    self.recent_gyms.remove(gym_id)
 
         gyms = []
         # if not skip_recent_filter:

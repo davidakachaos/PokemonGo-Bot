@@ -5,6 +5,7 @@ from __future__ import absolute_import
 import json
 import os
 import random
+import sys
 
 from pokemongo_bot.base_task import BaseTask
 from pokemongo_bot.cell_workers.pokemon_catch_worker import PokemonCatchWorker
@@ -16,33 +17,61 @@ from pokemongo_bot.base_dir import _base_dir
 from pokemongo_bot.constants import Constants
 from pokemongo_bot.inventory import Pokemons
 
+
 class CatchPokemon(BaseTask):
     SUPPORTED_TASK_API_VERSION = 1
 
     def initialize(self):
         self.pokemon = []
         self.ignored_while_looking = []
+        self.exit_on_limit_reached = self.config.get(
+            "exit_on_limit_reached", True)
+        self.daily_catch_limit = self.config.get('daily_catch_limit', 800)
 
     def work(self):
         # make sure we have SOME balls
         if sum([inventory.items().get(ball.value).count for ball in
-    [Item.ITEM_POKE_BALL, Item.ITEM_GREAT_BALL, Item.ITEM_ULTRA_BALL]]) <= 0:
+                [Item.ITEM_POKE_BALL, Item.ITEM_GREAT_BALL, Item.ITEM_ULTRA_BALL]]) <= 0:
             return WorkerResult.ERROR
 
         if self.bot.softban:
             if not hasattr(self.bot, "softban_global_warning") or \
-                        (hasattr(self.bot, "softban_global_warning") and not self.bot.softban_global_warning):
-                self.logger.info("Possible softban! Not trying to catch Pokemon.")
+                    (hasattr(self.bot, "softban_global_warning") and not self.bot.softban_global_warning):
+                self.logger.info(
+                    "Possible softban! Not trying to catch Pokemon.")
             self.bot.softban_global_warning = True
             return WorkerResult.SUCCESS
         else:
             self.bot.softban_global_warning = False
 
-	# Don't try to catch a Pokemon when catching is disabled.
+        # check catch limits before catch
+        with self.bot.database as conn:
+            c = conn.cursor()
+            c.execute(
+                "SELECT DISTINCT COUNT(encounter_id) FROM catch_log WHERE dated >= datetime('now','-1 day')")
+
+        result = c.fetchone()
+        if result[0] > (self.daily_catch_limit - 5):
+            self.logger.info("Catch limit? %s / %s" %
+                             (result[0], self.daily_catch_limit))
+        if result[0] >= self.daily_catch_limit:
+            if hasattr(self.bot, "warned_about_catch_limit") and not self.bot.warned_about_catch_limit:
+                self.emit_event('catch_limit', formatted='WARNING! You have reached (%s / %s) your daily catch limit. Not catching' %
+                                (result[0], self.daily_catch_limit))
+                self.bot.warned_about_catch_limit = True
+            if self.exit_on_limit_reached:
+                sys.exit(2)
+            self.bot.catch_limit_reached = True
+            return WorkerResult.SUCCESS
+        else:
+            self.bot.warned_about_catch_limit = False
+
+        # Don't try to catch a Pokemon when catching is disabled.
         if self.bot.catch_disabled:
-            if not hasattr(self.bot,"all_disabled_global_warning") or \
-                        (hasattr(self.bot,"all_disabled_global_warning") and not self.bot.all_disabled_global_warning):
-                self.logger.info("All catching tasks are currently disabled until {}. Ignoring all Pokemon till then.".format(self.bot.catch_resume_at.strftime("%H:%M:%S")))
+            if not hasattr(self.bot, "all_disabled_global_warning") or \
+                    (hasattr(self.bot, "all_disabled_global_warning") and not self.bot.all_disabled_global_warning):
+                self.logger.info("All catching tasks are currently disabled until {}. Ignoring all Pokemon till then.".format(
+                    self.bot.catch_resume_at.strftime("%H:%M:%S")))
             self.bot.all_disabled_global_warning = True
             return WorkerResult.SUCCESS
         else:
@@ -61,29 +90,35 @@ class CatchPokemon(BaseTask):
             random.shuffle(self.pokemon)
 
         # Filter out already ignored mons
-        if hasattr(self.bot,"hunter_locked_target"):
+        if hasattr(self.bot, "hunter_locked_target"):
             if self.bot.hunter_locked_target != None:
-                self.pokemon = filter(lambda x: x["pokemon_id"] not in self.ignored_while_looking, self.pokemon)
+                self.pokemon = filter(
+                    lambda x: x["pokemon_id"] not in self.ignored_while_looking, self.pokemon)
             elif len(self.ignored_while_looking) > 0:
-                self.logger.info("No longer hunting for a Pokémon, resuming normal operations.")
+                self.logger.info(
+                    "No longer hunting for a Pokémon, resuming normal operations.")
                 # Reset the ignored list when no longer needed.
                 self.ignored_while_looking = []
 
         if hasattr(self.bot, "skipped_pokemon"):
             # Skip pokemon the catcher told us to ignore
-            self.pokemon = [p for p in self.pokemon if p not in self.bot.skipped_pokemon]
+            self.pokemon = [
+                p for p in self.pokemon if p not in self.bot.skipped_pokemon]
 
         num_pokemon = len(self.pokemon)
-        always_catch_family_of_vip = self.config.get('always_catch_family_of_vip', False)
+        always_catch_family_of_vip = self.config.get(
+            'always_catch_family_of_vip', False)
         always_catch_trash = self.config.get('always_catch_trash', False)
-        trash_pokemon = ["Caterpie", "Weedle", "Pidgey", "Pidgeotto", "Pidgeot", "Kakuna", "Beedrill", "Metapod", "Butterfree"]
+        trash_pokemon = ["Caterpie", "Weedle", "Pidgey", "Pidgeotto",
+                         "Pidgeot", "Kakuna", "Beedrill", "Metapod", "Butterfree"]
 
         if num_pokemon > 0:
             # try catching
             mon_to_catch = self.pokemon.pop()
-            is_vip = self._is_vip_pokemon(mon_to_catch) # hasattr(mon_to_catch, "pokemon_id") and self._is_vip_pokemon(mon_to_catch['pokemon_id'])
+            # hasattr(mon_to_catch, "pokemon_id") and self._is_vip_pokemon(mon_to_catch['pokemon_id'])
+            is_vip = self._is_vip_pokemon(mon_to_catch)
             # Always catch VIP Pokemons!
-            if hasattr(self.bot,"hunter_locked_target") and self.bot.hunter_locked_target != None:
+            if hasattr(self.bot, "hunter_locked_target") and self.bot.hunter_locked_target is not None:
                 bounty = self.bot.hunter_locked_target
                 mon_name = Pokemons.name_for(mon_to_catch['pokemon_id'])
                 bounty_name = Pokemons.name_for(bounty['pokemon_id'])
@@ -93,20 +128,24 @@ class CatchPokemon(BaseTask):
 
                 if always_catch_trash:
                     if mon_name in trash_pokemon:
-                        self.logger.info("While on the hunt for {}, I found a {}! I want that Pokemon! Will try to catch...".format(bounty_name, mon_name))
+                        self.logger.info("While on the hunt for {}, I found a {}! I want that Pokemon! Will try to catch...".format(
+                            bounty_name, mon_name))
                         trash_catch = True
 
                 if always_catch_family_of_vip:
                     if mon_name != bounty_name:
                         if self._is_family_of_vip(mon_to_catch['pokemon_id']):
-                            self.logger.info("While on the hunt for {}, I found a {}! I want that Pokemon! Will try to catch...".format(bounty_name, mon_name))
+                            self.logger.info("While on the hunt for {}, I found a {}! I want that Pokemon! Will try to catch...".format(
+                                bounty_name, mon_name))
                             family_catch = True
 
                 if not family_catch and not trash_catch:
                     if (mon_name != bounty_name and is_vip is False):
                         # This is not the Pokémon you are looking for...
-                        self.logger.info("[Hunter locked a {}] Ignoring a {}".format(bounty_name, mon_name))
-                        self.ignored_while_looking.append(mon_to_catch['pokemon_id'])
+                        self.logger.info(
+                            "[Hunter locked a {}] Ignoring a {}".format(bounty_name, mon_name))
+                        self.ignored_while_looking.append(
+                            mon_to_catch['pokemon_id'])
 
                         if num_pokemon > 1:
                             return WorkerResult.RUNNING
@@ -116,12 +155,15 @@ class CatchPokemon(BaseTask):
                         # We have found a vip or our target...
                         if bounty_name == mon_name:
                             self.bot.hunter_locked_target = None
-                            self.logger.info("Found my target {}!".format(bounty_name))
+                            self.logger.info(
+                                "Found my target {}!".format(bounty_name))
                         else:
-                            self.logger.info("While on the hunt for {}, I found a {}! I want that Pokemon! Will try to catch...".format(bounty_name, mon_name))
+                            self.logger.info("While on the hunt for {}, I found a {}! I want that Pokemon! Will try to catch...".format(
+                                bounty_name, mon_name))
             try:
                 if self.catch_pokemon(mon_to_catch) == WorkerResult.ERROR:
-                    # give up incase something went wrong in our catch worker (ran out of balls, etc)
+                    # give up incase something went wrong in our catch worker
+                    # (ran out of balls, etc)
                     return WorkerResult.ERROR
                 elif num_pokemon > 1:
                     # we have more pokemon to catch
@@ -160,7 +202,8 @@ class CatchPokemon(BaseTask):
             pokemon_to_catch = self.bot.cell['catchable_pokemons']
 
             if len(pokemon_to_catch) > 0:
-                user_web_catchable = os.path.join(_base_dir, 'web', 'catchable-{}.json'.format(self.bot.config.username))
+                user_web_catchable = os.path.join(
+                    _base_dir, 'web', 'catchable-{}.json'.format(self.bot.config.username))
             for pokemon in pokemon_to_catch:
                 # Update web UI
                 with open(user_web_catchable, 'w') as outfile:
@@ -187,7 +230,7 @@ class CatchPokemon(BaseTask):
                 self.add_pokemon(pokemon)
 
     def get_lured_pokemon(self):
-        if hasattr(self.bot,"hunter_locked_target") and self.bot.hunter_locked_target != None:
+        if hasattr(self.bot, "hunter_locked_target") and self.bot.hunter_locked_target is not None:
             # self.logger.info('Hunting Pokemon, ignoring lured Pokemons')
             return True
 
@@ -210,12 +253,11 @@ class CatchPokemon(BaseTask):
             if distance_to_fort < Constants.MAX_DISTANCE_FORT_IS_REACHABLE and encounter_id:
                 forts_in_range.append(fort)
 
-
         for fort in forts_in_range:
 
             details = fort_details(self.bot, fort_id=fort['id'],
-                                  latitude=fort['latitude'],
-                                  longitude=fort['longitude'])
+                                   latitude=fort['latitude'],
+                                   longitude=fort['longitude'])
             fort_name = details.get('name', 'Unknown')
             encounter_id = fort['lure_info']['encounter_id']
 
@@ -235,7 +277,7 @@ class CatchPokemon(BaseTask):
             }
             if hasattr(self.bot, 'skipped_pokemon'):
                 if pokemon['encounter_id'] not in \
-                    map(lambda pokemon: pokemon.encounter_id, self.bot.skipped_pokemon):
+                        map(lambda pokemon: pokemon.encounter_id, self.bot.skipped_pokemon):
                     self.emit_event(
                         'lured_pokemon_found',
                         level='info',
@@ -286,7 +328,8 @@ class CatchPokemon(BaseTask):
             self.logger.info(applied_item)
             if applied_item.expire_ms > 0:
                 mins = format_time(applied_item.expire_ms * 1000)
-                self.logger.info("Not applying incense, currently active: %s, %s minutes remaining", applied_item.item.name, mins)
+                self.logger.info(
+                    "Not applying incense, currently active: %s, %s minutes remaining", applied_item.item.name, mins)
                 return True
             else:
                 self.logger.info("")

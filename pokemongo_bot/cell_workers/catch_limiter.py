@@ -43,8 +43,7 @@ class CatchLimiter(BaseTask):
             if balls_on_hand > self.min_balls:
                 self.emit_event(
                     'catch_limit_off',
-                    formatted="Resume time has passed and balls on hand ({})\
-                    exceeds threshold {}. Re-enabling catch tasks.".format(
+                    formatted="Resume time has passed and balls on hand ({}) exceeds threshold {}. Re-enabling catch tasks.".format(
                         balls_on_hand, self.min_balls)
                 )
                 self.bot.catch_disabled = False
@@ -58,8 +57,7 @@ class CatchLimiter(BaseTask):
         ):
             self.emit_event(
                 'catch_limit_off',
-                formatted="Resume time hasn't passed yet, but balls on hand\
-                ({}) exceeds threshold {}. Re-enabling catch tasks.".format(
+                formatted="Resume time hasn't passed yet, but balls on hand ({}) exceeds threshold {}. Re-enabling catch tasks.".format(
                     balls_on_hand, self.resume_at_balls
                 )
             )
@@ -73,9 +71,8 @@ class CatchLimiter(BaseTask):
             self.bot.catch_disabled = True
             self.emit_event(
                 'catch_limit_on',
-                formatted="Balls on hand ({}) has reached threshold {}. \
-                    Disabling catch tasks until {} or balls on hand >\
-                    threshold (whichever is later).".format
+                formatted=("Balls on hand ({}) has reached threshold {}."
+                           " Disabling catch tasks until {} or balls on hand > threshold (whichever is later).").format
                 (
                     balls_on_hand,
                     self.min_balls,
@@ -85,8 +82,8 @@ class CatchLimiter(BaseTask):
 
         if self.bot.catch_disabled and self.no_log_until <= now:
             if now >= self.bot.catch_resume_at:
-                self.logger.info("All catch tasks disabled until balls on hand\
-                 (%s) > threshold." % balls_on_hand)
+                self.logger.info(
+                    "All catch tasks disabled until balls on hand (%s) > threshold." % balls_on_hand)
             else:
                 self.logger.info(
                     "All catch tasks disabled until %s or\

@@ -50,6 +50,7 @@ class BallCollector(BaseTask):
         self.previous_distance = 0
         self.distance_counter = 0
         self.destination = None
+        self.forts = []
 
     def work(self):
         # Don't do anything when softbanned!!!
@@ -63,22 +64,23 @@ class BallCollector(BaseTask):
             if self.bot.catch_disabled:
                 self.emit_event(
                     'catch_limit_off',
-                    formatted="Balls on hand ({}) exceeds threshold {}.\
-                     Re-enabling catch tasks.". format(
+                    formatted=("Balls on hand ({}) exceeds threshold {}."
+                               " Re-enabling catch tasks."). format(
                         balls_on_hand,
                         self.resume_balls))
                 self.bot.catch_disabled = False
+                self.forts = []
             return WorkerResult.SUCCESS
 
         if self.bot.catch_disabled and now >= self.bot.catch_resume_at:
             if balls_on_hand > self.min_balls:
                 self.emit_event(
                     'catch_limit_off',
-                    formatted="Resume time has passed and balls on hand ({}) exceeds threshold {}.\
-                     Re-enabling catch tasks.". format(
+                    formatted="Resume time has passed and balls on hand ({}) exceeds threshold {}. Re-enabling catch tasks.". format(
                         balls_on_hand,
                         self.min_balls))
                 self.bot.catch_disabled = False
+                self.forts = []
                 return WorkerResult.SUCCESS
 
         # If balls_on_hand less than threshold, pause catching tasks for
@@ -91,9 +93,9 @@ class BallCollector(BaseTask):
             self.bot.catch_disabled = True
             self.emit_event(
                 'catch_limit_on',
-                formatted="Balls on hand ({}) has reached threshold {}. \
-                Disabling catch tasks until {} or balls on hand > threshold\
-                 (whichever is later).". format(
+                formatted=(
+                    "Balls on hand ({}) has reached threshold {}."
+                    " Disabling catch tasks until {} or balls on hand > threshold (whichever is later)."). format(
                     balls_on_hand,
                     self.min_balls,
                     self.bot.catch_resume_at.strftime("%H:%M:%S")))
@@ -136,8 +138,7 @@ class BallCollector(BaseTask):
                 self.no_log_until = now + timedelta(seconds=LOG_TIME_INTERVAL)
                 self.emit_event(
                     "new_destination",
-                    formatted='New destination at {distance:.2f} \
-                    meters: {size} forts'.format(
+                    formatted='New destination at {distance:.2f} meters: {size} forts'.format(
                         **self.cluster))
             else:
                 # No cluster found to move to...
@@ -163,8 +164,7 @@ class BallCollector(BaseTask):
                     self.distance_counter += 1
                     if self.distance_counter == 3:
                         self.logger.info(
-                            "Having difficulty walking to the cluster,\
-                             changing walker!")
+                            "Having difficulty walking to the cluster, changing walker!")
                         self.walker = StepWalker(
                             self.bot,
                             self.cluster["center"][0],
@@ -183,8 +183,7 @@ class BallCollector(BaseTask):
             self.no_log_until = now + timedelta(seconds=10)
             self.emit_event(
                 "moving_to_destination",
-                formatted="Moving to destination at {distance:.2f} \
-                meters: {size} forts.".format(
+                formatted="Moving to destination at {distance:.2f} meters: {size} forts.".format(
                     **self.cluster))
             return WorkerResult.RUNNING
 
@@ -272,9 +271,12 @@ class BallCollector(BaseTask):
         self.logger.info("Getting forts....")
         radius = self.config_max_distance + Constants.MAX_DISTANCE_FORT_IS_REACHABLE
 
-        forts = self.bot.get_forts(order_by_distance=True)
+        if self.forts == []:
+            # Cache this
+            self.forts = self.bot.get_forts(order_by_distance=True)
         # Get all the Pokestops and Gyms in range that are not on cooldown
-        forts = [f for f in forts if f["id"] not in self.bot.fort_timeouts]
+        forts = [f for f in self.forts if f[
+            "id"] not in self.bot.fort_timeouts]
         # Filter out those not in range
         forts = [
             f for f in forts if self.get_distance(
