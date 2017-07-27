@@ -726,7 +726,10 @@ Setting | Description
 `pinap_on_level_below` | Set at what level (and below) of the pokemon should Pinap berry br use on. Set to 0 to disable use of pinap berry
 `pinap_operator` | Set if Pinap berry going to be use together with "use_pinap_on_vip" or without (Operator "or", "and")
 `pinap_ignore_threshold` | Set if bot is going to ignore catch rate threshold when using pinap berry
-`vip_berry_threshold` | The ideal catch rate threshold before using a razz berry on VIP pokemon
+`smart_pinap_enabled` | Set if bot is going to use the smart pinap function that uses pinap berry on high catch rate mons (If `smart_pinap_threshold` is set higher than `berry_threshold` pinap will be used on high catch rate mons and razz will be used on low catch rate mons, making the bot "smart".)
+`smart_pinap_threshold` | If set to 0.85, pinap will be used on non-VIP with catch rate higher rate than 0.85
+`smart_pinap_to_keep` | Number of pinaps to keep to be used on VIP 
+`vip_berry_threshold` | The ideal catch rate threshold before using a razz berry on VIP pokemon (If `smart_pinap_enabled`=true, VIP above this catch rate will be pinapped)
 `flee_count` | The maximum number of times catching animation will play before the pokemon breaks free
 `flee_duration` | The length of time for each animation
 `catch_wait_min`| The minimum amount of time to throw the ball
@@ -864,6 +867,8 @@ This task will fetch current pokemon spawns from /raw_data of an PokemonGo-Map i
 
 This task is an upgrade version of the MoveToMapPokemon task. It will fetch pokemon informations from any number of urls (sources), including PokemonGo-Map, or from the social feature. You can also use the old PokemonGo-Map project. For information on how to properly setup PokemonGo-Map have a look at the Github page of the project [here](https://github.com/PokemonGoMap/PokemonGo-Map). You can also use [this](https://github.com/YvesHenri/PogoLocationFeeder), which is an adapted version of the application that NecroBot used to snipe. There is an example config in `config/config.json.map.example`.
 
+Please note that this feature only works with a radius of 15KM. By default, it will continue at new location once snipe is done unless you specify it not to with `teleport_back_to_last_location` set to true.
+
 ### Options
 [[back to top](#table-of-contents)]
 
@@ -884,6 +889,7 @@ This task is an upgrade version of the MoveToMapPokemon task. It will fetch poke
    - `missing` - Order by the target's pokedex missing status.
    - `priority` - Order by the priority you have specified in the `catch` list.
    - `expiration_timestamp_ms` - Order by the expiration time.
+* `teleport_back_to_last_location` - Specify if you want to teleport back to last location. Default is false.
 * `sources` - This should map a JSON param values from a given url. For example: different urls will provide different JSON response formats. **PLEASE ADVISED THAT, IF A PARAM DOES NOT EXIST (OR CONTAINS WRONG DATA LIKE PokeSnipers's ID PARAM), DO NOT SPECIFY IT!** Pokesnipers is a special case where it does provide IDs, however theyre wrong. Map bellow their corresponding values:
 * `sources.key` - The JSON key that contains the results, eg.: For a JSON response such as `{ "SomeWeirdoName": [{"id": 123, ...}, {"id": 143, ...}]}`, `SomeWeirdoName` would be the key name.
 * `sources.url` - The URL that will provide the JSON.

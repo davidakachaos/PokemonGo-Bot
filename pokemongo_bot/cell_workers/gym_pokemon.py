@@ -904,14 +904,14 @@ class GymPokemon(BaseTask):
         # Except for a user set of mons (like Blissey)
         possible_pokemons = [p for p in possible_pokemons if p.cp <
                              3000 and p.name not in self.ignore_max_cp_pokemon]
-        # filter out Pokemon never to be placed in gyms
-        possible_pokemons = [
-            p for p in possible_pokemons if p.name not in self.never_place]
-        # Can't place Legendaries in gyms!!!
-        possible_pokemons = [
-            p for p in possible_pokemons if p.name not in legendaries]
+
         # Filter out "bad" Pokemon
         possible_pokemons = [p for p in possible_pokemons if not p.is_bad]
+        # Ignore legendaries for in Gyms
+        possible_pokemons = [p for p in possible_pokemons if not p.name in legendaries]
+        # Filter out "never place" Pokemon
+        possible_pokemons = [p for p in possible_pokemons if p.name not in self.never_place]
+
         # HP Must be max
         possible_pokemons = [p for p in possible_pokemons if p.hp == p.hp_max]
         possible_pokemons = [p for p in possible_pokemons if not p.in_fort]

@@ -85,10 +85,6 @@ class PokemonCatchWorker(BaseTask):
         self.treat_unseen_as_vip = self.config.get('treat_unseen_as_vip', DEFAULT_UNSEEN_AS_VIP)
         self.treat_family_of_vip_as_vip = self.config.get('treat_family_of_vip_as_vip', False)
         self.daily_catch_limit = self.config.get('daily_catch_limit', 500)
-        if self.daily_catch_limit > 500:
-            self.logger.warning("BE WARNED! The total catch limit in 72 hours is 1500!")
-            self.logger.warning("Setting your daily limit to %s might get you account flagged or banned!" % self.daily_catch_limit)
-            sleep(5)
         self.use_pinap_on_vip = self.config.get('use_pinap_on_vip', False)
         self.pinap_on_level_below = self.config.get('pinap_on_level_below', 0)
         self.pinap_on_candy_below = self.config.get('pinap_on_candy_below', 0)
@@ -125,12 +121,22 @@ class PokemonCatchWorker(BaseTask):
         self.catchsim_newtodex_wait_min = self.catchsim_config.get('newtodex_wait_min', 20)
         self.catchsim_newtodex_wait_max = self.catchsim_config.get('newtodex_wait_max', 30)
 
+        self.smart_pinap_enabled = self.config.get('smart_pinap_enabled', False)
+        self.smart_pinap_threshold = self.config.get('smart_pinap_threshold', 0.85)
+        self.smart_pinap_to_keep = self.config.get('smart_pinap_to_keep', 3)
 
     ############################################################################
     # public methods
     ############################################################################
 
     def work(self, response_dict=None):
+        if self.daily_catch_limit > 500:
+            if not hasattr(self.bot, "no_notify_until") or self.bot.no_notify_until <= datetime.now():
+                self.logger.warning("BE WARNED! The total catch limit in 72 hours is 1500!")
+                self.logger.warning("Setting your daily limit to %s might get you account flagged or banned!" % self.daily_catch_limit)
+                sleep(5)
+                self.bot.no_notify_until = datetime.now() + timedelta(minutes=5)
+
         response_dict = response_dict or self.create_encounter_api_call()
 
         # validate response
@@ -648,7 +654,15 @@ class PokemonCatchWorker(BaseTask):
 
             changed_ball = False
 
-            # use a berry if we are under our ideal rate and have berries to spare
+            # SMART_PINAP: Use pinap when high catch rate, but spare some for VIP with high catch rate
+            if self.smart_pinap_enabled and ( (not is_vip and self.inventory.get(ITEM_PINAPBERRY).count > self.smart_pinap_to_keep and catch_rate_by_ball[current_ball] > self.smart_pinap_threshold) or (is_vip and self.inventory.get(ITEM_PINAPBERRY).count > 0 and catch_rate_by_ball[current_ball] >= self.vip_berry_threshold) ) and not used_berry:
+                berry_id = ITEM_PINAPBERRY
+                new_catch_rate_by_ball = self._use_berry(berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
+                self.inventory.get(berry_id).remove(1)
+                berry_count -= 1
+                used_berry = True
+
+				# use a berry if we are under our ideal rate and have berries to spare
             if catch_rate_by_ball[current_ball] < ideal_catch_rate_before_throw and berries_to_spare and not used_berry:
                 new_catch_rate_by_ball = self._use_berry(berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
                 if new_catch_rate_by_ball != catch_rate_by_ball:
