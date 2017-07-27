@@ -857,6 +857,9 @@ class PokemonOptimizer(BaseTask):
         xp_count = len(xp)
 
         if self.config_transfer or self.bot.config.test:
+            if self.buddy in transfer:
+                del(self.buddy, transfer)
+                
             if transfer_count > 0:
                 self.logger.info("Transferring %s Pokemon", transfer_count)
 

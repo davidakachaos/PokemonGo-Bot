@@ -67,8 +67,9 @@ class CatchPokemon(BaseTask):
         # Filter out already ignored mons
         if hasattr(self.bot, "hunter_locked_target"):
             if self.bot.hunter_locked_target is not None:
+
                 self.pokemon = filter(
-                    lambda x: x["pokemon_id"] not in self.ignored_while_looking, self.pokemon)
+                    lambda x: hasattr(x, "pokemon_id") and x["pokemon_id"] not in self.ignored_while_looking, self.pokemon)
             elif len(self.ignored_while_looking) > 0:
                 self.logger.info(
                     "No longer hunting for a Pokémon, resuming normal operations.")
