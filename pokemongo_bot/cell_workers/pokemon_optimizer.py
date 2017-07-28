@@ -368,7 +368,7 @@ class PokemonOptimizer(BaseTask):
         km_walked = inventory.player().player_stats.get("km_walked", 0)
         last_km_awarded = self.buddy.setdefault("last_km_awarded", km_walked)
         distance_walked = km_walked - last_km_awarded
-        distance_needed = pokemon.buddy_distance_needed / 3.0
+        distance_needed = pokemon.buddy_distance_needed
 
         if distance_walked >= distance_needed:
             self.get_buddy_walked(pokemon)
