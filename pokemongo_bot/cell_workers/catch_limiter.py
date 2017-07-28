@@ -20,7 +20,7 @@ class CatchLimiter(BaseTask):
         self.config = config
         self.enabled = self.config.get("enabled", False)
         self.min_balls = self.config.get("min_balls", 20)
-        self.resume_at_balls = self.config.get("resume_balls", 100)
+        self.resume_at_balls = self.config.get("resume_balls", None)
         self.duration = self.config.get("duration", 15)
         self.no_log_until = datetime.now()
         self.min_ultraball_to_keep = 0
@@ -127,17 +127,18 @@ class CatchLimiter(BaseTask):
 
         # If balls_on_hand is more than resume_at_balls,
         # resume catch tasks, if not softbanned
-        if (
-                self.bot.softban is False and
-                self.bot.catch_disabled and
-                balls_on_hand >= self.resume_at_balls
-        ):
-            self.emit_event(
-                'catch_limit_off',
-                formatted="Resume time hasn't passed yet, but balls on hand ({}) exceeds threshold {}. Re-enabling catch tasks.".format(
-                    balls_on_hand,
-                    self.resume_at_balls))
-            self.bot.catch_disabled = False
+        if self.resume_at_balls is not None:
+            if (
+                    self.bot.softban is False and
+                    self.bot.catch_disabled and
+                    balls_on_hand >= self.resume_at_balls
+            ):
+                self.emit_event(
+                    'catch_limit_off',
+                    formatted="Resume time hasn't passed yet, but balls on hand ({}) exceeds threshold {}. Re-enabling catch tasks.".format(
+                        balls_on_hand,
+                        self.resume_at_balls))
+                self.bot.catch_disabled = False
 
         # If balls_on_hand less than threshold,
         # pause catching tasks for duration minutes
@@ -145,26 +146,39 @@ class CatchLimiter(BaseTask):
             self.bot.catch_resume_at = now + timedelta(minutes=self.duration)
             self.no_log_until = now + timedelta(minutes=2)
             self.bot.catch_disabled = True
-            self.emit_event(
-                'catch_limit_on',
-                formatted=(
-                    "Balls on hand ({}) has reached threshold {}."
-                    " Disabling catch tasks until {} or balls on hand > threshold (whichever is later).").format(
-                    balls_on_hand,
-                    self.min_balls,
-                    self.bot.catch_resume_at.strftime("%H:%M:%S")))
+            if self.resume_at_balls is not None:
+                self.emit_event(
+                    'catch_limit_on',
+                    formatted=(
+                        "Balls on hand ({}) has reached threshold {}."
+                        " Disabling catch tasks until {} or balls on hand > threshold (whichever is later).").format(
+                        balls_on_hand,
+                        self.min_balls,
+                        self.bot.catch_resume_at.strftime("%H:%M:%S")))
+            else:
+                self.emit_event(
+                    'catch_limit_on',
+                    formatted=(
+                        "Balls on hand ({}) has reached threshold {}."
+                        " Disabling catch tasks until {}.").format(
+                        balls_on_hand,
+                        self.min_balls,
+                        self.bot.catch_resume_at.strftime("%H:%M:%S")))
 
         if self.bot.catch_disabled and self.no_log_until <= now:
             if now >= self.bot.catch_resume_at:
                 self.logger.info(
                     "All catch tasks disabled until balls on hand (%s) > threshold." %
                     balls_on_hand)
-            else:
+            elif self.resume_at_balls is not None:
                 self.logger.info(
                     "All catch tasks disabled until %s or balls on hand (%s) >= %s" %
                     (self.bot.catch_resume_at.strftime("%H:%M:%S"),
                      balls_on_hand,
                      self.resume_at_balls))
+            else:
+                self.logger.info(
+                    "All catch tasks disabled until %s" % self.bot.catch_resume_at.strftime("%H:%M:%S"))
             self.no_log_until = now + timedelta(minutes=2)
 
         return WorkerResult.SUCCESS
