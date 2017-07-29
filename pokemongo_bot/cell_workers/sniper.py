@@ -20,6 +20,7 @@ from pokemongo_bot.inventory import Pokemons
 from pokemongo_bot.worker_result import WorkerResult
 from pokemongo_bot.event_handlers.telegram_handler import TelegramSnipe
 from pokemongo_bot.cell_workers.pokemon_catch_worker import PokemonCatchWorker
+from .utils import format_dist
 
 # Represents a URL source and its mappings
 class SniperSource(object):
@@ -369,6 +370,7 @@ class Sniper(BaseTask):
                     exists = False
                     self._log('Sniping distance is more than supported distance, abort sniping')
                 else:
+                    self._log('I spotted a %s to snipe!' % pokemon['pokemon_name'])
                     self._log('Base on distance, pausing for {} sec'.format(sleep_time))
 
                     # Teleport, so that we can see nearby stuff
@@ -450,7 +452,11 @@ class Sniper(BaseTask):
                             time.sleep(sleep_time)
                             self._teleport_back(last_position)
                         else:
+                            # Reset the hunter target if we are at a new spot...
                             self._log('Bot will now continue from new position')
+                            if hasattr(self.bot, "hunter_locked_target") and self.bot.hunter_locked_target is not None:
+                                self._log('Was hunting for a target, but we sniped, so resetting hunter target.')
+                                self.bot.hunter_locked_target = None
                     else:
                         self._error('Damn! Its not here. Reasons: too far, caught, expired or fake data. Skipping...')
                         if self.teleport_back_to_last_location:
@@ -458,7 +464,11 @@ class Sniper(BaseTask):
                             time.sleep(sleep_time)
                             self._teleport_back(last_position)
                         else:
+                            # Reset the hunter target if we are at a new spot...
                             self._log('Bot will now continue from new position')
+                            if hasattr(self.bot, "hunter_locked_target") and self.bot.hunter_locked_target is not None:
+                                self._log('Was hunting for a target, but we sniped, so resetting hunter target.')
+                                self.bot.hunter_locked_target = None
 
                     #Set always to false to re-enable sniper to check for telegram data
                     TelegramSnipe.ENABLED = False
@@ -487,6 +497,9 @@ class Sniper(BaseTask):
             return WorkerResult.SUCCESS
         else:
             self.bot.softban_global_warning = False
+
+        if hasattr(self.bot, "moving_to_gym") and self.bot.moving_to_gym:
+            return WorkerResult.SUCCESS
 
         sniped = False
         # Do nothing if this task was invalidated

@@ -782,6 +782,7 @@ Setting | Description
 ---- | ----
 `enabled` | Specify whether this task should run or not
 `min_balls` | Determine minimum ball level required for catching tasks to be enabled
+`resume_balls` | Default isn't set. When set this amount of balls will trigger an earlier resume of catching tasks (setting this to 100 for example, will enable catching as soon as the bot reached 100 Pokeballs in total)
 `duration` | How long to disable catching
 
 Catching will be disabled when balls on hand reaches/is below "min_balls" and will be re-enabled when "duration" is reached, or when balls on hand > min_balls (whichever is later)

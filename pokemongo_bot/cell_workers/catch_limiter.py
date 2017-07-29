@@ -21,6 +21,17 @@ class CatchLimiter(BaseTask):
         self.enabled = self.config.get("enabled", False)
         self.min_balls = self.config.get("min_balls", 20)
         self.resume_at_balls = self.config.get("resume_balls", None)
+
+        if self.min_balls > self.resume_at_balls:
+            self.logger.warn(
+                "You have set minium of balls to a "
+                "higher number than to resume catching!"
+                " This WILL cause problems! Inverting the settings "
+                " so min_balls -> resume_balls and resume_balls -> min_balls!"
+            )
+            sleep(5)
+            self.min_balls, self.resume_at_balls = self.resume_at_balls, self.min_balls
+
         self.duration = self.config.get("duration", 15)
         self.no_log_until = datetime.now()
         self.min_ultraball_to_keep = 0

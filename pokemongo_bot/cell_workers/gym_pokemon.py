@@ -92,6 +92,7 @@ class GymPokemon(BaseTask):
         self.gyms = []
         self.raid_gyms = dict()
         self.timeout_gyms = dict()
+        self.bot.moving_to_gym = False
 
         self.bot.event_manager.register_event('gym_error')
         self.bot.event_manager.register_event('fed_pokemon')
@@ -196,6 +197,7 @@ class GymPokemon(BaseTask):
             self.determin_new_destination()
 
         if self.destination is not None:
+            self.bot.moving_to_gym = True
             result = self.move_to_destination()
             # Can return RUNNING to move to a gym
             return result
@@ -605,6 +607,7 @@ class GymPokemon(BaseTask):
                         self.logger.info(
                             "No details for this Gym? Blacklisting!")
                         self.blacklist.append(gym["id"])
+                        self.bot.moving_to_gym = False
                         return WorkerResult.SUCCESS
 
         # Check for raid
@@ -630,6 +633,7 @@ class GymPokemon(BaseTask):
                     self.destination = None
                     self.recent_gyms.append(gym["id"])
                     self.raid_gyms[gym["id"]] = raid_ends
+                    self.bot.moving_to_gym = False
                     return WorkerResult.SUCCESS
                 else:
                     first_time = False
@@ -673,7 +677,8 @@ class GymPokemon(BaseTask):
                     self.destination = None
                     self.recent_gyms.append(gym["id"])
                     self.timeout_gyms[gym["id"]] = lockout_time
-                    return False
+                    self.bot.moving_to_gym = False
+                    return WorkerResult.SUCCESS
                 else:
                     first_time = True
                     while lockout_time > datetime.now():
@@ -738,6 +743,7 @@ class GymPokemon(BaseTask):
                         "We deployed %s (%s CP) in the gym %s!!" %
                         (fort_pokemon.name, fort_pokemon.cp, gym_details["name"])), data={
                         'gym_id': gym['id'], 'pokemon_id': pokemon_id})
+                self.bot.moving_to_gym = False
                 return WorkerResult.SUCCESS
             elif result == 2:
                 # ERROR_ALREADY_HAS_POKEMON_ON_FORT
