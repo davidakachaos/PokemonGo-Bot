@@ -77,6 +77,7 @@ class MoveToFort(BaseTask):
         moving = noised_dist > Constants.MAX_DISTANCE_FORT_IS_REACHABLE if self.bot.config.replicate_gps_xy_noise else dist > Constants.MAX_DISTANCE_FORT_IS_REACHABLE
 
         distance_to_target = int(noised_dist if self.bot.config.replicate_gps_xy_noise else dist)
+
         if len(self.previous_distance) == 0:
             error_moving = False
             self.previous_distance.append(distance_to_target)
@@ -111,8 +112,6 @@ class MoveToFort(BaseTask):
                     self.logger.info("Having difficulty walking to %s. Changing walker." % fort_name)
                     self.walker = 'StepWalker'
                     self.previous_distance = [distance_to_target]
-            else:
-                self.previous_distance.append(distance_to_target)
 
         if moving:
             self.wait_log_sent = None

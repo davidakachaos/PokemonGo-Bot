@@ -7,9 +7,6 @@ import requests
 import calendar
 import difflib
 import hashlib
-
-from geopy.distance import great_circle
-
 from random import uniform
 from operator import itemgetter, methodcaller
 from itertools import izip
@@ -20,7 +17,7 @@ from pokemongo_bot.inventory import Pokemons
 from pokemongo_bot.worker_result import WorkerResult
 from pokemongo_bot.event_handlers.telegram_handler import TelegramSnipe
 from pokemongo_bot.cell_workers.pokemon_catch_worker import PokemonCatchWorker
-from .utils import format_dist
+from pokemongo_bot.cell_workers.utils import wait_time_sec, distance, convert
 
 # Represents a URL source and its mappings
 class SniperSource(object):
@@ -362,8 +359,10 @@ class Sniper(BaseTask):
                 # Backup position before anything
                 last_position = self.bot.position[0:2]
                 teleport_position = [pokemon['latitude'], pokemon['longitude']]
-                teleport_distance = self._get_distance(last_position, teleport_position)
-                sleep_time = self._get_sleep_sec(teleport_distance)
+                #teleport_distance = self._get_distance(last_position, teleport_position)
+                teleport_distance = convert(distance(last_position[0],last_position[1],float(pokemon['latitude']),float(pokemon['longitude'])),"m","km")
+                #sleep_time = self._get_sleep_sec(teleport_distance)
+                sleep_time = wait_time_sec(teleport_distance)
                 
                 if sleep_time > 900:
                     success = False
