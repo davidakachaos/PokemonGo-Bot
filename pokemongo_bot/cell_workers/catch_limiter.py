@@ -9,6 +9,7 @@ from pokemongo_bot import inventory
 from pokemongo_bot.base_task import BaseTask
 from pokemongo_bot.item_list import Item
 from pokemongo_bot.worker_result import WorkerResult
+from pokemongo_bot.human_behaviour import sleep
 
 
 class CatchLimiter(BaseTask):
@@ -22,22 +23,23 @@ class CatchLimiter(BaseTask):
         self.min_balls = self.config.get("min_balls", 20)
         self.resume_at_balls = self.config.get("resume_balls", None)
 
-        if self.min_balls > self.resume_at_balls:
-            self.logger.warn(
-                "You have set minium of balls to a "
-                "higher number than to resume catching!"
-                " This WILL cause problems! Inverting the settings "
-                " so min_balls -> resume_balls and resume_balls -> min_balls!"
-            )
-            sleep(5)
-            self.min_balls, self.resume_at_balls = self.resume_at_balls, self.min_balls
+        if self.resume_at_balls is not None:
+            if self.min_balls > self.resume_at_balls:
+                self.logger.warn(
+                    "You have set minium of balls to a "
+                    "higher number than to resume catching!"
+                    " This WILL cause problems! Inverting the settings "
+                    " so min_balls -> resume_balls and resume_balls -> min_balls!"
+                )
+                sleep(5)
+                self.min_balls, self.resume_at_balls = self.resume_at_balls, self.min_balls
 
         self.duration = self.config.get("duration", 15)
         self.no_log_until = datetime.now()
         self.min_ultraball_to_keep = 0
-        self.daily_catch_limit = 500 # default it to 500 if not found in CatchPokemon
-        self.exit_on_limit_reached = False # default it to false if not found in CatchPokemon
-        
+        self.daily_catch_limit = 500  # default it to 500 if not found in CatchPokemon
+        self.exit_on_limit_reached = False  # default it to false if not found in CatchPokemon
+
         for catch_cfg in self.bot.config.raw_tasks:
             if "type" in catch_cfg:
                 if catch_cfg["type"] == "CatchPokemon":
@@ -131,7 +133,8 @@ class CatchLimiter(BaseTask):
             if balls_on_hand > self.min_balls:
                 self.emit_event(
                     'catch_limit_off',
-                    formatted="Resume time has passed and balls on hand ({}) exceeds threshold {}. Re-enabling catch tasks.".format(
+                    formatted="Resume time has passed and balls on hand ({})"
+                    " exceeds threshold {}. Re-enabling catch tasks.".format(
                         balls_on_hand,
                         self.min_balls))
                 self.bot.catch_disabled = False
@@ -146,7 +149,8 @@ class CatchLimiter(BaseTask):
             ):
                 self.emit_event(
                     'catch_limit_off',
-                    formatted="Resume time hasn't passed yet, but balls on hand ({}) exceeds threshold {}. Re-enabling catch tasks.".format(
+                    formatted="Resume time hasn't passed yet, but balls on"
+                    " hand ({}) exceeds threshold {}. Re-enabling catch tasks.".format(
                         balls_on_hand,
                         self.resume_at_balls))
                 self.bot.catch_disabled = False
@@ -162,7 +166,8 @@ class CatchLimiter(BaseTask):
                     'catch_limit_on',
                     formatted=(
                         "Balls on hand ({}) has reached threshold {}."
-                        " Disabling catch tasks until {} or balls on hand > threshold (whichever is later).").format(
+                        " Disabling catch tasks until {} or balls on hand >"
+                        " threshold (whichever is later).").format(
                         balls_on_hand,
                         self.min_balls,
                         self.bot.catch_resume_at.strftime("%H:%M:%S")))
@@ -179,11 +184,12 @@ class CatchLimiter(BaseTask):
         if self.bot.catch_disabled and self.no_log_until <= now:
             if now >= self.bot.catch_resume_at:
                 self.logger.info(
-                    "All catch tasks disabled until balls on hand (%s) > threshold." %
-                    balls_on_hand)
+                    "All catch tasks disabled until balls on hand (%s)"
+                    " > threshold." % balls_on_hand)
             elif self.resume_at_balls is not None:
                 self.logger.info(
-                    "All catch tasks disabled until %s or balls on hand (%s) >= %s" %
+                    "All catch tasks disabled until %s"
+                    " or balls on hand (%s) >= %s" %
                     (self.bot.catch_resume_at.strftime("%H:%M:%S"),
                      balls_on_hand,
                      self.resume_at_balls))
