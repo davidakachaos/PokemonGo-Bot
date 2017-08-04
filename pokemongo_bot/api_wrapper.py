@@ -9,7 +9,7 @@ import sys
 from pgoapi.exceptions import (ServerSideRequestThrottlingException,
                                NotLoggedInException, ServerBusyOrOfflineException,
                                NoPlayerPositionSetException, HashingOfflineException,
-                               UnexpectedResponseException, BadHashRequestException)
+                               UnexpectedResponseException, BadHashRequestException, BannedAccountException)
 from pgoapi.pgoapi import PGoApi
 from pgoapi.pgoapi import PGoApiRequest
 from pgoapi.pgoapi import RpcApi
@@ -18,7 +18,7 @@ from pgoapi.protos.pogoprotos.networking.platform.platform_request_type_pb2 impo
 from pgoapi.utilities import get_time
 from .human_behaviour import sleep, gps_noise_rng
 from pokemongo_bot.base_dir import _base_dir
-
+from geopy.geocoders import GoogleV3
 
 class PermaBannedException(Exception):
     pass
@@ -44,6 +44,7 @@ class ApiWrapper(PGoApi, object):
         }
 
         PGoApi.__init__(self, device_info=device_info)
+         
         if not self.config.hashkey is None:
             PGoApi.activate_hash_server(self,self.config.hashkey)
         # Set to default, just for CI...
@@ -92,11 +93,34 @@ class ApiWrapper(PGoApi, object):
             self._position_lng,
             self._position_alt
         )
+    
+    def get_component(self, location, component_type):
+        for component in location.raw['address_components']:
+            if component_type in component['types']:
+                return component['short_name']
 
     def login(self, provider, username, password):
         # login needs base class "create_request"
         self.useVanillaRequest = True
+        
+        # Get Timecode and Country Code
+        country_code = "US"
+        timezone = "America/Chicago"
+        geolocator = GoogleV3(api_key=self.config.gmapkey)
+        
+        if self.config.locale_by_location:
+            try:
+                location = geolocator.reverse((self.actual_lat, self.actual_lng), timeout = 10, exactly_one=True)
+                country_code = self.get_component(location,'country')
+            except:
+                self.logger.warning("Please make sure you have google api key and enable Google Maps Geocoding API at console.developers.google.com")
+            
+            try:    
+                timezone = geolocator.timezone([self.actual_lat, self.actual_lng], timeout=10)
+            except:
+                self.logger.warning("Please make sure you have google api key and enable Google Maps Time Zone API at console.developers.google.com")
 
+        # Start login process
         try:
             PGoApi.set_authentication(
                 self,
@@ -129,6 +153,10 @@ class ApiWrapper(PGoApi, object):
                     self.logger.warning('Hashing server issue, retrying in 5 Secs...')
                     sleep(5)
                     continue
+            except BannedAccountException:
+                self.logger.warning("This account is banned!")
+                exit(-3)
+                raise
             except Exception as e:
                 self.logger.error("Error logging in!")
                 raise e
