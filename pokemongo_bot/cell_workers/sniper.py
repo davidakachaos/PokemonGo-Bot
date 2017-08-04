@@ -369,12 +369,8 @@ class Sniper(BaseTask):
                     exists = False
                     self._log('Sniping distance is more than supported distance, abort sniping')
                 else:
-<<<<<<< HEAD
                     self._log('I spotted a %s to snipe!' % pokemon['pokemon_name'])
                     self._log('Base on distance, pausing for {} sec'.format(sleep_time))
-=======
-                    self._log('Base on distance, pausing for '+time.strftime("%M:%S", time.gmtime(sleep_time)))
->>>>>>> dev
 
                     # Teleport, so that we can see nearby stuff
                     self.bot.hb_locked = True
