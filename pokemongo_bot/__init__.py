@@ -118,6 +118,8 @@ class PokemonGoBot(object):
         self.start_position = None
         self.last_map_object = None
         self.last_time_map_object = 0
+        # For stopping the bot remotely
+        self.stop_bot = False
         self.logger = logging.getLogger(type(self).__name__)
         self.alt = self.config.gps_default_altitude
 
@@ -839,6 +841,10 @@ class PokemonGoBot(object):
 
 
     def tick(self):
+        if self.stop_bot:
+            # There was a request to stop botting
+            return
+
         self.health_record.heartbeat()
         self.cell = self.get_meta_cell()
 
@@ -955,6 +961,7 @@ class PokemonGoBot(object):
                 json.dump({'lat': lat, 'lng': lng, 'alt': alt, 'start_position': self.start_position}, outfile)
         except IOError as e:
             self.logger.info('[x] Error while opening location file: %s' % e)
+    
     def emit_forts_event(self,response_dict):
         map_objects = response_dict.get(
             'responses', {}
@@ -1176,13 +1183,6 @@ class PokemonGoBot(object):
         # send empty map_cells and then our position
         self.update_web_location()
 
-    def next_gym_collection_time(self):
-        next_gym_collection = None
-        if 'daily_bonus' in self._player and 'next_defender_bonus_collect_timestamp_ms' in self._player['daily_bonus']:
-            next_gym_collection = datetime.datetime.fromtimestamp(
-                self._player['daily_bonus']['next_defender_bonus_collect_timestamp_ms']  / 1e3)
-        return next_gym_collection
-
     def _print_character_info(self):
         # get player profile call
         # ----------------------
@@ -1212,13 +1212,6 @@ class PokemonGoBot(object):
         creation_date = datetime.datetime.fromtimestamp(
             player['creation_timestamp_ms'] / 1e3)
         creation_date = creation_date.strftime("%Y/%m/%d %H:%M:%S")
-
-        # daily_bonus
-        next_gym_collection = 'Never'
-        if 'daily_bonus' in player and 'next_defender_bonus_collect_timestamp_ms' in player['daily_bonus']:
-            next_gym_collection = datetime.datetime.fromtimestamp(
-                player['daily_bonus']['next_defender_bonus_collect_timestamp_ms']  / 1e3)
-            next_gym_collection = next_gym_collection.strftime("%Y/%m/%d %H:%M:%S")
 
         pokecoins = '0'
         stardust = '0'
@@ -1294,9 +1287,6 @@ class PokemonGoBot(object):
             ' | Free Raid Pass: ' + str(items_inventory.get(1401).count) +
             ' | Premium Raid Pass: ' + str(items_inventory.get(1402).count) +
             ' | Legendary Raid Pass: ' + str(items_inventory.get(1403).count))
-
-
-        self.logger.info('Next gym collection: ' + next_gym_collection)
 
         if warn:
             self.logger.info('')
@@ -1560,6 +1550,9 @@ class PokemonGoBot(object):
             return float(coords[0]), float(coords[1]), (float(coords[2]) if len(coords) == 3 else self.alt)
 
     def heartbeat(self):
+        if self.stop_bot:
+            # There was a request to stop botting
+            return
         # Remove forts that we can now spin again.
         now = time.time()
         self.fort_timeouts = {id: timeout for id, timeout
@@ -1735,24 +1728,6 @@ class PokemonGoBot(object):
         forts = filter(lambda x: x["enabled"] is True, forts)
         forts = filter(lambda x: 'closed' not in fort, forts)
         # forts = filter(lambda x: 'type' not in fort, forts)
-
-        if order_by_distance:
-            forts.sort(key=lambda x: distance(
-                self.position[0],
-                self.position[1],
-                x['latitude'],
-                x['longitude']
-            ))
-
-        return forts
-    
-    def get_gyms(self, order_by_distance=False):
-        forts = [fort
-                 for fort in self.cell['forts']
-                 if 'latitude' in fort and 'type' not in fort]
-        # Need to filter out disabled gyms!
-        forts = filter(lambda x: x["enabled"] is True, forts)
-        forts = filter(lambda x: 'closed' not in fort, forts)
 
         if order_by_distance:
             forts.sort(key=lambda x: distance(

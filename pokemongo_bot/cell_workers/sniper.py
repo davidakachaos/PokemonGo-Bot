@@ -25,6 +25,7 @@ class SniperSource(object):
         self.url = data.get('url', '')
         self.key = data.get('key', '')
         self.enabled = data.get('enabled', False)
+        self.use_post = data.get('use_post', False)
         self.time_mask = data.get('time_mask', '%Y-%m-%d %H:%M:%S')
         self.mappings = SniperSourceMapping(data.get('mappings', {}))
         self.timeout = data.get('timeout', 5)
@@ -34,7 +35,10 @@ class SniperSource(object):
 
     def fetch_raw(self):
         some_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/52.0.2743.116 Safari/537.36'
-        response = requests.get(self.url, headers={'User-Agent': some_agent}, timeout=self.timeout)
+        if self.use_post:
+            response = requests.post(self.url, headers={'User-Agent': some_agent}, timeout=self.timeout)
+        else:
+            response = requests.get(self.url, headers={'User-Agent': some_agent}, timeout=self.timeout)
 
         results = response.json()
 
@@ -43,7 +47,7 @@ class SniperSource(object):
             results = results.get(self.key, [])
 
         # If results is STILL a dict (eg. each pokemon is its own dict), need to build data from nested json (example whereispokemon.net)
-        while isinstance(results,dict):
+        while isinstance(results, dict):
             tmpResults = []
             for key, value in results.iteritems():
                 tmpResults.append(value)

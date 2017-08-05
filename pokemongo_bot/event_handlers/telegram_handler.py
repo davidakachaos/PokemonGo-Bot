@@ -297,6 +297,18 @@ class TelegramClass:
                              text="Failed to use lucky egg!\n")
             return False
 
+    def stop_bot(self, update):
+        self.bot.stop_bot = True
+        self.bot.logger.info("Telegram Request: STOP THE BOT!")
+        self.sendMessage(chat_id=update.message.chat_id, parse_mode='Markdown',
+                             text="STOPPING THE BOT IMEDIATLY!!\n")
+
+    def continue_bot(self, update):
+        self.bot.stop_bot = False
+        self.bot.logger.info("Telegram Request: continue botting!")
+        self.sendMessage(chat_id=update.message.chat_id, parse_mode='Markdown',
+                         text="Resumming bot!\n")
+
     def request_ordincense(self,update):
         ord_incense = inventory.items().get(Item.ITEM_INCENSE_ORDINARY.value)  # @UndefinedVariable
 
@@ -449,6 +461,8 @@ class TelegramClass:
             "/luckyeggcount - return number of luckyegg",
             "/ordincense - activate ordinary incense",
             "/ordincensecount - return number of ordinary incense",
+            "/stop - stops the bot until restart or the /continue command is issued",
+            "/continue - resumes the bot after a /stop command",
             "/softbans - info about possible softbans"
         )
         self.sendMessage(chat_id=update.message.chat_id, parse_mode='Markdown',
@@ -537,6 +551,12 @@ class TelegramClass:
 
                     if update.message.text == "/logout":
                         self.send_logout(update)
+                        continue
+                    if update.message.text == "/stop":
+                        self.stop_bot(update)
+                        continue
+                    if update.message.text == "/continue":
+                        self.continue_bot(update)
                         continue
                     if re.match("^/events", update.message.text):
                         self.send_events(update)

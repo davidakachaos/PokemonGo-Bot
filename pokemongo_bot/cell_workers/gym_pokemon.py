@@ -279,6 +279,57 @@ class GymPokemon(BaseTask):
                 # Gym can be closed for a raid or something, skipp to the next
                 if not gym['enabled']:
                     continue
+            # Check if we can get the details
+            details = self.get_gym_details(gym)
+            if details is not False:
+                dist = distance(
+                    self.bot.position[0],
+                    self.bot.position[1],
+                    gym['latitude'],
+                    gym['longitude'])
+                if 'raid_info' in gym:
+                    raid_info = gym["raid_info"]
+                    raid_starts = datetime.fromtimestamp(
+                        int(raid_info["raid_battle_ms"]) / 1e3)
+                    raid_ends = datetime.fromtimestamp(
+                        int(raid_info["raid_end_ms"]) / 1e3)
+                    self.logger.info("Raid starts: %s" %
+                                     raid_starts.strftime('%Y-%m-%d %H:%M:%S.%f'))
+                    self.logger.info("Raid ends: %s" %
+                                     raid_ends.strftime('%Y-%m-%d %H:%M:%S.%f'))
+                    t = datetime.today()
+
+                    if raid_starts < datetime.now():
+                        self.logger.info("Active raid?")
+                        if raid_ends < datetime.now():
+                            self.logger.info("No need to wait.")
+                        elif (raid_ends - t).seconds > 120:
+                            self.logger.info(
+                                "Need to wait long than 2 minutes, skipping")
+                            self.destination = None
+                            self.recent_gyms.append(gym["id"])
+                            self.raid_gyms[gym["id"]] = raid_ends
+                            continue  # Skip to the next gym
+                    else:
+                        self.logger.info("Raid has not begun yet!")
+
+                if 'same_team_deploy_lockout_end_ms' in gym:
+                    # self.logger.info("%f" % gym["same_team_deploy_lockout_end_ms"])
+                    org_time = int(gym["same_team_deploy_lockout_end_ms"]) / 1e3
+                    lockout_time = datetime.fromtimestamp(org_time)
+                    t = datetime.today()
+
+                    if lockout_time > datetime.now():
+                        self.logger.info(
+                            "Lockout time: %s (%s seconds)" %
+                            (lockout_time.strftime('%Y-%m-%d %H:%M:%S.%f'), (lockout_time - t).seconds))
+
+                        if (lockout_time - t).seconds > 120:
+                            self.logger.info(
+                                "Need to wait long than 2 minutes, skipping")
+                            self.recent_gyms.append(gym["id"])
+                            self.timeout_gyms[gym["id"]] = lockout_time
+                            continue  # Skip to the next gym
 
             if 'owned_by_team' in gym:
                 if gym["owned_by_team"] == 1:
@@ -300,6 +351,7 @@ class GymPokemon(BaseTask):
                                         "Gym has %s open spots!" %
                                         display['slots_available'])
                                     self.destination = gym
+                                    self.bot.moving_to_gym = True
                                     break
                                 else:
                                     self.logger.info(
@@ -310,6 +362,7 @@ class GymPokemon(BaseTask):
                                     "Gym has %s open spots!" %
                                     display['slots_available'])
                                 self.destination = gym
+                                self.bot.moving_to_gym = True
                                 break
             else:
                 # self.logger.info("Found a Neutral gym?")
@@ -338,7 +391,52 @@ class GymPokemon(BaseTask):
                             "Damn! Team %s took gym before we arrived!" % TEAMS[g["owned_by_team"]])
                         self.destination = None
                         return WorkerResult.SUCCESS
-                    break
+                    if 'raid_info' in g:
+                        raid_info = g["raid_info"]
+                        raid_starts = datetime.fromtimestamp(
+                            int(raid_info["raid_battle_ms"]) / 1e3)
+                        raid_ends = datetime.fromtimestamp(
+                            int(raid_info["raid_end_ms"]) / 1e3)
+                        t = datetime.today()
+
+                        if raid_starts < datetime.now():
+                            self.logger.info("Active raid?")
+                            if (raid_ends - t).seconds > 120:
+                                self.logger.info(
+                                    "Noticed an active raid lasting longer than 2 minutes, skipping")
+                                self.destination = None
+                                self.recent_gyms.append(g["id"])
+                                self.raid_gyms[g["id"]] = raid_ends
+                                if self.chain_fill_gyms:
+                                    # Look around if there are more gyms to fill
+                                    self.determin_new_destination()
+                                    # If there is none, we're done, else we go to the next!
+                                    if self.destination is None:
+                                        return WorkerResult.SUCCESS
+                                else:
+                                    return WorkerResult.SUCCESS
+
+                    if 'same_team_deploy_lockout_end_ms' in g:
+                        # self.logger.info("%f" % gym["same_team_deploy_lockout_end_ms"])
+                        org_time = int(g["same_team_deploy_lockout_end_ms"]) / 1e3
+                        lockout_time = datetime.fromtimestamp(org_time)
+                        t = datetime.today()
+
+                        if lockout_time > datetime.now():
+                            if (lockout_time - t).seconds > 120:
+                                self.logger.info(
+                                    "Noticed active lock-out longer than 2 minutes, skipping")
+                                self.recent_gyms.append(g["id"])
+                                self.timeout_gyms[g["id"]] = lockout_time
+                                if self.chain_fill_gyms:
+                                    # Look around if there are more gyms to fill
+                                    self.determin_new_destination()
+                                    # If there is none, we're done, else we go to the next!
+                                    if self.destination is None:
+                                        return WorkerResult.SUCCESS
+                                else:
+                                    return WorkerResult.SUCCESS
+                        break
         else:
             self.check_interval += 1
 
@@ -416,14 +514,14 @@ class GymPokemon(BaseTask):
                     self.bot.noised_position[0],
                     self.bot.noised_position[1],
                     gym['latitude'],
-                    gym['longitude']) <= Constants.MAX_DISTANCE_FORT_IS_REACHABLE:
+                    gym['longitude']) <= Constants.MAX_DISTANCE_FORT_IS_VIEWABLE:
                 in_reach = True
         else:
             if distance(
                     self.bot.position[0],
                     self.bot.position[1],
                     gym['latitude'],
-                    gym['longitude']) <= Constants.MAX_DISTANCE_FORT_IS_REACHABLE:
+                    gym['longitude']) <= Constants.MAX_DISTANCE_FORT_IS_VIEWABLE:
                 in_reach = True
 
         if in_reach:

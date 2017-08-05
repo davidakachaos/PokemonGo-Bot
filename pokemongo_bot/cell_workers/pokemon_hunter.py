@@ -109,6 +109,11 @@ class PokemonHunter(BaseTask):
                 "catch_limit_reached") and self.bot.catch_limit_reached:
             return WorkerResult.SUCCESS
 
+        if hasattr(
+                self.bot,
+                "moving_to_gym") and self.bot.moving_to_gym:
+            return WorkerResult.SUCCESS
+
         if self.bot.softban:
             # At softban, drop target
             if self.destination is not None:
@@ -142,6 +147,11 @@ class PokemonHunter(BaseTask):
         else:
             # Resume hunting
             self.no_hunt_until = None
+
+        if hasattr(self.bot, "hunter_locked_target"):
+            if self.bot.hunter_locked_target is not None and self.destination is None:
+                # self.logger.info("Setting destination to locked target")
+                self.destination = self.bot.hunter_locked_target
 
         if self.get_pokeball_count() <= 0:
             self.destination = None
@@ -456,66 +466,66 @@ class PokemonHunter(BaseTask):
                             # We have a target
                             return WorkerResult.RUNNING
 
-        # Now we check if there is a VIP target closer by
-        if self.destination is not None and self.bot.hunter_locked_target is self.destination:
-            # Hunting a VIP, checking for closer VIP target
-            if self.no_log_until < now:
-                # Not every tick please
-                possible_targets = filter(
-                    lambda p: self._is_vip_pokemon(p), pokemons)
-                # Update the distance to targets
-                for p in possible_targets:
-                    p["distance"] = self.get_distance(self.bot.position, p)
-                possible_targets.sort(key=lambda p: p["distance"])
-                # Check for a closer target
-                self.destination["distance"] = self.get_distance(
-                    self.bot.position, self.destination)
-                for pokemon in possible_targets:
-                    if pokemon is not self.destination:
-                        if round(
-                                pokemon["distance"], 2) >= round(
-                                self.destination["distance"], 2):
-                            # further away!
-                            break
-                        with self.bot.database as conn:
-                            c = conn.cursor()
-                            c.execute(
-                                "SELECT COUNT(pokemon) FROM catch_log where pokemon = '{}' and  datetime(dated, 'localtime') > Datetime('{}')".format(
-                                    pokemon["name"], self.hunt_started_at.strftime("%Y-%m-%d %H:%M:%S")))
-                        # Now check if there is 1 or more caught
-                        amount = c.fetchone()[0]
-                        if amount > 0:
-                            # We caught this pokemon recently, skip it
-                            continue
-                        if self.config_treat_family_of_vip_as_vip and self._is_family_of_vip(
-                                pokemon):
-                            if self._is_vip_pokemon(self.destination):
-                                self.logger.info(
-                                    "Seeing a familymember of a VIP at %(distance).2f meters: %(name)s", pokemon)
-                                self.logger.info(
-                                    "Not hunting down because we are locked to a real VIP: %(name)s",
-                                    self.destination)
-                                continue
-                            else:
-                                self.logger.info(
-                                    "Closer (is distance) familymember of VIP found!")
+        # # Now we check if there is a VIP target closer by
+        # if self.destination is not None and self.bot.hunter_locked_target is self.destination:
+        #     # Hunting a VIP, checking for closer VIP target
+        #     if self.no_log_until < now:
+        #         # Not every tick please
+        #         possible_targets = filter(
+        #             lambda p: self._is_vip_pokemon(p), pokemons)
+        #         # Update the distance to targets
+        #         for p in possible_targets:
+        #             p["distance"] = self.get_distance(self.bot.position, p)
+        #         possible_targets.sort(key=lambda p: p["distance"])
+        #         # Check for a closer target
+        #         self.destination["distance"] = self.get_distance(
+        #             self.bot.position, self.destination)
+        #         for pokemon in possible_targets:
+        #             if pokemon is not self.destination:
+        #                 if round(
+        #                         pokemon["distance"], 2) >= round(
+        #                         self.destination["distance"], 2):
+        #                     # further away!
+        #                     break
+        #                 with self.bot.database as conn:
+        #                     c = conn.cursor()
+        #                     c.execute(
+        #                         "SELECT COUNT(pokemon) FROM catch_log where pokemon = '{}' and  datetime(dated, 'localtime') > Datetime('{}')".format(
+        #                             pokemon["name"], self.hunt_started_at.strftime("%Y-%m-%d %H:%M:%S")))
+        #                 # Now check if there is 1 or more caught
+        #                 amount = c.fetchone()[0]
+        #                 if amount > 0:
+        #                     # We caught this pokemon recently, skip it
+        #                     continue
+        #                 if self.config_treat_family_of_vip_as_vip and self._is_family_of_vip(
+        #                         pokemon):
+        #                     if self._is_vip_pokemon(self.destination):
+        #                         self.logger.info(
+        #                             "Seeing a familymember of a VIP at %(distance).2f meters: %(name)s", pokemon)
+        #                         self.logger.info(
+        #                             "Not hunting down because we are locked to a real VIP: %(name)s",
+        #                             self.destination)
+        #                         continue
+        #                     else:
+        #                         self.logger.info(
+        #                             "Closer (is distance) familymember of VIP found!")
 
-                        self.logger.info(
-                            "Found a closer VIP target: %s < %s" %
-                            (pokemon["distance"], self.destination["distance"]))
-                        if self.destination is not None:
-                            self.logger.info(
-                                "Closer VIP hunt takes priority! Changing target...")
-                        self.destination = pokemon
-                        self.bot.hunter_locked_target = self.destination
-                        self.lost_counter = 0
-                        self.hunt_started_at = datetime.now()
-                        self.logger.info(
-                            "New VIP target at %(distance).2f meters: %(name)s",
-                            self.destination)
-                        self.set_target()
-                        # We have a target
-                        return WorkerResult.RUNNING
+        #                 self.logger.info(
+        #                     "Found a closer VIP target: %s < %s" %
+        #                     (pokemon["distance"], self.destination["distance"]))
+        #                 if self.destination is not None:
+        #                     self.logger.info(
+        #                         "Closer VIP hunt takes priority! Changing target...")
+        #                 self.destination = pokemon
+        #                 self.bot.hunter_locked_target = self.destination
+        #                 self.lost_counter = 0
+        #                 self.hunt_started_at = datetime.now()
+        #                 self.logger.info(
+        #                     "New VIP target at %(distance).2f meters: %(name)s",
+        #                     self.destination)
+        #                 self.set_target()
+        #                 # We have a target
+        #                 return WorkerResult.RUNNING
 
         # Check if there is a VIP around to hunt
         if (self.destination is not None and
