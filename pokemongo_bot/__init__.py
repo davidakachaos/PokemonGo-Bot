@@ -1652,14 +1652,9 @@ class PokemonGoBot(object):
                             self.inbox_message_ids.append(notification['notification_id'])
                         
                     for notification in self._inbox['notifications']:
-<<<<<<< HEAD
-                        if notification['notification_id'] in self.inbox_message_ids:
-                            # Skipp old notifications!
-=======
                         notification_date = datetime.datetime.fromtimestamp(int(notification['create_timestamp_ms']) / 1e3)
                                                 
                         if 2 not in notification['labels']:
->>>>>>> dev
                             continue
                         notification_date = datetime.datetime.fromtimestamp(int(notification['create_timestamp_ms']) / 1e3)
                         self.inbox_message_ids.append(notification['notification_id'])
