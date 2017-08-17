@@ -98,7 +98,7 @@ class BuddyPokemon(BaseTask):
             )
         if self.buddy:
             pokemon = self._get_pokemon_by_id(self.buddy['id'])
-            self.buddy_distance_needed = pokemon.buddy_distance_needed
+            self.buddy_distance_needed = pokemon.static.buddy_distance_needed
 
     def work(self):
         if not self.enabled:

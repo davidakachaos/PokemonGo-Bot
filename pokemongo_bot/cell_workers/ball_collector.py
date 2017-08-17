@@ -95,7 +95,7 @@ class BallCollector(BaseTask):
                 'catch_limit_on',
                 formatted=(
                     "Balls on hand ({}) has reached threshold {}."
-                    " Disabling catch tasks until {} or balls on hand > threshold (whichever is later)."). format(
+                    " Disabling catch tasks until {} or balls on hand > threshold (whichever is later).").format(
                     balls_on_hand,
                     self.min_balls,
                     self.bot.catch_resume_at.strftime("%H:%M:%S")))
@@ -107,13 +107,13 @@ class BallCollector(BaseTask):
         if self.bot.catch_disabled and self.no_log_until <= now:
             if now >= self.bot.catch_resume_at:
                 self.logger.info(
-                    "All catch tasks disabled until balls on hand\
-                     (%s) > threshold." %
+                    ("All catch tasks disabled until balls on hand"
+                        " (%s) > threshold.") %
                     balls_on_hand)
             else:
                 self.logger.info(
-                    "All catch tasks disabled until %s \
-                    or balls on hand (%s) >= %s" %
+                    ("All catch tasks disabled until %s "
+                    "or balls on hand (%s) >= %s") %
                     (self.bot.catch_resume_at.strftime("%H:%M:%S"),
                         balls_on_hand,
                         self.resume_balls)
@@ -187,79 +187,6 @@ class BallCollector(BaseTask):
                     **self.cluster))
             return WorkerResult.RUNNING
 
-        if self.cluster is None and self.destination is None:
-            # get the nearest fort and move there!
-            self.logger.info("Getting nearest fort....")
-            forts = self.bot.get_forts(order_by_distance=True)
-            forts = filter(
-                lambda x: x["id"] not in self.bot.fort_timeouts, forts)
-            if len(forts) == 0:
-                self.logger.info("No forts around?")
-                return WorkerResult.SUCCESS
-
-            nearest_fort = forts[0]
-            self.destination = nearest_fort
-
-        if self.destination is not None:
-            lat = self.destination['latitude']
-            lng = self.destination['longitude']
-            fort_id = self.destination['id']
-            details = fort_details(self.bot, fort_id, lat, lng)
-            fort_name = details.get('name', 'Unknown')
-
-            # Unit to use when printing formatted distance
-            unit = self.bot.config.distance_unit
-
-            dist = distance(
-                self.bot.position[0],
-                self.bot.position[1],
-                lat,
-                lng
-            )
-            moving = dist > Constants.MAX_DISTANCE_FORT_IS_REACHABLE
-
-            if moving:
-                self.walker = StepWalker(self.bot, lat, lng)
-                if "type" in self.destination and \
-                        self.destination["type"] == 1:
-                    # It's a Pokestop
-                    target_type = "pokestop"
-                else:
-                    # It's a gym
-                    target_type = "gym"
-                while not self.walker.step():
-                    dist = distance(
-                        self.bot.position[0],
-                        self.bot.position[1],
-                        lat,
-                        lng
-                    )
-                    moving = dist > Constants.MAX_DISTANCE_FORT_IS_REACHABLE
-                    if moving:
-                        fort_event_data = {
-                            'fort_name': u"{}".format(fort_name),
-                            'distance': format_dist(dist, unit),
-                            'target_type': target_type,
-                        }
-                        self.emit_event(
-                            'moving_to_fort',
-                            formatted="Moving towards {target_type} {fort_name} - {distance}",
-                            data=fort_event_data)
-                        return WorkerResult.RUNNING
-                    else:
-                        self.emit_event(
-                            'arrived_at_fort',
-                            formatted='Arrived at fort %s.' % fort_name
-                        )
-                        self.destination = None
-                        return WorkerResult.SUCCESS
-
-                self.destination = None
-                return WorkerResult.SUCCESS
-            else:
-                # We are there
-                self.destination = None
-
         self.no_log_until = now + timedelta(seconds=LOG_TIME_INTERVAL)
         return WorkerResult.RUNNING
 
@@ -268,7 +195,7 @@ class BallCollector(BaseTask):
                    Item.ITEM_POKE_BALL, Item.ITEM_GREAT_BALL, Item.ITEM_ULTRA_BALL]])
 
     def get_forts(self):
-        self.logger.info("Getting forts....")
+        # self.logger.info("Getting forts....")
         radius = self.config_max_distance + Constants.MAX_DISTANCE_FORT_IS_REACHABLE
 
         if self.forts == []:
@@ -282,7 +209,7 @@ class BallCollector(BaseTask):
             f for f in forts if self.get_distance(
                 self.bot.start_position,
                 f) <= radius]
-        self.logger.info("I got %s forts..." % len(forts))
+        # self.logger.info("I got %s forts..." % len(forts))
 
         return {f["id"]: f for f in forts}
 
