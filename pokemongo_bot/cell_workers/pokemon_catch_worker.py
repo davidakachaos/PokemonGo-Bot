@@ -48,6 +48,7 @@ LOGIC_TO_FUNCTION = {
 
 DEBUG_ON = False
 
+
 class PokemonCatchWorker(BaseTask):
 
     def __init__(self, pokemon, bot, config={}):
@@ -62,8 +63,8 @@ class PokemonCatchWorker(BaseTask):
         self.config = config
 
         super(PokemonCatchWorker, self).__init__(bot, config)
-        if self.config.get('debug', False): DEBUG_ON = True
-
+        if self.config.get('debug', False):
+            DEBUG_ON = True
 
     def initialize(self):
         self.position = self.bot.position
@@ -78,66 +79,104 @@ class PokemonCatchWorker(BaseTask):
         self.bot.catch_limit_reached = False
         self.bot.warned_about_catch_limit = False
 
-        #Config
-        self.exit_on_limit_reached = self.config.get("exit_on_limit_reached", True)
-        self.min_ultraball_to_keep = self.config.get('min_ultraball_to_keep', 10)
+        # Config
+        self.exit_on_limit_reached = self.config.get(
+            "exit_on_limit_reached", True)
+        self.min_ultraball_to_keep = self.config.get(
+            'min_ultraball_to_keep', 10)
         self.berry_threshold = self.config.get('berry_threshold', 0.35)
-        self.golden_razz_threshold = self.config.get('golden_razz_threshold', 0.1)
+        self.golden_razz_threshold = self.config.get(
+            'golden_razz_threshold', 0.1)
         self.golden_razz_to_keep = self.config.get('golden_razz_to_keep', 30)
-        self.use_golden_razz_on_vip_only = self.config.get('use_golden_razz_on_vip_only', True)
+        self.use_golden_razz_on_vip_only = self.config.get(
+            'use_golden_razz_on_vip_only', True)
         self.vip_berry_threshold = self.config.get('vip_berry_threshold', 0.9)
-        self.treat_unseen_as_vip = self.config.get('treat_unseen_as_vip', DEFAULT_UNSEEN_AS_VIP)
-        self.treat_family_of_vip_as_vip = self.config.get('treat_family_of_vip_as_vip', False)
+        self.treat_unseen_as_vip = self.config.get(
+            'treat_unseen_as_vip', DEFAULT_UNSEEN_AS_VIP)
+        self.treat_family_of_vip_as_vip = self.config.get(
+            'treat_family_of_vip_as_vip', False)
         self.daily_catch_limit = self.config.get('daily_catch_limit', 500)
         self.use_pinap_on_vip = self.config.get('use_pinap_on_vip', False)
         self.pinap_on_level_below = self.config.get('pinap_on_level_below', 0)
         self.pinap_on_candy_below = self.config.get('pinap_on_candy_below', 0)
         self.pinap_operator = self.config.get('pinap_operator', "or")
-        self.pinap_ignore_threshold = self.config.get('pinap_ignore_threshold', False)
+        self.pinap_ignore_threshold = self.config.get(
+            'pinap_ignore_threshold', False)
         # nanab
         self.use_nanab = self.config.get('use_nanab', False)
         self.nanab_on_level_below = self.config.get('nanab_on_level_below', 0)
         # Always throw pinap on trash
-        self.always_throw_pinap_on_trash = self.config.get('always_throw_pinap_on_trash', False)
+        self.always_throw_pinap_on_trash = self.config.get(
+            'always_throw_pinap_on_trash', False)
 
         self.vanish_settings = self.config.get('vanish_settings', {})
-        self.consecutive_vanish_limit = self.vanish_settings.get('consecutive_vanish_limit', 10)
-        self.rest_duration_min = getSeconds(self.vanish_settings.get('rest_duration_min', "02:00:00"))
-        self.rest_duration_max = getSeconds(self.vanish_settings.get('rest_duration_max', "04:00:00"))
+        self.consecutive_vanish_limit = self.vanish_settings.get(
+            'consecutive_vanish_limit', 10)
+        self.rest_duration_min = getSeconds(
+            self.vanish_settings.get(
+                'rest_duration_min', "02:00:00"))
+        self.rest_duration_max = getSeconds(
+            self.vanish_settings.get(
+                'rest_duration_max', "04:00:00"))
 
-        self.catch_throw_parameters = self.config.get('catch_throw_parameters', {})
-        self.catch_throw_parameters_spin_success_rate = self.catch_throw_parameters.get('spin_success_rate', 0.6)
-        self.catch_throw_parameters_excellent_rate = self.catch_throw_parameters.get('excellent_rate', 0.1)
-        self.catch_throw_parameters_great_rate = self.catch_throw_parameters.get('great_rate', 0.5)
-        self.catch_throw_parameters_nice_rate = self.catch_throw_parameters.get('nice_rate', 0.3)
-        self.catch_throw_parameters_normal_rate = self.catch_throw_parameters.get('normal_rate', 0.1)
-        self.catch_throw_parameters_hit_rate = self.catch_throw_parameters.get('hit_rate', 0.8)
+        self.catch_throw_parameters = self.config.get(
+            'catch_throw_parameters', {})
+        self.catch_throw_parameters_spin_success_rate = self.catch_throw_parameters.get(
+            'spin_success_rate', 0.6)
+        self.catch_throw_parameters_excellent_rate = self.catch_throw_parameters.get(
+            'excellent_rate', 0.1)
+        self.catch_throw_parameters_great_rate = self.catch_throw_parameters.get(
+            'great_rate', 0.5)
+        self.catch_throw_parameters_nice_rate = self.catch_throw_parameters.get(
+            'nice_rate', 0.3)
+        self.catch_throw_parameters_normal_rate = self.catch_throw_parameters.get(
+            'normal_rate', 0.1)
+        self.catch_throw_parameters_hit_rate = self.catch_throw_parameters.get(
+            'hit_rate', 0.8)
 
         self.catchsim_config = self.config.get('catch_simulation', {})
-        self.catchsim_catch_wait_min = self.catchsim_config.get('catch_wait_min', 2)
-        self.catchsim_catch_wait_max = self.catchsim_config.get('catch_wait_max', 6)
-        self.catchsim_flee_count = int(self.catchsim_config.get('flee_count', 3))
-        self.catchsim_flee_duration = self.catchsim_config.get('flee_duration', 2)
-        self.catchsim_berry_wait_min = self.catchsim_config.get('berry_wait_min', 2)
-        self.catchsim_berry_wait_max = self.catchsim_config.get('berry_wait_max', 3)
-        self.catchsim_changeball_wait_min = self.catchsim_config.get('changeball_wait_min', 2)
-        self.catchsim_changeball_wait_max = self.catchsim_config.get('changeball_wait_max', 3)
-        self.catchsim_newtodex_wait_min = self.catchsim_config.get('newtodex_wait_min', 20)
-        self.catchsim_newtodex_wait_max = self.catchsim_config.get('newtodex_wait_max', 30)
+        self.catchsim_catch_wait_min = self.catchsim_config.get(
+            'catch_wait_min', 2)
+        self.catchsim_catch_wait_max = self.catchsim_config.get(
+            'catch_wait_max', 6)
+        self.catchsim_flee_count = int(
+            self.catchsim_config.get(
+                'flee_count', 3))
+        self.catchsim_flee_duration = self.catchsim_config.get(
+            'flee_duration', 2)
+        self.catchsim_berry_wait_min = self.catchsim_config.get(
+            'berry_wait_min', 2)
+        self.catchsim_berry_wait_max = self.catchsim_config.get(
+            'berry_wait_max', 3)
+        self.catchsim_changeball_wait_min = self.catchsim_config.get(
+            'changeball_wait_min', 2)
+        self.catchsim_changeball_wait_max = self.catchsim_config.get(
+            'changeball_wait_max', 3)
+        self.catchsim_newtodex_wait_min = self.catchsim_config.get(
+            'newtodex_wait_min', 20)
+        self.catchsim_newtodex_wait_max = self.catchsim_config.get(
+            'newtodex_wait_max', 30)
 
-        self.smart_pinap_enabled = self.config.get('smart_pinap_enabled', False)
-        self.smart_pinap_threshold = self.config.get('smart_pinap_threshold', 0.85)
+        self.smart_pinap_enabled = self.config.get(
+            'smart_pinap_enabled', False)
+        self.smart_pinap_threshold = self.config.get(
+            'smart_pinap_threshold', 0.85)
         self.smart_pinap_to_keep = self.config.get('smart_pinap_to_keep', 3)
 
-    ############################################################################
+    ##########################################################################
     # public methods
-    ############################################################################
+    ##########################################################################
 
     def work(self, response_dict=None):
         if self.daily_catch_limit > 500:
-            if not hasattr(self.bot, "no_notify_until") or self.bot.no_notify_until <= datetime.now():
-                self.logger.warning("BE WARNED! The total catch limit in 72 hours is 1500!")
-                self.logger.warning("Setting your daily limit to %s might get you account flagged or banned!" % self.daily_catch_limit)
+            if not hasattr(
+                    self.bot,
+                    "no_notify_until") or self.bot.no_notify_until <= datetime.now():
+                self.logger.warning(
+                    "BE WARNED! The total catch limit in 72 hours is 1500!")
+                self.logger.warning(
+                    "Setting your daily limit to %s might get you account flagged or banned!" %
+                    self.daily_catch_limit)
                 sleep(5)
                 self.bot.no_notify_until = datetime.now() + timedelta(minutes=5)
 
@@ -151,13 +190,19 @@ class PokemonCatchWorker(BaseTask):
         response = responses[self.response_key]
         if response[self.response_status_key] != ENCOUNTER_STATUS_SUCCESS:
             if response[self.response_status_key] == ENCOUNTER_STATUS_NOT_IN_RANGE:
-                self.emit_event('pokemon_not_in_range', formatted='Pokemon went out of range!')
+                self.emit_event(
+                    'pokemon_not_in_range',
+                    formatted='Pokemon went out of range!')
             # elif response[self.response_status_key] == INCENSE_ENCOUNTER_NOT_AVAILABLE:
             #     self.emit_event('pokemon_not_in_range', formatted='Incensed Pokemon went out of range!')
             elif response[self.response_status_key] == INCENSE_POKEMON_INVENTORY_FULL:
-                self.emit_event('pokemon_inventory_full', formatted='Your Pokemon inventory is full! Could not catch!')
+                self.emit_event(
+                    'pokemon_inventory_full',
+                    formatted='Your Pokemon inventory is full! Could not catch!')
             elif response[self.response_status_key] == ENCOUNTER_STATUS_POKEMON_INVENTORY_FULL:
-                self.emit_event('pokemon_inventory_full', formatted='Your Pokemon inventory is full! Could not catch!')
+                self.emit_event(
+                    'pokemon_inventory_full',
+                    formatted='Your Pokemon inventory is full! Could not catch!')
             return WorkerResult.ERROR
 
         # get pokemon data
@@ -168,19 +213,22 @@ class PokemonCatchWorker(BaseTask):
         is_vip = self._is_vip_pokemon(pokemon)
 
         # skip ignored pokemon
-        if (not self._should_catch_pokemon(pokemon) and not is_vip) or self.bot.catch_disabled:
-            if not hasattr(self.bot,'skipped_pokemon'):
+        if (not self._should_catch_pokemon(pokemon) and
+                not is_vip) or self.bot.catch_disabled:
+            if not hasattr(self.bot, 'skipped_pokemon'):
                 self.bot.skipped_pokemon = []
 
             # Check if pokemon already skipped and suppress alert if so
             for skipped_pokemon in self.bot.skipped_pokemon:
                 if pokemon.pokemon_id == skipped_pokemon.pokemon_id and \
-                    pokemon.cp_exact == skipped_pokemon.cp_exact and \
-                    pokemon.ivcp == skipped_pokemon.ivcp:
+                        pokemon.cp_exact == skipped_pokemon.cp_exact and \
+                        pokemon.ivcp == skipped_pokemon.ivcp:
                     return WorkerResult.SUCCESS
 
             if self.bot.catch_disabled:
-                self.logger.info("Not catching {}. All catching tasks are currently disabled until {}.".format(pokemon,self.bot.catch_resume_at.strftime("%H:%M:%S")))
+                self.logger.info(
+                    "Not catching {}. All catching tasks are currently disabled until {}.".format(
+                        pokemon, self.bot.catch_resume_at.strftime("%H:%M:%S")))
             # Add the encounter_id to the Pokemon
             pokemon.encounter_id = self.pokemon['encounter_id']
             self.bot.skipped_pokemon.append(pokemon)
@@ -208,10 +256,21 @@ class PokemonCatchWorker(BaseTask):
         # log encounter
         self.emit_event(
             'pokemon_appeared',
-            formatted='A wild {} appeared! (CP: {} IV: {} A/D/S: {} NCP: {} Shiny: {})'.format(pokemon.name, pokemon.cp,  pokemon.iv, pokemon.iv_display, round(pokemon.cp_percent, 2),pokemon.shiny, ),
+            formatted='A wild {} appeared! (CP: {} IV: {} A/D/S: {} NCP: {} Shiny: {})'.format(
+                pokemon.name,
+                pokemon.cp,
+                pokemon.iv,
+                pokemon.iv_display,
+                round(
+                    pokemon.cp_percent,
+                    2),
+                pokemon.shiny,
+            ),
             data={
                 'pokemon': pokemon.name,
-                'ncp': round(pokemon.cp_percent, 2),
+                'ncp': round(
+                    pokemon.cp_percent,
+                    2),
                 'cp': pokemon.cp,
                 'iv': pokemon.iv,
                 'iv_display': pokemon.iv_display,
@@ -220,23 +279,24 @@ class PokemonCatchWorker(BaseTask):
                 'longitude': self.pokemon['longitude'],
                 'pokemon_id': pokemon.pokemon_id,
                 'shiny': pokemon.shiny,
-            }
-        )
+            })
 
         # simulate app
         time.sleep(3)
 
         # check for VIP pokemon
         if is_vip:
-            self.emit_event('vip_pokemon', formatted='This is a VIP pokemon. Catch!!!')
+            self.emit_event(
+                'vip_pokemon',
+                formatted='This is a VIP pokemon. Catch!!!')
 
         # check catch limits before catch
         with self.bot.database as conn:
             c = conn.cursor()
-            c.execute("SELECT DISTINCT COUNT(encounter_id) FROM catch_log WHERE dated >= datetime('now','-1 day')")
+            c.execute(
+                "SELECT DISTINCT COUNT(encounter_id) FROM catch_log WHERE dated >= datetime('now','-1 day')")
 
         result = c.fetchone()
-
 
         while True:
             if result[0] < self.daily_catch_limit:
@@ -246,14 +306,24 @@ class PokemonCatchWorker(BaseTask):
                 # self.logger.info("Encounter id: %s" % self.pokemon['encounter_id'])
                 # self.logger.info("Pokemon: %s" % self.pokemon)
                 encounter_id = self.pokemon['encounter_id']
-                catch_rate_by_ball = [0] + response['capture_probability']['capture_probability']  # offset so item ids match indces
-                self._do_catch(pokemon, encounter_id, catch_rate_by_ball, is_vip=is_vip)
-                #We need to continue all tasks when we are ok
+                # offset so item ids match indces
+                catch_rate_by_ball = [
+                    0] + response['capture_probability']['capture_probability']
+                self._do_catch(
+                    pokemon,
+                    encounter_id,
+                    catch_rate_by_ball,
+                    is_vip=is_vip)
+                # We need to continue all tasks when we are ok
                 return WorkerResult.SUCCESS
                 break
             else:
                 if not self.bot.warned_about_catch_limit:
-                    self.emit_event('catch_limit', formatted='WARNING! You have reached (%s / %s) your daily catch limit. Not catching' % (result[0], self.daily_catch_limit) )
+                    self.emit_event(
+                        'catch_limit',
+                        formatted='WARNING! You have reached (%s / %s) your daily catch limit. Not catching' %
+                        (result[0],
+                         self.daily_catch_limit))
                     self.bot.warned_about_catch_limit = True
                 if self.exit_on_limit_reached:
                     sys.exit(2)
@@ -264,7 +334,7 @@ class PokemonCatchWorker(BaseTask):
 
         # simulate app
         time.sleep(5)
-        #We need to continue all tasks when we are ok
+        # We need to continue all tasks when we are ok
         return WorkerResult.SUCCESS
 
     def create_encounter_api_call(self):
@@ -305,16 +375,15 @@ class PokemonCatchWorker(BaseTask):
             )
         return request.call()
 
-    ############################################################################
+    ##########################################################################
     # helpers
-    ############################################################################
+    ##########################################################################
 
     def _pokemon_matches_config(self, config, pokemon, default_logic='and'):
         pokemon_config = config.get(pokemon.name, config.get('any'))
 
         if not pokemon_config:
             return False
-
 
         catch_results = {
             'ncp': False,
@@ -326,10 +395,11 @@ class PokemonCatchWorker(BaseTask):
 
         catch_logic = pokemon_config.get('logic', default_logic)
 
-        current_owned = [p for p in inventory.pokemons().all() if p.name == pokemon.name]
+        current_owned = [p for p in inventory.pokemons().all()
+                         if p.name == pokemon.name]
         candies = inventory.candies().get(pokemon.pokemon_id).quantity
         threshold = pokemon_config.get('candy_threshold', -1)
-        if threshold > 0 and candies >= threshold: # Got enough candies
+        if threshold > 0 and candies >= threshold:  # Got enough candies
             return False
 
         if pokemon_config.get('never_catch', False):
@@ -367,26 +437,42 @@ class PokemonCatchWorker(BaseTask):
             else:
                 return False
 
-        if pokemon_config.get('catch_above_ncp',-1) >= 0:
+        if pokemon_config.get('catch_above_ncp', -1) >= 0:
             if pokemon.cp_percent >= pokemon_config.get('catch_above_ncp'):
                 catch_results['ncp'] = True
 
-        if pokemon_config.get('catch_above_cp',-1) >= 0:
+        if pokemon_config.get('catch_above_cp', -1) >= 0:
             if pokemon.cp >= pokemon_config.get('catch_above_cp'):
                 catch_results['cp'] = True
 
-        if pokemon_config.get('catch_below_cp',-1) >= 0:
+        if pokemon_config.get('catch_below_cp', -1) >= 0:
             if pokemon.cp <= pokemon_config.get('catch_below_cp'):
                 catch_results['cp'] = True
 
-        if pokemon_config.get('catch_above_iv',-1) >= 0:
+        if pokemon_config.get('catch_above_iv', -1) >= 0:
             if pokemon.iv > pokemon_config.get('catch_above_iv', pokemon.iv):
                 catch_results['iv'] = True
 
-        catch_results['fa'] = ( len(pokemon_config.get('fast_attack', [])) == 0 or unicode(pokemon.fast_attack) in map(lambda x: unicode(x), pokemon_config.get('fast_attack', [])))
-        catch_results['ca'] = ( len(pokemon_config.get('charged_attack', [])) == 0 or unicode(pokemon.charged_attack) in map(lambda x: unicode(x), pokemon_config.get('charged_attack', [])))
+        catch_results['fa'] = (len(pokemon_config.get('fast_attack', [])) == 0 or unicode(
+            pokemon.fast_attack) in map(lambda x: unicode(x), pokemon_config.get('fast_attack', [])))
+        catch_results['ca'] = (
+            len(
+                pokemon_config.get(
+                    'charged_attack',
+                    [])) == 0 or unicode(
+                pokemon.charged_attack) in map(
+                    lambda x: unicode(x),
+                    pokemon_config.get(
+                        'charged_attack',
+                        [])))
 
-        self.bot.logger.debug("Our comparison results: FA: {}, CA: {}, CP: {}, NCP: {}, IV: {}".format(catch_results['fa'], catch_results['ca'], catch_results['cp'],  catch_results['ncp'], catch_results['iv']))
+        self.bot.logger.debug(
+            "Our comparison results: FA: {}, CA: {}, CP: {}, NCP: {}, IV: {}".format(
+                catch_results['fa'],
+                catch_results['ca'],
+                catch_results['cp'],
+                catch_results['ncp'],
+                catch_results['iv']))
 
         # check if encountered pokemon is our locked pokemon
         if self.bot.capture_locked and self.bot.capture_locked != pokemon.pokemon_id:
@@ -410,10 +496,14 @@ class PokemonCatchWorker(BaseTask):
             cr['cp'] = True,
             cr['iv'] = True
 
-        if pokemon_config.get('catch_above_ncp',-1) >= 0: cr['ncp'] = catch_results['ncp']
-        if pokemon_config.get('catch_above_cp',-1) >= 0: cr['cp'] = catch_results['cp']
-        if pokemon_config.get('catch_below_cp',-1) >= 0: cr['cp'] = catch_results['cp']
-        if pokemon_config.get('catch_above_iv',-1) >= 0: cr['iv'] = catch_results['iv']
+        if pokemon_config.get('catch_above_ncp', -1) >= 0:
+            cr['ncp'] = catch_results['ncp']
+        if pokemon_config.get('catch_above_cp', -1) >= 0:
+            cr['cp'] = catch_results['cp']
+        if pokemon_config.get('catch_below_cp', -1) >= 0:
+            cr['cp'] = catch_results['cp']
+        if pokemon_config.get('catch_above_iv', -1) >= 0:
+            cr['iv'] = catch_results['iv']
 
         if DEBUG_ON:
             print "Debug information for match rules..."
@@ -451,7 +541,9 @@ class PokemonCatchWorker(BaseTask):
             name = inventory.pokemons().name_for(fid)
             if self.bot.config.vips.get(name) == {}:
                 if name != pokemon.name:
-                    self.logger.info("%s is a VIP because it's family to %s" % (pokemon.name, name))
+                    self.logger.info(
+                        "%s is a VIP because it's family to %s" %
+                        (pokemon.name, name))
                 return True
         # No, not a family member of the VIP
         return False
@@ -459,7 +551,10 @@ class PokemonCatchWorker(BaseTask):
     def _is_vip_pokemon(self, pokemon):
         # having just a name present in the list makes them vip
         # Not seen pokemons also will become vip if it's not disabled in config
-        if self.bot.config.vips.get(pokemon.name) == {} or (self.treat_unseen_as_vip and not self.pokedex.seen(pokemon.pokemon_id)):
+        if self.bot.config.vips.get(
+            pokemon.name) == {} or (
+            self.treat_unseen_as_vip and not self.pokedex.seen(
+                pokemon.pokemon_id)):
             return True
         # Treat all shiny pokemon as VIP!
         if pokemon.shiny:
@@ -469,37 +564,47 @@ class PokemonCatchWorker(BaseTask):
             if self._is_family_of_vip(pokemon):
                 return True
         # If we need the Pokemon for an evolution, catch it.
-        if self.treat_unseen_as_vip and any(not inventory.pokedex().seen(fid) for fid in self.get_family_ids(pokemon.pokemon_id)):
-            self.logger.info('Found a Pokemon whoes family is not yet complete in Pokedex!')
+        if self.treat_unseen_as_vip and any(not inventory.pokedex().seen(
+                fid) for fid in self.get_family_ids(pokemon.pokemon_id)):
+            self.logger.info(
+                'Found a Pokemon whoes family is not yet complete in Pokedex!')
             return True
 
-        return self._pokemon_matches_config(self.bot.config.vips, pokemon, default_logic='or')
+        return self._pokemon_matches_config(
+            self.bot.config.vips, pokemon, default_logic='or')
 
     def _pct(self, rate_by_ball):
         return '{0:.2f}'.format(rate_by_ball * 100)
 
-    def _use_berry(self, berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball):
+    def _use_berry(
+            self,
+            berry_id,
+            berry_count,
+            encounter_id,
+            catch_rate_by_ball,
+            current_ball):
         # Delay to simulate selecting berry
-        action_delay(self.catchsim_berry_wait_min, self.catchsim_berry_wait_max)
+        action_delay(
+            self.catchsim_berry_wait_min,
+            self.catchsim_berry_wait_max)
         new_catch_rate_by_ball = []
         self.emit_event(
             'pokemon_catch_rate',
             level='debug',
             formatted='Catch rate of {catch_rate} with {ball_name} is low. Throwing {berry_name} (have {berry_count})',
             data={
-                'catch_rate': self._pct(catch_rate_by_ball[current_ball]),
+                'catch_rate': self._pct(
+                    catch_rate_by_ball[current_ball]),
                 'ball_name': self.inventory.get(current_ball).name,
                 'berry_name': self.inventory.get(berry_id).name,
-                'berry_count': berry_count
-            }
-        )
-        
+                'berry_count': berry_count})
+
         request = self.bot.api.create_request()
         request.use_item_encounter(item=berry_id,
                                    encounter_id=encounter_id,
                                    spawn_point_guid=self.spawn_point_guid)
         response_dict = request.call()
-        
+
         responses = response_dict['responses']
 
         if response_dict['status_code'] == 1:
@@ -507,7 +612,8 @@ class PokemonCatchWorker(BaseTask):
             # update catch rates using multiplier
             if 'capture_probability' in responses['USE_ITEM_ENCOUNTER']:
                 for rate in catch_rate_by_ball:
-                    new_catch_rate_by_ball.append(float(responses['USE_ITEM_ENCOUNTER']['capture_probability']['capture_probability'][current_ball-1]))
+                    new_catch_rate_by_ball.append(float(
+                        responses['USE_ITEM_ENCOUNTER']['capture_probability']['capture_probability'][current_ball - 1]))
                 self.emit_event(
                     'threw_berry',
                     formatted="Threw a {berry_name} ({berry_count} left)! Catch rate with {ball_name} is now: {new_catch_rate}",
@@ -515,9 +621,8 @@ class PokemonCatchWorker(BaseTask):
                         'berry_name': self.inventory.get(berry_id).name,
                         'berry_count': berry_count - 1,
                         'ball_name': self.inventory.get(current_ball).name,
-                        'new_catch_rate': self._pct(new_catch_rate_by_ball[current_ball])
-                    }
-                )
+                        'new_catch_rate': self._pct(
+                            new_catch_rate_by_ball[current_ball])})
 
             # softban?
             else:
@@ -530,14 +635,16 @@ class PokemonCatchWorker(BaseTask):
                 )
                 with self.bot.database as conn:
                     c = conn.cursor()
-                    c.execute("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='softban_log'")
+                    c.execute(
+                        "SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='softban_log'")
                 result = c.fetchone()
 
                 while True:
                     if result[0] == 1:
                         source = str("PokemonCatchWorker")
                         status = str("Possible Softban")
-                        conn.execute('''INSERT INTO softban_log (status, source) VALUES (?, ?)''', (status, source))
+                        conn.execute(
+                            '''INSERT INTO softban_log (status, source) VALUES (?, ?)''', (status, source))
                     break
                 else:
                     self.emit_event(
@@ -553,13 +660,16 @@ class PokemonCatchWorker(BaseTask):
                 'threw_berry_failed',
                 formatted='Unknown response when throwing berry: {status_code}.',
                 data={
-                    'status_code': response_dict['status_code']
-                }
-            )
+                    'status_code': response_dict['status_code']})
 
         return new_catch_rate_by_ball
 
-    def _do_catch(self, pokemon, encounter_id, catch_rate_by_ball, is_vip=False):
+    def _do_catch(
+            self,
+            pokemon,
+            encounter_id,
+            catch_rate_by_ball,
+            is_vip=False):
         # settings that may be exposed at some point
         """
 
@@ -585,7 +695,8 @@ class PokemonCatchWorker(BaseTask):
             catch_for_candy = False
 
         if self.pinap_operator == "or":
-            if (self.use_pinap_on_vip and is_vip) or (pokemon.level <= self.pinap_on_level_below):
+            if (self.use_pinap_on_vip and is_vip) or (
+                    pokemon.level <= self.pinap_on_level_below):
                 berry_id = ITEM_PINAPBERRY
                 catch_for_candy = False
 
@@ -601,7 +712,16 @@ class PokemonCatchWorker(BaseTask):
                     catch_for_candy = True
 
         # if trash and self.always_throw_pinap_on_trash then use pinap
-        trash_mons = ["Caterpie", "Weedle", "Pidgey", "Pidgeotto", "Pidgeot", "Kakuna", "Beedrill", "Metapod", "Butterfree"]
+        trash_mons = [
+            "Caterpie",
+            "Weedle",
+            "Pidgey",
+            "Pidgeotto",
+            "Pidgeot",
+            "Kakuna",
+            "Beedrill",
+            "Metapod",
+            "Butterfree"]
         if self.always_throw_pinap_on_trash and pokemon.name in trash_mons:
             berry_id = ITEM_PINAPBERRY
             catch_for_candy = True
@@ -636,7 +756,8 @@ class PokemonCatchWorker(BaseTask):
             while ball_count[current_ball] == 0 and current_ball < maximum_ball:
                 current_ball += 1
             if ball_count[current_ball] == 0:
-                self.emit_event('no_pokeballs', formatted='No pokeballs left! Fleeing...')
+                self.emit_event('no_pokeballs',
+                                formatted='No pokeballs left! Fleeing...')
                 return WorkerResult.ERROR
 
             # check future ball count
@@ -653,33 +774,44 @@ class PokemonCatchWorker(BaseTask):
                 berry_count = self.inventory.get(berry_id).count
 
             # check if we've got berries to spare
-            berries_to_spare = berry_count > 0 if (is_vip or catch_for_candy or berry_id == ITEM_NANABBERRY) else berry_count > num_next_balls + 30
+            berries_to_spare = berry_count > 0 if (
+                is_vip or catch_for_candy or berry_id == ITEM_NANABBERRY) else berry_count > num_next_balls + 30
 
             changed_ball = False
-            
+
             # Golden Razz: Use golden razz
-            if (self.use_golden_razz_on_vip_only==is_vip) or (self.use_golden_razz_on_vip_only == False):
-                # Golden Razz: Use golden razz when catch rate is low, keep some for raid
-                if (self.inventory.get(ITEM_GOLDEN_RAZZ_BERRY).count > self.golden_razz_to_keep and catch_rate_by_ball[current_ball] < self.golden_razz_threshold):
+            if (self.use_golden_razz_on_vip_only == is_vip) or (
+                    self.use_golden_razz_on_vip_only == False):
+                # Golden Razz: Use golden razz when catch rate is low, keep
+                # some for raid
+                if (self.inventory.get(ITEM_GOLDEN_RAZZ_BERRY).count >
+                        self.golden_razz_to_keep and catch_rate_by_ball[current_ball] < self.golden_razz_threshold):
                     berry_id = ITEM_GOLDEN_RAZZ_BERRY
                     berry_count = self.inventory.get(berry_id).count
-                    new_catch_rate_by_ball = self._use_berry(berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
+                    new_catch_rate_by_ball = self._use_berry(
+                        berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
                     self.inventory.get(berry_id).remove(1)
                     berry_count -= 1
                     used_berry = True
 
-            # SMART_PINAP: Use pinap when high catch rate, but spare some for VIP with high catch rate
-            if self.smart_pinap_enabled and ( (not is_vip and self.inventory.get(ITEM_PINAPBERRY).count > self.smart_pinap_to_keep and catch_rate_by_ball[current_ball] > self.smart_pinap_threshold) or (is_vip and self.inventory.get(ITEM_PINAPBERRY).count > 0 and catch_rate_by_ball[current_ball] >= self.vip_berry_threshold) ) and not used_berry:
+            # SMART_PINAP: Use pinap when high catch rate, but spare some for
+            # VIP with high catch rate
+            if self.smart_pinap_enabled and (
+                (not is_vip and self.inventory.get(ITEM_PINAPBERRY).count > self.smart_pinap_to_keep and catch_rate_by_ball[current_ball] > self.smart_pinap_threshold) or (
+                    is_vip and self.inventory.get(ITEM_PINAPBERRY).count > 0 and catch_rate_by_ball[current_ball] >= self.vip_berry_threshold)) and not used_berry:
                 berry_id = ITEM_PINAPBERRY
                 berry_count = self.inventory.get(berry_id).count
-                new_catch_rate_by_ball = self._use_berry(berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
+                new_catch_rate_by_ball = self._use_berry(
+                    berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
                 self.inventory.get(berry_id).remove(1)
                 berry_count -= 1
                 used_berry = True
 
-				# use a berry if we are under our ideal rate and have berries to spare
+                # use a berry if we are under our ideal rate and have berries
+                # to spare
             if catch_rate_by_ball[current_ball] < ideal_catch_rate_before_throw and berries_to_spare and not used_berry:
-                new_catch_rate_by_ball = self._use_berry(berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
+                new_catch_rate_by_ball = self._use_berry(
+                    berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
                 if new_catch_rate_by_ball != catch_rate_by_ball:
                     catch_rate_by_ball = new_catch_rate_by_ball
                     self.inventory.get(berry_id).remove(1)
@@ -687,8 +819,10 @@ class PokemonCatchWorker(BaseTask):
                     used_berry = True
             # If ideal rate already reached, but we use berry for candy, throw!
             # If we should use a nanab berry, also always throw if we can
-            if not used_berry and berries_to_spare and (catch_for_candy or berry_id == ITEM_NANABBERRY):
-                new_catch_rate_by_ball = self._use_berry(berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
+            if not used_berry and berries_to_spare and (
+                    catch_for_candy or berry_id == ITEM_NANABBERRY):
+                new_catch_rate_by_ball = self._use_berry(
+                    berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
                 if new_catch_rate_by_ball != catch_rate_by_ball:
                     catch_rate_by_ball = new_catch_rate_by_ball
                     self.inventory.get(berry_id).remove(1)
@@ -700,13 +834,16 @@ class PokemonCatchWorker(BaseTask):
             while best_ball < maximum_ball:
                 best_ball += 1
                 if catch_rate_by_ball[current_ball] < ideal_catch_rate_before_throw and ball_count[best_ball] > 0:
-                    # if current ball chance to catch is under our ideal rate, and player has better ball - then use it
+                    # if current ball chance to catch is under our ideal rate,
+                    # and player has better ball - then use it
                     current_ball = best_ball
                     changed_ball = True
 
-            # if the rate is still low and we didn't throw a berry before, throw one
+            # if the rate is still low and we didn't throw a berry before,
+            # throw one
             if catch_rate_by_ball[current_ball] < ideal_catch_rate_before_throw and berry_count > 0 and not used_berry:
-                new_catch_rate_by_ball = self._use_berry(berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
+                new_catch_rate_by_ball = self._use_berry(
+                    berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
                 if new_catch_rate_by_ball != catch_rate_by_ball:
                     catch_rate_by_ball = new_catch_rate_by_ball
                     self.inventory.get(berry_id).remove(1)
@@ -715,7 +852,9 @@ class PokemonCatchWorker(BaseTask):
 
             # If we change ball then wait to simulate user selecting it
             if changed_ball:
-                action_delay(self.catchsim_changeball_wait_min, self.catchsim_changeball_wait_max)
+                action_delay(
+                    self.catchsim_changeball_wait_min,
+                    self.catchsim_changeball_wait_max)
 
             # Randomize the quality of the throw
             # Default structure
@@ -730,7 +869,9 @@ class PokemonCatchWorker(BaseTask):
             ball_count[current_ball] -= 1
             self.inventory.get(current_ball).remove(1)
             # Take some time to throw the ball from config options
-            action_delay(self.catchsim_catch_wait_min, self.catchsim_catch_wait_max)
+            action_delay(
+                self.catchsim_catch_wait_min,
+                self.catchsim_catch_wait_max)
             self.emit_event(
                 'threw_pokeball',
                 formatted='{throw_type}{spin_label} throw! Used {ball_name}, with chance {success_percentage} ({count_left} left)',
@@ -738,15 +879,14 @@ class PokemonCatchWorker(BaseTask):
                     'throw_type': throw_parameters['throw_type_label'],
                     'spin_label': throw_parameters['spin_label'],
                     'ball_name': self.inventory.get(current_ball).name,
-                    'success_percentage': self._pct(catch_rate_by_ball[current_ball]),
-                    'count_left': ball_count[current_ball]
-                }
-            )
+                    'success_percentage': self._pct(
+                        catch_rate_by_ball[current_ball]),
+                    'count_left': ball_count[current_ball]})
 
             hit_pokemon = 1
             if random() >= self.catch_throw_parameters_hit_rate and not is_vip:
                 hit_pokemon = 0
-            
+
             request = self.bot.api.create_request()
             request.catch_pokemon(
                 encounter_id=encounter_id,
@@ -755,14 +895,15 @@ class PokemonCatchWorker(BaseTask):
                 spawn_point_id=self.spawn_point_guid,
                 hit_pokemon=hit_pokemon,
                 spin_modifier=throw_parameters['spin_modifier'],
-                normalized_hit_position=throw_parameters['normalized_hit_position']
-            )
+                normalized_hit_position=throw_parameters['normalized_hit_position'])
             response_dict = request.call()
-            
+
             try:
                 catch_pokemon_status = response_dict['responses']['CATCH_POKEMON']['status']
             except KeyError:
-                self.logger.error("Can't catch! encounter_id: %s" % encounter_id )
+                self.logger.error(
+                    "Can't catch! encounter_id: %s" %
+                    encounter_id)
                 self.logger.error("Pokemon: %s" % pokemon)
                 self.logger.error("Resp: %s" % response_dict)
                 break
@@ -781,7 +922,8 @@ class PokemonCatchWorker(BaseTask):
                 # randomly chooses a number of times to 'show' wobble animation between 1 and flee_count
                 # multiplies this by flee_duration to get total sleep
                 if self.catchsim_flee_count:
-                    sleep((randrange(self.catchsim_flee_count)+1) * self.catchsim_flee_duration)
+                    sleep((randrange(self.catchsim_flee_count) + 1) *
+                          self.catchsim_flee_duration)
 
                 continue
 
@@ -790,15 +932,22 @@ class PokemonCatchWorker(BaseTask):
                 # Expect 25 xp for fled pokemon
                 inventory.player().exp += 25
 
-                #insert into DB
+                # insert into DB
                 with self.bot.database as conn:
                     c = conn.cursor()
-                    c.execute("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='vanish_log'")
+                    c.execute(
+                        "SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='vanish_log'")
                 result = c.fetchone()
 
                 while True:
                     if result[0] == 1:
-                        conn.execute('''INSERT INTO vanish_log (pokemon, cp, iv, encounter_id, pokemon_id) VALUES (?, ?, ?, ?, ?)''', (pokemon.name, pokemon.cp, pokemon.iv, str(encounter_id), pokemon.pokemon_id))
+                        conn.execute(
+                            '''INSERT INTO vanish_log (pokemon, cp, iv, encounter_id, pokemon_id) VALUES (?, ?, ?, ?, ?)''',
+                            (pokemon.name,
+                             pokemon.cp,
+                             pokemon.iv,
+                             str(encounter_id),
+                                pokemon.pokemon_id))
                     break
                 else:
                     self.emit_event(
@@ -823,7 +972,8 @@ class PokemonCatchWorker(BaseTask):
 
                 with self.bot.database as conn:
                     c = conn.cursor()
-                    c.execute("SELECT DISTINCT COUNT(encounter_id) FROM vanish_log WHERE dated > (SELECT dated FROM catch_log WHERE dated IN (SELECT MAX(dated) FROM catch_log))")
+                    c.execute(
+                        "SELECT DISTINCT COUNT(encounter_id) FROM vanish_log WHERE dated > (SELECT dated FROM catch_log WHERE dated IN (SELECT MAX(dated) FROM catch_log))")
 
                 result = c.fetchone()
                 self.consecutive_vanishes_so_far = result[0]
@@ -836,13 +986,15 @@ class PokemonCatchWorker(BaseTask):
 
             # pokemon caught!
             elif catch_pokemon_status == CATCH_STATUS_SUCCESS:
-                if self.rest_completed == True:
+                if self.rest_completed:
                     self.rest_completed = False
                 pokemon.unique_id = response_dict['responses']['CATCH_POKEMON']['captured_pokemon_id']
-                self.bot.metrics.captured_pokemon(pokemon.name, pokemon.cp, pokemon.iv_display, pokemon.iv)
+                self.bot.metrics.captured_pokemon(
+                    pokemon.name, pokemon.cp, pokemon.iv_display, pokemon.iv)
 
                 awards = response_dict['responses']['CATCH_POKEMON']['capture_award']
-                exp_gain, candy_gain, stardust_gain = self.extract_award(awards)
+                exp_gain, candy_gain, stardust_gain = self.extract_award(
+                    awards)
                 with self.bot.database as conn:
                     c = conn.cursor()
                     c.execute(
@@ -894,7 +1046,6 @@ class PokemonCatchWorker(BaseTask):
                         }
                     )
 
-
                 inventory.pokemons().add(pokemon)
                 inventory.player().exp += exp_gain
                 self.bot.stardust += stardust_gain
@@ -904,25 +1055,30 @@ class PokemonCatchWorker(BaseTask):
                 self.emit_event(
                     'gained_candy',
                     formatted='Candy gained: {gained_candy}. You now have {quantity} {type} candy!',
-                    data = {
+                    data={
                         'gained_candy': str(candy_gain),
                         'quantity': candy.quantity,
-                        'type': candy.type
-                    },
+                        'type': candy.type},
                 )
 
                 self.bot.softban = False
 
-
                 try:
                     with self.bot.database as conn:
                         c = conn.cursor()
-                        c.execute("SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='catch_log'")
+                        c.execute(
+                            "SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='catch_log'")
                     result = c.fetchone()
 
                     while True:
                         if result[0] == 1:
-                            conn.execute('''INSERT INTO catch_log (pokemon, cp, iv, encounter_id, pokemon_id) VALUES (?, ?, ?, ?, ?)''', (pokemon.name, pokemon.cp, pokemon.iv, str(encounter_id), pokemon.pokemon_id))
+                            conn.execute(
+                                '''INSERT INTO catch_log (pokemon, cp, iv, encounter_id, pokemon_id) VALUES (?, ?, ?, ?, ?)''',
+                                (pokemon.name,
+                                 pokemon.cp,
+                                 pokemon.iv,
+                                 str(encounter_id),
+                                    pokemon.pokemon_id))
                         break
                     else:
                         self.emit_event(
@@ -932,7 +1088,9 @@ class PokemonCatchWorker(BaseTask):
                             formatted="catch_log table not found, skipping log"
                         )
                         break
-                    user_data_caught = os.path.join(_base_dir, 'data', 'caught-%s.json' % self.bot.config.username)
+                    user_data_caught = os.path.join(
+                        _base_dir, 'data', 'caught-%s.json' %
+                        self.bot.config.username)
                     with open(user_data_caught, 'ab') as outfile:
                         json.dump(OrderedDict({
                             'datetime': str(datetime.now()),
@@ -946,21 +1104,28 @@ class PokemonCatchWorker(BaseTask):
                         }), outfile)
                         outfile.write('\n')
 
-                    # if it is a new pokemon to our dex, simulate app animation delay
+                    # if it is a new pokemon to our dex, simulate app animation
+                    # delay
                     if exp_gain >= 500:
-                        sleep (randrange(self.catchsim_newtodex_wait_min, self.catchsim_newtodex_wait_max))
+                        sleep(
+                            randrange(
+                                self.catchsim_newtodex_wait_min,
+                                self.catchsim_newtodex_wait_max))
 
                 except IOError as e:
-                    self.logger.info('[x] Error while opening location file: %s' % e)
+                    self.logger.info(
+                        '[x] Error while opening location file: %s' % e)
 
             elif catch_pokemon_status == CATCH_STATUS_MISSED:
                 self.emit_event(
                     'pokemon_capture_failed',
                     formatted='Pokeball thrown to {pokemon} missed.. trying again!',
-                    data={'pokemon': pokemon.name}
-                )
+                    data={
+                        'pokemon': pokemon.name})
                 # Take some time to throw the ball from config options
-                action_delay(self.catchsim_catch_wait_min, self.catchsim_catch_wait_max)
+                action_delay(
+                    self.catchsim_catch_wait_min,
+                    self.catchsim_catch_wait_max)
                 continue
 
             break
@@ -983,28 +1148,32 @@ class PokemonCatchWorker(BaseTask):
         throw_nice_chance = self.catch_throw_parameters_nice_rate
         throw_normal_throw_chance = self.catch_throw_parameters_normal_rate
 
-        # Total every chance types, pick a random number in the range and check what type of throw we got
+        # Total every chance types, pick a random number in the range and check
+        # what type of throw we got
         total_chances = throw_excellent_chance + throw_great_chance \
-                        + throw_nice_chance + throw_normal_throw_chance
+            + throw_nice_chance + throw_normal_throw_chance
 
         random_throw = random() * total_chances
 
         if random_throw <= throw_excellent_chance:
-            throw_parameters['normalized_reticle_size'] = 1.70 + 0.25 * random()
+            throw_parameters['normalized_reticle_size'] = 1.70 + \
+                0.25 * random()
             throw_parameters['normalized_hit_position'] = 1.0
             throw_parameters['throw_type_label'] = 'Excellent'
             return
 
         random_throw -= throw_excellent_chance
         if random_throw <= throw_great_chance:
-            throw_parameters['normalized_reticle_size'] = 1.30 + 0.399 * random()
+            throw_parameters['normalized_reticle_size'] = 1.30 + \
+                0.399 * random()
             throw_parameters['normalized_hit_position'] = 1.0
             throw_parameters['throw_type_label'] = 'Great'
             return
 
         random_throw -= throw_great_chance
         if random_throw <= throw_nice_chance:
-            throw_parameters['normalized_reticle_size'] = 1.00 + 0.299 * random()
+            throw_parameters['normalized_reticle_size'] = 1.00 + \
+                0.299 * random()
             throw_parameters['normalized_hit_position'] = 1.0
             throw_parameters['throw_type_label'] = 'Nice'
             return
@@ -1023,10 +1192,10 @@ class PokemonCatchWorker(BaseTask):
             'vanish_limit_reached',
             formatted="Vanish limit reached! Taking a rest now for {duration}, will resume at {resume}.",
             data={
-                'duration': str(timedelta(seconds=duration)),
-                'resume': resume.strftime("%H:%M:%S")
-            }
-        )
+                'duration': str(
+                    timedelta(
+                        seconds=duration)),
+                'resume': resume.strftime("%H:%M:%S")})
 
         sleep(duration)
         self.rest_completed = True
