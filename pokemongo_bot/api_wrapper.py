@@ -139,6 +139,18 @@ class ApiWrapper(PGoApi, object):
                 )
         except:
             raise
+        try:
+            if self.config.locale_by_location:
+                response = PGoApi.app_simulation_login(self,country_code,timezone.zone)
+            else:
+                PGoApi.set_authentication(
+                    self,
+                    provider,
+                    username=username,
+                    password=password
+                )
+        except:
+            raise
         try_cnt = 0
         while True:
             try:
