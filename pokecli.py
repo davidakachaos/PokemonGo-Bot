@@ -110,15 +110,15 @@ def main():
         else:
             bypass_warning = False
             
-        if config.killswitch:
-            response = urllib2.urlopen(killswitch_url)
-            killswitch_data = json.load(response)
-            response.close()
+        # if config.killswitch:
+        #     response = urllib2.urlopen(killswitch_url)
+        #     killswitch_data = json.load(response)
+        #     response.close()
 
-            if killswitch_data['killswitch']:
-                print "\033[91mKill Switch Activated By: \033[0m" + format(killswitch_data['activated_by'])
-                print "\033[91mMessage: \033[0m\n" + format(killswitch_data['message']) + "\n\n\n"
-                sys.exit(1)
+        #     if killswitch_data['killswitch']:
+        #         print "\033[91mKill Switch Activated By: \033[0m" + format(killswitch_data['activated_by'])
+        #         print "\033[91mMessage: \033[0m\n" + format(killswitch_data['message']) + "\n\n\n"
+        #         sys.exit(1)
     
         try:
             import pkg_resources
