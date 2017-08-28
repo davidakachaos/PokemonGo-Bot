@@ -22,8 +22,8 @@ class HealPokemon(BaseTask):
         self.next_update = None
         self.to_heal = []
 
-        self.warned_about_no_revives = False
-        self.warned_about_no_potions = False
+        self.bot.warned_about_no_revives = False
+        self.bot.warned_about_no_potions = False
 
     def work(self):
 
@@ -37,16 +37,13 @@ class HealPokemon(BaseTask):
         pokemons.sort(key=lambda p: p.hp)
         for pokemon in pokemons:
             if pokemon.hp < 1.0:
-                self.logger.info("Dead: %s (%s CP| %s/%s )" % (pokemon.name, pokemon.cp, pokemon.hp, pokemon.hp_max))
                 to_revive += [pokemon]
             elif pokemon.hp < pokemon.hp_max:
-                self.logger.info("Heal: %s (%s CP| %s/%s )" % (pokemon.name, pokemon.cp, pokemon.hp, pokemon.hp_max))
                 self.to_heal += [pokemon]
 
         if len(self.to_heal) == 0 and len(to_revive) == 0:
             if self._should_print:
                 self.next_update = datetime.now() + timedelta(seconds=120)
-                #self.logger.info("No pokemon to heal or revive")
             return WorkerResult.SUCCESS
         # Okay, start reviving pokemons
         # Check revives and potions
@@ -57,34 +54,29 @@ class HealPokemon(BaseTask):
         hyper = inventory.items().get(Item.ITEM_HYPER_POTION.value).count
         max_p = inventory.items().get(Item.ITEM_MAX_POTION.value).count
 
-        self.logger.info("Healing %s pokemon" % len(self.to_heal))
-        self.logger.info("Reviving %s pokemon" % len(to_revive))
 
         if self.revive_pokemon:
             if len(to_revive) > 0 and revives == 0 and max_revives == 0:
-                if not self.warned_about_no_revives:
+                if not self.bot.warned_about_no_revives:
                     self.logger.info("No revives left! Can't revive %s pokemons." % len(to_revive))
-                    self.warned_about_no_revives = True
+                    self.bot.warned_about_no_revives = True
             elif len(to_revive) > 0:
                 self.logger.info("Reviving %s pokemon..." % len(to_revive))
-                self.warned_about_no_revives = False
+                self.bot.warned_about_no_revives = False
                 for pokemon in to_revive:
                     self._revive_pokemon(pokemon)
 
         if self.heal_pokemon:
             if len(self.to_heal) > 0 and (normal + super_p + hyper + max_p) == 0:
-                if not self.warned_about_no_potions:
+                if not self.bot.warned_about_no_potions:
                     self.logger.info("No potions left! Can't heal %s pokemon" % len(self.to_heal))
-                    self.warned_about_no_potions = True
+                    self.bot.warned_about_no_potions = True
             elif len(self.to_heal) > 0:
                 self.logger.info("Healing %s pokemon" % len(self.to_heal))
-                self.warned_about_no_potions = False
+                self.bot.warned_about_no_potions = False
                 for pokemon in self.to_heal:
                     self._heal_pokemon(pokemon)
 
-        if self._should_print:
-            self.next_update = datetime.now() + timedelta(seconds=120)
-            self.logger.info("Done healing/reviving pokemon")
 
     def _revive_pokemon(self, pokemon):
         item = Item.ITEM_REVIVE.value
@@ -132,9 +124,6 @@ class HealPokemon(BaseTask):
         if pokemon.hp == 0:
             self.logger.info("Can't heal a dead %s" % pokemon.name)
             return False
-        # normal = inventory.items().get(Item.ITEM_POTION.value).count
-        # super_p = inventory.items().get(Item.ITEM_SUPER_POTION.value).count
-        # hyper = inventory.items().get(Item.ITEM_HYPER_POTION.value).count
         max_p = inventory.items().get(Item.ITEM_MAX_POTION.value).count
         # Figure out how much healing needs to be done.
         def hp_to_restore(pokemon):
@@ -163,7 +152,6 @@ class HealPokemon(BaseTask):
                             pokemon.hp = pokemon.hp_max
                     else:
                         break
-                        # return WorkerResult.ERROR
 
         # Now we use the least
         potion_id = 101 # Normals first
@@ -191,7 +179,6 @@ class HealPokemon(BaseTask):
             else:
                 self.logger.info("Can't heal a %s" % pokemon.name)
                 break
-
 
     def _use_potion(self, potion_id, pokemon):
         if pokemon.hp >= pokemon.hp_max:
