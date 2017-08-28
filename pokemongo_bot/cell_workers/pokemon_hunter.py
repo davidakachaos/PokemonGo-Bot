@@ -78,6 +78,8 @@ class PokemonHunter(BaseTask):
         # Allow the bot to run to a VIP?
         self.config_run_to_vip = self.config.get("run_to_vip", False)
         self.runs_to_vips = 0
+        # Allow the hunter to go to the Pokestop where the mon is hiding
+        self.config_move_through_pokestop = self.config.get("move_through_pokestop", True)
 
     def work(self):
         if not self.enabled:
@@ -209,6 +211,7 @@ class PokemonHunter(BaseTask):
         pokemons = filter(
             lambda x: x["pokemon_id"] not in self.recent_tries,
             pokemons)
+
         trash_mons = [
             "Caterpie",
             "Weedle",
@@ -393,6 +396,12 @@ class PokemonHunter(BaseTask):
                     self.logger.info(
                         "This Pokemon is family of a VIP! Locking target!")
                     self.bot.hunter_locked_target = self.destination
+                elif not inventory.pokedex().seen(self.destination["pokemon_id"]):
+                    self.logger.info("This is a unseen Pokemon!")
+                    if self.config_lock_on_target and not self.config_lock_vip_only:
+                        self.bot.hunter_locked_target = self.destination
+                    else:
+                        self.bot.hunter_locked_target = None
                 elif self._is_needed_pokedex(self.destination):
                     self.logger.info(
                         "I need a %(name)s to complete the Pokedex! I have %(candies)s candies.",
@@ -743,7 +752,7 @@ class PokemonHunter(BaseTask):
             self.search_points = self.search_points[1:] + \
                 self.search_points[:1]
 
-        if "fort_id" in self.destination:
+        if "fort_id" in self.destination and self.config_move_through_pokestop:
             # The Pokemon is hding at a POkestop, so move to that Pokestop!
             # Get forts
             forts = self.bot.get_forts(order_by_distance=True)
@@ -758,7 +767,7 @@ class PokemonHunter(BaseTask):
                         "%s is hiding at %s, going there first!" %
                         (self.destination["name"], fort_name))
                     self.walker = PolylineWalker(self.bot, lat, lng)
-        else:
+        elif self.config_move_through_pokestop:
             nearest_fort = self.get_nearest_fort_on_the_way()
             if nearest_fort is not None:
                 lat = nearest_fort['latitude']
