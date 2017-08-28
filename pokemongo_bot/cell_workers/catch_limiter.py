@@ -119,8 +119,9 @@ class CatchLimiter(BaseTask):
             if not hasattr(self.bot, "catch_resume_at"):
                 self.bot.catch_resume_at = now + timedelta(minutes=60)
             if self.no_log_until <= now:
-                self.logger.info(
-                    "All catch tasks disabled until %s beacuse we hit the daily catch limit (%s >= %s)" %
+                self.emit_event(
+                    'catch_limit',
+                    formatted='All catch tasks disabled until %s beacuse we hit the daily catch limit (%s >= %s)' %
                     (self.bot.catch_resume_at.strftime("%H:%M:%S"), result[0], self.daily_catch_limit))
                 self.no_log_until = now + timedelta(minutes=2)
             return WorkerResult.SUCCESS
