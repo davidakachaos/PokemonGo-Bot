@@ -102,8 +102,10 @@ class SpinFort(BaseTask):
         if check_fort_modifier:
             # Expiration time
             expiration_time = datetime.fromtimestamp(check_fort_modifier[0]['expiration_timestamp_ms'] / 1e3)
-            deployer = check_fort_modifier[0]['deployer_player_codename']
-            self.logger.info("Pokestop %s lured until %s by %s" % (fort_name, expiration_time.strftime("%H:%M"), deployer))
+            present = datetime.now()
+            if expiration_time > present:
+                deployer = check_fort_modifier[0]['deployer_player_codename']
+                self.logger.info("Pokestop %s lured until %s by %s" % (fort_name, expiration_time.strftime("%H:%M"), deployer))
 
         if not is_gym:  # can't lure a gym!!
             check_fort_modifier = details.get('modifiers', {})

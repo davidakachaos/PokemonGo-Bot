@@ -228,6 +228,9 @@ class CampFort(BaseTask):
                     check_fort_modifier = details.get('modifiers', {})
                     if check_fort_modifier:
                         expiration_time = check_fort_modifier[0]['expiration_timestamp_ms']
+                        if expiration_time / 1e3 < now:
+                            # already passed gone...
+                            continue
                         if next_expire is None or expiration_time < next_expire:
                             next_expire = expiration_time
                             next_expire_name = details.get('name', 'Unknown')
