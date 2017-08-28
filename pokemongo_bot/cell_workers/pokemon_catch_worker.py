@@ -163,6 +163,11 @@ class PokemonCatchWorker(BaseTask):
             'smart_pinap_threshold', 0.85)
         self.smart_pinap_to_keep = self.config.get('smart_pinap_to_keep', 3)
 
+        self.no_evolution_pokemon = []
+        for pokemon in inventory.Pokemons.STATIC_DATA:
+            if not pokemon.has_next_evolution and not pokemon.prev_evolutions_all:
+                self.no_evolution_pokemon.append(pokemon.name)
+
     ##########################################################################
     # public methods
     ##########################################################################
@@ -711,6 +716,11 @@ class PokemonCatchWorker(BaseTask):
                     berry_id = ITEM_PINAPBERRY
                     catch_for_candy = True
 
+        if berry_id == ITEM_PINAPBERRY and pokemon.prev_evolution_id is None and not pokemon.has_next_evolution():
+            self.logger.info("Not using Pinap berry on a Pokemon without evolution!")
+            berry_id = ITEM_NANABBERRY
+            catch_for_candy = False
+
         # if trash and self.always_throw_pinap_on_trash then use pinap
         trash_mons = [
             "Caterpie",
@@ -794,9 +804,14 @@ class PokemonCatchWorker(BaseTask):
                     berry_count -= 1
                     used_berry = True
 
+            # Never throw a pinap on a Pokemon that has no evolution
+            no_evolution = False
+            if pokemon.name in self.no_evolution_pokemon:
+                no_evolution = True
+
             # SMART_PINAP: Use pinap when high catch rate, but spare some for
             # VIP with high catch rate
-            if self.smart_pinap_enabled and (
+            if not no_evolution and self.smart_pinap_enabled and (
                 (not is_vip and self.inventory.get(ITEM_PINAPBERRY).count > self.smart_pinap_to_keep and catch_rate_by_ball[current_ball] > self.smart_pinap_threshold) or (
                     is_vip and self.inventory.get(ITEM_PINAPBERRY).count > 0 and catch_rate_by_ball[current_ball] >= self.vip_berry_threshold)) and not used_berry:
                 berry_id = ITEM_PINAPBERRY
@@ -821,13 +836,18 @@ class PokemonCatchWorker(BaseTask):
             # If we should use a nanab berry, also always throw if we can
             if not used_berry and berries_to_spare and (
                     catch_for_candy or berry_id == ITEM_NANABBERRY):
-                new_catch_rate_by_ball = self._use_berry(
-                    berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
-                if new_catch_rate_by_ball != catch_rate_by_ball:
-                    catch_rate_by_ball = new_catch_rate_by_ball
-                    self.inventory.get(berry_id).remove(1)
-                    berry_count -= 1
-                    used_berry = True
+                # Never throw a pinap on a no_evolution_pokemon
+                if no_evolution and berry_id == ITEM_PINAPBERRY:
+                    self.logger.info("Not using Pinap berry on a Pokemon without evolution!")
+                    used_berry = False
+                else:
+                    new_catch_rate_by_ball = self._use_berry(
+                        berry_id, berry_count, encounter_id, catch_rate_by_ball, current_ball)
+                    if new_catch_rate_by_ball != catch_rate_by_ball:
+                        catch_rate_by_ball = new_catch_rate_by_ball
+                        self.inventory.get(berry_id).remove(1)
+                        berry_count -= 1
+                        used_berry = True
 
             # pick the best ball to catch with
             best_ball = current_ball
