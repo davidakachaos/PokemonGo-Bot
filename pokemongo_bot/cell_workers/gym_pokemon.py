@@ -99,7 +99,6 @@ class GymPokemon(BaseTask):
         self.bot.event_manager.register_event('gym_full')
         self.bot.event_manager.register_event('deployed_pokemon')
 
-        #self.logger.info("player_date %s." % self.bot.player_data)
 
         try:
             self.team = self.bot.player_data['team']
@@ -114,8 +113,10 @@ class GymPokemon(BaseTask):
     def should_run(self):
         # Check if we have any Pokemons and are level > 5 and have selected a
         # team
-        return player()._level >= 5 and len(
-            self.pokemons) > 0 and self.team > TEAM_NOT_SET
+        player_stats = inventory.player().player_stats
+        level = int(player_stats.get('level', 0))
+
+        return level >= 5 and len(self.pokemons) > 0 and self.team > TEAM_NOT_SET
 
     def display_fort_pokemon(self):
         if len(self.fort_pokemons) == 0:
@@ -211,9 +212,12 @@ class GymPokemon(BaseTask):
         close_gyms = filter(
             lambda gym: gym["id"] not in self.raid_gyms,
             close_gyms)
+        # Filter gyms we are already in!
+        close_gyms = filter(
+            lambda gym: gym["id"] not in self.dropped_gyms,
+            close_gyms)
 
         if len(close_gyms) > 0:
-            # self.logger.info("Walking past a gym!")
             for gym in close_gyms:
                 gym_details = self.get_gym_details(gym)
                 if gym_details:
@@ -314,7 +318,6 @@ class GymPokemon(BaseTask):
                         self.logger.info("Raid has not begun yet!")
 
                 if 'same_team_deploy_lockout_end_ms' in gym:
-                    # self.logger.info("%f" % gym["same_team_deploy_lockout_end_ms"])
                     org_time = int(gym["same_team_deploy_lockout_end_ms"]) / 1e3
                     lockout_time = datetime.fromtimestamp(org_time)
                     t = datetime.today()
@@ -338,8 +341,6 @@ class GymPokemon(BaseTask):
                     teams.append("Valor")
                 elif gym["owned_by_team"] == 3:
                     teams.append("Instinct")
-                # else:
-                #     self.logger.info("Unknown team? %s" % gym)
 
                 if gym["owned_by_team"] == self.team:
                     if 'gym_display' in gym:
@@ -365,8 +366,6 @@ class GymPokemon(BaseTask):
                                 self.bot.moving_to_gym = True
                                 break
             else:
-                # self.logger.info("Found a Neutral gym?")
-                # self.logger.info("Info: %s" % gym)
                 self.destination = gym
                 break
         if len(teams) > 0:
@@ -385,7 +384,6 @@ class GymPokemon(BaseTask):
             gyms = self.get_gyms()
             for g in gyms:
                 if g["id"] == self.destination["id"]:
-                    # self.logger.info("Inspecting target: %s" % g)
                     if "owned_by_team" in g and g["owned_by_team"] is not self.team:
                         self.logger.info(
                             "Damn! Team %s took gym before we arrived!" % TEAMS[g["owned_by_team"]])
@@ -417,7 +415,6 @@ class GymPokemon(BaseTask):
                                     return WorkerResult.SUCCESS
 
                     if 'same_team_deploy_lockout_end_ms' in g:
-                        # self.logger.info("%f" % gym["same_team_deploy_lockout_end_ms"])
                         org_time = int(g["same_team_deploy_lockout_end_ms"]) / 1e3
                         lockout_time = datetime.fromtimestamp(org_time)
                         t = datetime.today()
@@ -541,8 +538,6 @@ class GymPokemon(BaseTask):
         else:
             return False
         # details = fort_details(self.bot, , lat, lng)
-        # fort_name = details.get('name', 'Unknown')
-        # self.logger.info("Checking Gym: %s (%s pts)" % (fort_name, gym['gym_points']))
 
     def _get_pokemons_in_gym(self, gym_details):
         pokemon_names = []
@@ -601,14 +596,10 @@ class GymPokemon(BaseTask):
                 time_deployed = datetime.now() - deployed_on
                 # % of motivation
                 current_motivation = motivated_pokemon.get('motivation_now')
-                # self.logger.info("Current time deployed: %s" % time_deployed)
-                # self.logger.info("Current motivation: %s" % current_motivation)
-                # self.logger.info("Pokemon info: %s" % pokemon_info)
 
                 # Let's see if we should feed this Pokemon
                 if time_deployed < max_gym_time and current_motivation < 1.0:
                     # Let's feed this Pokemon a candy
-                    # self.logger.info("This pokemon deserves a candy")
                     berry_id = self._determin_feed_berry_id(motivated_pokemon)
                     poke_id = pokemon_info.get('id')
                     quantity = pokemon_info["cp"]
@@ -691,7 +682,6 @@ class GymPokemon(BaseTask):
         for g in close_gyms:
             if g["id"] == gym["id"]:
                 if 'owned_by_team' in g:
-                    # self.logger.info("Expecting team: %s it is: %s" % (self.bot.player_data['team'], g["owned_by_team"]) )
                     if g["owned_by_team"] is not self.team:
                         self.logger.info("Can't drop in a enemy gym!")
                         self.recent_gyms.append(gym["id"])
@@ -759,7 +749,6 @@ class GymPokemon(BaseTask):
                 self.logger.info("Raid has not begun yet!")
 
         if 'same_team_deploy_lockout_end_ms' in gym:
-            # self.logger.info("%f" % gym["same_team_deploy_lockout_end_ms"])
             org_time = int(gym["same_team_deploy_lockout_end_ms"]) / 1e3
             lockout_time = datetime.fromtimestamp(org_time)
             t = datetime.today()
@@ -802,13 +791,9 @@ class GymPokemon(BaseTask):
                             sleep(5)
 
         # FortDeployPokemon
-        # self.logger.info("Trying to deploy Pokemon in gym: %s" % gym)
         gym_details = self.get_gym_details(gym)
-        # self.logger.info("Gym details: %s" % gym_details)
         fort_pokemon = self._get_best_pokemon(current_pokemons)
         pokemon_id = fort_pokemon.unique_id
-        # self.logger.info("Trying to deploy %s (%s)" % (fort_pokemon, pokemon_id))
-        # self.logger.info("Gym in control by %s. I am on team %s" % (gym["owned_by_team"], self.bot.player_data['team']))
 
         request = self.bot.api.create_request()
         request.gym_deploy(
@@ -817,16 +802,13 @@ class GymPokemon(BaseTask):
             player_lat_degrees=f2i(self.bot.position[0]),
             player_lng_degrees=f2i(self.bot.position[1])
         )
-        # self.logger.info("Req: %s" % request)
         response_dict = request.call()
-        # self.logger.info("Called deploy pokemon: %s" % response_dict)
 
         if ('responses' in response_dict) and (
                 'GYM_DEPLOY' in response_dict['responses']):
             deploy = response_dict['responses']['GYM_DEPLOY']
             result = response_dict.get('status_code', -1)
             self.recent_gyms.append(gym["id"])
-            # self.logger.info("Status: %s" % result)
             if result == 1:
                 self.dropped_gyms.append(gym["id"])
                 self.fort_pokemons.append(fort_pokemon)
@@ -909,7 +891,6 @@ class GymPokemon(BaseTask):
                     self.recent_gyms.remove(gym_id)
 
         gyms = []
-        # if not skip_recent_filter:
         gyms = filter(lambda gym: gym["id"] not in self.recent_gyms, self.gyms)
         # Filter blacklisted gyms
         gyms = filter(lambda gym: gym["id"] not in self.blacklist, gyms)
@@ -920,9 +901,7 @@ class GymPokemon(BaseTask):
         # Filter gyms on time out
         gyms = filter(lambda gym: gym["id"] not in self.timeout_gyms, gyms)
         # Filter out the closed gyms...
-        gyms = filter(lambda gym: 'closed' not in gym or gym['closed'] is not True, gyms)
-        # filter fake gyms
-        # self.gyms = filter(lambda gym: "type" not in gym or gym["type"] != 1, self.gyms)
+
         # sort by current distance
         gyms.sort(key=lambda x: distance(
             self.bot.position[0],
