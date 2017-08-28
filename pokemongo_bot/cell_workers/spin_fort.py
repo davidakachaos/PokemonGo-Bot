@@ -98,10 +98,16 @@ class SpinFort(BaseTask):
         details = fort_details(self.bot, fort['id'], lat, lng)
         fort_name = details.get('name', 'Unknown')
 
+        check_fort_modifier = details.get('modifiers', {})
+        if check_fort_modifier:
+            # Expiration time
+            expiration_time = datetime.fromtimestamp(check_fort_modifier[0]['expiration_timestamp_ms'] / 1e3)
+            deployer = check_fort_modifier[0]['deployer_player_codename']
+            self.logger.info("Pokestop %s lured until %s by %s" % (fort_name, expiration_time.strftime("%H:%M"), deployer))
+
         if not is_gym:  # can't lure a gym!!
             check_fort_modifier = details.get('modifiers', {})
             if self.use_lure and check_fort_modifier:
-                # check_fort_modifier_id = check_fort_modifier[0].get('item_id')
                 self.emit_event(
                     'lure_info',
                     formatted='A lure is already in fort, skip deploying lure')
@@ -179,11 +185,7 @@ class SpinFort(BaseTask):
                 if egg_awarded is not None:
                     items_awarded[u'Egg'] = egg_awarded['egg_km_walked_target']
 
-                # if gym_badge_awarded is not None:
-                #     self.logger.info("Gained a Gym Badge! %s" % gym_badge_awarded)
                 #
-                # if chain_hack_sequence_number > 0:
-                #     self.logger.info("Chain hack sequence: %s" % chain_hack_sequence_number)
 
                 if experience_awarded or items_awarded:
                     awards = ', '.join(["{}x {}".format(items_awarded[x], x)
@@ -209,7 +211,6 @@ class SpinFort(BaseTask):
                             'exp': experience_awarded,
                             'spin_amount_now': chain_hack_sequence_number,
                             'items': awards})
-                    # time.sleep(10)
                 else:
                     self.emit_event(
                         'pokestop_empty',
@@ -366,7 +367,6 @@ class SpinFort(BaseTask):
         tmp_count_items = {}
 
         if loot:
-            # self.logger.info("Loot: %s" % loot)
             for item_awarded in loot['loot_item']:
                 item_awarded_id = item_awarded['item']
                 item_awarded_name = inventory.Items.name_for(item_awarded_id)
@@ -380,7 +380,6 @@ class SpinFort(BaseTask):
                 self._update_inventory(item_awarded)
 
         if bonus_loot:
-            # self.logger.info("Bonus Loot: %s" % bonus_loot)
             for item_awarded in bonus_loot['loot_item']:
                 item_awarded_id = item_awarded['item']
                 item_awarded_name = inventory.Items.name_for(item_awarded_id)
@@ -394,7 +393,6 @@ class SpinFort(BaseTask):
                 self._update_inventory(item_awarded)
 
         if team_bonus_loot:
-            # self.logger.info("Team Bonus Loot: %s" % team_bonus_loot)
             for item_awarded in team_bonus_loot['loot_item']:
                 item_awarded_id = item_awarded['item']
                 item_awarded_name = inventory.Items.name_for(item_awarded_id)
