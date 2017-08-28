@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import math
 import time
 import datetime
+from datetime import timedelta
 from geopy.distance import great_circle
 
 from pokemongo_bot.base_task import BaseTask
@@ -15,9 +16,19 @@ from pokemongo_bot.worker_result import WorkerResult
 from pokemongo_bot.item_list import Item
 from pokemongo_bot import inventory
 
+from .utils import fort_details
+
+from pgoapi.utilities import f2i
+
 LOG_TIME_INTERVAL = 60
 NO_LURED_TIME_MALUS = 5
 NO_BALLS_MOVING_TIME = 5 * 60
+
+LURE_REQUEST_RESULT_SUCCESS = 1
+LURE_REQUEST_FORT_ALREADY_HAS_MODIFIER = 2
+LURE_REQUEST_TOO_FAR_AWAY = 3
+LURE_REQUEST_NO_ITEM_IN_INVENTORY = 4
+LURE_REQUEST_POI_INACCESSIBLE = 5
 
 
 class CampFort(BaseTask):
@@ -44,20 +55,42 @@ class CampFort(BaseTask):
             "min_lured_forts_count", 1)
         self.config_camping_time = self.config.get("camping_time", 1800)
         self.config_moving_time = self.config.get("moving_time", 600)
+        self.config_relure_forts = self.config.get(
+            "relure_missing_forts", False)
+        self.config_min_forts_relure = self.config.get(
+            "min_forts_for_relure", self.config_min_forts_count)
+        self.config_keep_min_lures = self.config.get("min_lures_to_keep", 1)
+        self.config_enable_cooldown = self.config.get(
+            "enabled_cooldown", False)
+        self.cooldown = time.time()
+
+        self.recent_lure_forts = []
 
         # Notify other workers of finding a cluster (hunter)
         self.bot.found_camping_cluster = False
+        self.bot.warned_about_sleep = False
 
     def work(self):
         if not self.enabled:
             return WorkerResult.SUCCESS
 
-        if hasattr(self.bot, "catch_limit_reached") and self.bot.catch_limit_reached:
+        if hasattr(
+                self.bot,
+                "catch_limit_reached") and self.bot.catch_limit_reached:
             return WorkerResult.SUCCESS
 
-        if hasattr(self.bot, "hunter_locked_target") and self.bot.hunter_locked_target is not None:
-            if not hasattr(self.bot, "no_camper_while_hunting_global_warning") or \
-                    (hasattr(self.bot, "no_camper_while_hunting_global_warning") and not self.bot.no_camper_while_hunting_global_warning):
+        if self.config_enable_cooldown and time.time() < self.cooldown:
+            return WorkerResult.SUCCESS
+
+        if hasattr(
+                self.bot,
+                "hunter_locked_target") and self.bot.hunter_locked_target is not None:
+            if not hasattr(
+                self.bot,
+                "no_camper_while_hunting_global_warning") or (
+                hasattr(
+                    self.bot,
+                    "no_camper_while_hunting_global_warning") and not self.bot.no_camper_while_hunting_global_warning):
                 self.logger.info(
                     "Pokemon hunter locked a target. Not camping right now...")
             self.bot.no_camper_while_hunting_global_warning = True
@@ -66,18 +99,27 @@ class CampFort(BaseTask):
             self.bot.no_camper_while_hunting_global_warning = False
 
         if self.bot.catch_disabled:
-            if not hasattr(self.bot, "camper_disabled_global_warning") or \
-                    (hasattr(self.bot, "camper_disabled_global_warning") and not self.bot.camper_disabled_global_warning):
-                self.logger.info("All catching tasks are currently disabled until {}. Camping of lured forts disabled till then.".format(
-                    self.bot.catch_resume_at.strftime("%H:%M:%S")))
+            if not hasattr(
+                self.bot,
+                "camper_disabled_global_warning") or (
+                hasattr(
+                    self.bot,
+                    "camper_disabled_global_warning") and not self.bot.camper_disabled_global_warning):
+                self.logger.info(
+                    "All catching tasks are currently disabled until {}. Camping of lured forts disabled till then.".format(
+                        self.bot.catch_resume_at.strftime("%H:%M:%S")))
             self.bot.camper_disabled_global_warning = True
             return WorkerResult.SUCCESS
         else:
             self.bot.camper_disabled_global_warning = False
 
         if self.bot.softban:
-            if not hasattr(self.bot, "camper_softban_global_warning") or \
-                    (hasattr(self.bot, "camper_softban_global_warning") and not self.bot.camper_softban_global_warning):
+            if not hasattr(
+                self.bot,
+                "camper_softban_global_warning") or (
+                hasattr(
+                    self.bot,
+                    "camper_softban_global_warning") and not self.bot.camper_softban_global_warning):
                 self.logger.info(
                     "Possible softban! Not camping forts till fixed.")
             self.bot.camper_softban_global_warning = True
@@ -118,8 +160,6 @@ class CampFort(BaseTask):
         if self.cluster is None:
             if self.clusters is None:
                 self.clusters = self.get_clusters(forts.values())
-            # self.logger.info("Forts: {}".format(len(forts)))
-            # self.logger.info("Checking {} clusters for availiblity....".format(len(self.clusters)))
             available_clusters = self.get_available_clusters(forts)
 
             if len(available_clusters) > 0:
@@ -130,10 +170,18 @@ class CampFort(BaseTask):
                 self.no_log_until = now + LOG_TIME_INTERVAL
                 self.no_recheck_cluster_until = now + NO_BALLS_MOVING_TIME
                 self.bot.found_camping_cluster = True
-                self.emit_event("new_destination",
-                                formatted='New destination at {distance:.2f} meters: {size} forts, {lured} lured'.format(**self.cluster))
+                # Less than a meter away, we're already there!
+                if self.cluster["distance"] < 1.0:
+                    self.emit_event(
+                        "arrived_at_destination",
+                        formatted="Arrived at destination: {size} forts, {lured} lured.".format(
+                            **self.cluster))
+                else:
+                    self.emit_event(
+                        "new_destination",
+                        formatted='New destination at {distance:.2f} meters: {size} forts, {lured} lured'.format(
+                            **self.cluster))
             else:
-                # self.logger.info("No clusters found.")
                 self.cluster = None
                 self.clusters = None
                 self.bot.found_camping_cluster = False
@@ -148,18 +196,22 @@ class CampFort(BaseTask):
                     # First update the distance to the current cluster
                     self.update_cluster_distance(self.cluster)
                     self.update_cluster_distance(available_clusters[0])
-                    if int(self.cluster["distance"]) == int(available_clusters[0]["distance"]):
+                    if int(
+                            self.cluster["distance"]) == int(
+                            available_clusters[0]["distance"]):
                         # its the same cluster!!
                         pass
-                    elif available_clusters[0]["distance"] < 1.0:
-                        # Less then a meter away?? Yeah, right...
+                    elif available_clusters[0]["distance"] < 4.0:
+                        # Less then 4 meters away?? Yeah, right...
                         pass
                     else:
                         self.cluster = available_clusters[0]
                         self.stay_until = 0
                         self.bot.found_camping_cluster = True
-                        self.emit_event("new_destination",
-                                        formatted='Better destination found at {distance:.2f} meters: {size} forts, {lured} lured'.format(**self.cluster))
+                        self.emit_event(
+                            "new_destination",
+                            formatted='Better destination found at {distance:.2f} meters: {size} forts, {lured} lured'.format(
+                                **self.cluster))
             self.no_recheck_cluster_until = now + NO_BALLS_MOVING_TIME
 
         self.update_cluster_distance(self.cluster)
@@ -167,33 +219,108 @@ class CampFort(BaseTask):
 
         if self.stay_until >= now:
             if self.no_log_until < now:
+                next_expire = None
+                next_expire_name = None
+                for fort in self.cluster["forts"]:
+                    lat = fort['latitude']
+                    lng = fort['longitude']
+                    details = fort_details(self.bot, fort['id'], lat, lng)
+                    check_fort_modifier = details.get('modifiers', {})
+                    if check_fort_modifier:
+                        expiration_time = check_fort_modifier[0]['expiration_timestamp_ms']
+                        if next_expire is None or expiration_time < next_expire:
+                            next_expire = expiration_time
+                            next_expire_name = details.get('name', 'Unknown')
+
+                if next_expire is not None:
+                    next_expire_time = datetime.datetime.fromtimestamp(
+                        next_expire / 1e3)
+                    self.logger.info(
+                        "Next lure expires at %s around %s" %
+                        (next_expire_name, next_expire_time.strftime("%H:%M")))
                 self.bot.camping_forts = True
-                self.emit_event("staying_at_destination",
-                                formatted='Staying at destination: {size} forts, {lured} lured'.format(**self.cluster))
+                self.emit_event(
+                    "staying_at_destination",
+                    formatted='Staying at destination: {size} forts, {lured} lured'.format(
+                        **self.cluster))
+                self.no_log_until = now + LOG_TIME_INTERVAL
 
             if self.cluster["lured"] == 0:
                 self.bot.camping_forts = False  # Allow hunter to move
                 self.stay_until -= NO_LURED_TIME_MALUS
                 if self.no_log_until < now:
+                    self.no_log_until = now + LOG_TIME_INTERVAL
                     until = datetime.datetime.fromtimestamp(self.stay_until)
                     self.logger.info(
-                        "Lures gone, waiting for forts to be lured again until %s" % until.strftime("%H:%M"))
+                        "Lures gone, waiting for forts to be lured again until %s" %
+                        until.strftime("%H:%M"))
+                    self.emit_event(
+                        "staying_at_destination",
+                        formatted='Staying at destination: {size} forts, {lured} lured'.format(
+                            **self.cluster))
 
-            self.no_log_until = now + LOG_TIME_INTERVAL
+            if self.config_relure_forts and self.cluster[
+                    "size"] >= self.config_min_forts_relure and self.cluster["lured"] < self.cluster["size"]:
+                deploy_lure = True
+
+                if inventory.items().get(501).count > self.config_keep_min_lures:
+                    if self.no_log_until < now:
+                        self.logger.info(
+                            "No more lures left, keeping %s lures" %
+                            self.config_keep_min_lures)
+                    deploy_lure = False
+
+                if deploy_lure and hasattr(self.bot, "next_sleep"):
+                    lure_ending = datetime.datetime.now() + timedelta(minutes=30)
+                    if lure_ending >= self.bot.next_sleep:
+                        deploy_lure = False
+                        if not self.bot.warned_about_sleep:
+                            self.logger.info(
+                                "Lure would end at %s, but we sleep at %s! Not luring forts..." %
+                                (lure_ending.strftime("%H:%M:%S"), self.bot.next_sleep.strftime("%H:%M:%S")))
+                            self.bot.warned_about_sleep = True
+                    else:
+                        self.bot.warned_about_sleep = False
+                        self.logger.info(
+                            "Lure will end at %s, next sleep is at %s." %
+                            (lure_ending.strftime("%H:%M:%S"),
+                             self.bot.next_sleep.strftime("%H:%M:%S")))
+
+                if deploy_lure:
+                    # Less forts lured than there are forts, relure missing
+                    for fort in self.cluster["forts"]:
+                        if fort in self.recent_lure_forts:
+                            continue
+                        lat = fort['latitude']
+                        lng = fort['longitude']
+                        details = fort_details(self.bot, fort['id'], lat, lng)
+                        check_fort_modifier = details.get('modifiers', {})
+                        if check_fort_modifier == {}:
+                            if self.no_log_until < now:
+                                self.logger.info(
+                                    "Missing lure on %s, deploying lure..." %
+                                    details.get(
+                                        'name', 'Unknown'))
+                            self.relure_fort(fort)
+                            self.recent_lure_forts.append(fort)
+
             self.walker.step(speed=0)
         elif self.walker.step():
             self.stay_until = now + self.config_camping_time
             self.bot.camping_forts = True
             self.bot.found_camping_cluster = True
             self.distance_counter = 0
-            self.emit_event("arrived_at_destination",
-                            formatted="Arrived at destination: {size} forts, {lured} lured.".format(**self.cluster))
+            self.emit_event(
+                "arrived_at_destination",
+                formatted="Arrived at destination: {size} forts, {lured} lured.".format(
+                    **self.cluster))
         elif self.no_log_until < now:
             if self.cluster["lured"] == 0:
                 self.cluster = None
                 self.bot.camping_forts = False
                 self.bot.found_camping_cluster = False
                 self.distance_counter = 0
+                self.recent_lure_forts = []
                 self.emit_event("reset_destination",
                                 formatted="Lures gone! Resetting destination!")
             else:
@@ -202,8 +329,8 @@ class CampFort(BaseTask):
                     if self.distance_counter == 3:
                         self.logger.info(
                             "Having difficulty walking to lures, changing walker!")
-                        self.walker = StepWalker(self.bot, self.cluster["center"][
-                                                 0], self.cluster["center"][1])
+                        self.walker = StepWalker(
+                            self.bot, self.cluster["center"][0], self.cluster["center"][1])
                     elif self.distance_counter > 6:
                         self.logger.info("Can't walk to the lures!")
                         self.distance_counter = 0
@@ -212,13 +339,16 @@ class CampFort(BaseTask):
                     self.distance_counter -= 1
 
                 self.no_log_until = now + LOG_TIME_INTERVAL
-                self.emit_event("moving_to_destination",
-                                formatted="Moving to destination at {distance:.2f} meters: {size} forts, {lured} lured".format(**self.cluster))
+                self.emit_event(
+                    "moving_to_destination",
+                    formatted="Moving to destination at {distance:.2f} meters: {size} forts, {lured} lured".format(
+                        **self.cluster))
 
         return WorkerResult.RUNNING
 
     def get_pokeball_count(self):
-        return sum([inventory.items().get(ball.value).count for ball in [Item.ITEM_POKE_BALL, Item.ITEM_GREAT_BALL, Item.ITEM_ULTRA_BALL]])
+        return sum([inventory.items().get(ball.value).count for ball in [
+                   Item.ITEM_POKE_BALL, Item.ITEM_GREAT_BALL, Item.ITEM_ULTRA_BALL]])
 
     def get_forts(self):
         radius = self.config_max_distance + Constants.MAX_DISTANCE_FORT_IS_REACHABLE
@@ -333,14 +463,21 @@ class CampFort(BaseTask):
         return c1, c2
 
     def get_cluster(self, forts, circle):
-        forts_in_circle = [f for f in forts if self.get_distance(circle, f) <= circle[
-            2]]
+        forts_in_circle = [
+            f for f in forts if self.get_distance(
+                circle, f) <= circle[2]]
 
-        cluster = {"center": (circle[0], circle[1]),
-                   "distance": 0,
-                   "forts": forts_in_circle,
-                   "size": len(forts_in_circle),
-                   "lured": sum(1 for f in forts_in_circle if f.get("active_fort_modifier", None) is not None)}
+        cluster = {
+            "center": (
+                circle[0],
+                circle[1]),
+            "distance": 0,
+            "forts": forts_in_circle,
+            "size": len(forts_in_circle),
+            "lured": sum(
+                1 for f in forts_in_circle if f.get(
+                    "active_fort_modifier",
+                    None) is not None)}
 
         return cluster
 
@@ -356,4 +493,50 @@ class CampFort(BaseTask):
             f["id"], {}).get("active_fort_modifier", None) is not None)
 
     def get_distance(self, location, fort):
-        return great_circle(location, (fort["latitude"], fort["longitude"])).meters
+        return great_circle(
+            location, (fort["latitude"], fort["longitude"])).meters
+
+    def relure_fort(self, fort):
+        lure_count = inventory.items().get(501).count
+
+        lat = fort['latitude']
+        lng = fort['longitude']
+        details = fort_details(self.bot, fort['id'], lat, lng)
+        fort_name = details.get('name', 'Unknown')
+
+        if lure_count > self.config_keep_min_lures:  # Only use lures when there's more than X
+            request = self.bot.api.create_request()
+            request.add_fort_modifier(
+                modifier_type=501,
+                fort_id=fort['id'],
+                player_latitude=f2i(self.bot.position[0]),
+                player_longitude=f2i(self.bot.position[1])
+            )
+            response_dict = request.call()
+
+            if ('responses' in response_dict) and (
+                    'ADD_FORT_MODIFIER' in response_dict['responses']):
+                add_modifier_deatils = response_dict[
+                    'responses']['ADD_FORT_MODIFIER']
+                add_modifier_result = add_modifier_deatils.get(
+                    'result', -1)
+                if (add_modifier_result == LURE_REQUEST_RESULT_SUCCESS):
+                    self.emit_event(
+                        'lure_success',
+                        formatted="You have successfully placed a lure at {}".format(fort_name))
+                if (add_modifier_result ==
+                        LURE_REQUEST_FORT_ALREADY_HAS_MODIFIER):
+                    self.emit_event(
+                        'lure_failed',
+                        formatted='A lure has being placed before you try to do so')
+                if (add_modifier_result == LURE_REQUEST_TOO_FAR_AWAY):
+                    self.emit_event(
+                        'lure_failed', formatted='Pokestop out of range')
+                if (add_modifier_result ==
+                        LURE_REQUEST_NO_ITEM_IN_INVENTORY):
+                    self.emit_event(
+                        'lure_not_enough',
+                        formatted='Not enough lure in inventory')
+                if (add_modifier_result == LURE_REQUEST_POI_INACCESSIBLE):
+                    self.emit_event(
+                        'lure_info', formatted='Unkown Error')

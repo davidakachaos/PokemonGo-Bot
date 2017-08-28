@@ -178,6 +178,8 @@ class SleepSchedule(object):
 
         self._next_sleep, self._next_duration, self._next_end, self._wake_up_at_location, sleep_now = self._get_next_sleep_schedule()
 
+        self.bot.next_sleep = self._next_sleep
+
         if not sleep_now:
             self.bot.event_manager.emit(
                 'next_sleep',
