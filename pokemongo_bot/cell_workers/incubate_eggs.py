@@ -25,6 +25,7 @@ class IncubateEggs(BaseTask):
         self.eggs = []
         self.km_walked = 0
         self.hatching_animation_delay = 4.20
+        self.breakable_incubators = 0
 
         self._process_config()
 
@@ -67,7 +68,7 @@ class IncubateEggs(BaseTask):
             # get available eggs
             eggs = self._filter_sort_eggs(self.infinite_incubator,
                     self.infinite_longer_eggs_first)
-            if self.infinite_random_eggs:
+            if self.infinite_random_eggs and self.breakable_incubators < 1:
                 random.shuffle(eggs)
             self._apply_incubators(eggs, self.ready_infinite_incubators)
         if self.ready_breakable_incubators:
@@ -147,6 +148,7 @@ class IncubateEggs(BaseTask):
         temp_ready_breakable_incubators = []
         temp_ready_infinite_incubators = []
         inv = inventory.jsonify_inventory()
+        self.breakable_incubators = 0
         for inv_data in inv:
             inv_data = inv_data.get("inventory_item_data", {})
             if "egg_incubators" in inv_data:
@@ -154,6 +156,8 @@ class IncubateEggs(BaseTask):
                 if isinstance(incubators, basestring):  # checking for old response
                     incubators = [incubators]
                 for incubator in incubators:
+                    if incubator.get('uses_remaining') is not None:
+                        self.breakable_incubators += 1
                     if 'pokemon_id' in incubator:
                         start_km = incubator.get('start_km_walked', 0)
                         km_walked = incubator.get('target_km_walked', 0)
