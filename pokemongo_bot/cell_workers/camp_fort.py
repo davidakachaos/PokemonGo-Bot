@@ -218,7 +218,7 @@ class CampFort(BaseTask):
         self.update_cluster_lured(self.cluster, forts)
 
         if self.stay_until >= now:
-            if self.no_log_until < now:
+            if self.cluster["lured"] > 0 and self.no_log_until < now:
                 next_expire = None
                 next_expire_name = None
                 for fort in self.cluster["forts"]:
@@ -259,7 +259,7 @@ class CampFort(BaseTask):
                         until.strftime("%H:%M"))
                     self.emit_event(
                         "staying_at_destination",
-                        formatted='Staying at destination: {size} forts, {lured} lured'.format(
+                        formatted='Waiting for relure: {size} forts, {lured} lured'.format(
                             **self.cluster))
 
             if self.config_relure_forts and self.cluster[

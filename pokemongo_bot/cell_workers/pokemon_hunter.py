@@ -828,6 +828,8 @@ class PokemonHunter(BaseTask):
             # Pokemon also has a fort_id of the PokeStop the Pokemon is hiding at.
             # We should set our first destination at that Pokestop.
 
+        
+
         pokemons.sort(key=lambda p: p["distance"])
 
         return pokemons
