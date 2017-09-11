@@ -11,7 +11,7 @@ install:
   - conda install -y protobuf pylint -q
   - pip install --ignore-installed -U -r requirements.txt --src="$HOME/pgoapi"
 before_script:
-  - pip install -r test_requirements.txt --use-mirrors
+  - pip install --ignore-installed -U -r test_requirements.txt
 script:
   - coverage run -m unittest discover -v -p "*_test.py"
   - python json-validate.py configs/*.json.*
